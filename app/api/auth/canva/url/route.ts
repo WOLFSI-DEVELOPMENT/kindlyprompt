@@ -24,8 +24,8 @@ export async function GET(req: Request) {
 
   // Store verifier and redirectUri in cookies for the callback
   const cookieStore = await cookies();
-  cookieStore.set('canva_code_verifier', verifier, { httpOnly: true, secure: true, path: '/', maxAge: 600 });
-  cookieStore.set('canva_redirect_uri', redirectUri, { httpOnly: true, secure: true, path: '/', maxAge: 600 });
+  cookieStore.set('canva_code_verifier', verifier, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 600 });
+  cookieStore.set('canva_redirect_uri', redirectUri, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 600 });
 
   const params = new URLSearchParams({
     client_id: clientId,

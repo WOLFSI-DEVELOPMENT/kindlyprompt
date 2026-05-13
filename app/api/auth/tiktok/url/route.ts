@@ -22,9 +22,9 @@ export async function GET(req: Request) {
   const state = crypto.randomBytes(16).toString('hex');
   
   const cookieStore = await cookies();
-  cookieStore.set('tiktok_code_verifier', verifier, { httpOnly: true, secure: true, path: '/', maxAge: 600 });
-  cookieStore.set('tiktok_redirect_uri', redirectUri, { httpOnly: true, secure: true, path: '/', maxAge: 600 });
-  cookieStore.set('tiktok_state', state, { httpOnly: true, secure: true, path: '/', maxAge: 600 });
+  cookieStore.set('tiktok_code_verifier', verifier, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 600 });
+  cookieStore.set('tiktok_redirect_uri', redirectUri, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 600 });
+  cookieStore.set('tiktok_state', state, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 600 });
 
   const clientKey = process.env.TIKTOK_CLIENT_KEY || ''; // Ensure this is set securely
 
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     code_challenge_method: 'S256'
   });
 
-  const authUrl = `https://www.tiktok.com/v2/auth/authorize/?${params.toString()}`;
+  const authUrl = `https://www.tiktok.com/v2/auth/authorize?${params.toString()}`;
 
   return NextResponse.json({ url: authUrl });
 }
