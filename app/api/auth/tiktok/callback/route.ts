@@ -39,8 +39,7 @@ export async function GET(req: Request) {
         client_secret: clientSecret,
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: redirectUri!,
-        code_verifier: verifier!
+        redirect_uri: redirectUri!
       }).toString()
     });
 

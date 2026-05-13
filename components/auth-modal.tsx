@@ -117,21 +117,21 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
 
   const handleCanvaLogin = async () => {
     try {
+      // Open window synchronously to avoid popup blockers
+      const authWindow = window.open('', 'oauth_popup_canva', 'width=600,height=700');
+      if (!authWindow) {
+        alert('Please allow popups for this site to connect your account.');
+        return;
+      }
+      authWindow.document.body.innerHTML = '<div style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">Loading...</div>';
+
       const response = await fetch(`/api/auth/canva/url?origin=${encodeURIComponent(window.location.origin)}`);
       if (!response.ok) {
         throw new Error('Failed to get auth URL');
       }
       const { url } = await response.json();
 
-      const authWindow = window.open(
-        url,
-        'oauth_popup',
-        'width=600,height=700'
-      );
-
-      if (!authWindow) {
-        alert('Please allow popups for this site to connect your account.');
-      }
+      authWindow.location.href = url;
     } catch (error) {
       console.error('OAuth error:', error);
     }
@@ -139,21 +139,20 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
 
   const handleTiktokLogin = async () => {
     try {
+      // Open window synchronously to avoid popup blockers
+      const authWindow = window.open('', 'oauth_popup_tiktok', 'width=600,height=700');
+      if (!authWindow) {
+        alert('Please allow popups for this site to connect your account.');
+        return;
+      }
+      authWindow.document.body.innerHTML = '<div style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">Loading...</div>';
+
       const response = await fetch(`/api/auth/tiktok/url?origin=${encodeURIComponent(window.location.origin)}`);
       if (!response.ok) {
         throw new Error('Failed to get auth URL');
       }
       const { url } = await response.json();
-
-      const authWindow = window.open(
-        url,
-        'oauth_popup_tiktok',
-        'width=600,height=700'
-      );
-
-      if (!authWindow) {
-        alert('Please allow popups for this site to connect your account.');
-      }
+      authWindow.location.href = url;
     } catch (error) {
       console.error('OAuth error:', error);
     }

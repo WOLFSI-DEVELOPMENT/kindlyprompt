@@ -33,9 +33,7 @@ export async function GET(req: Request) {
     response_type: 'code',
     scope: 'user.info.basic',
     redirect_uri: redirectUri,
-    state: state,
-    code_challenge: challenge,
-    code_challenge_method: 'S256'
+    state: state
   });
 
   const authUrl = `https://www.tiktok.com/v2/auth/authorize?${params.toString()}`;
