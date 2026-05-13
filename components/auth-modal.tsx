@@ -107,7 +107,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
 
   const handleCanvaLogin = async () => {
     try {
-      const response = await fetch('/api/auth/canva/url');
+      const response = await fetch(`/api/auth/canva/url?origin=${encodeURIComponent(window.location.origin)}`);
       if (!response.ok) {
         throw new Error('Failed to get auth URL');
       }
@@ -135,9 +135,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
       }
       if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
         setView('success');
+        const user = event.data.user || { email: 'user@canva.com', name: 'Canva User' };
         setTimeout(() => {
           onClose();
-          onSuccess({ email: 'user@canva.com', name: 'Canva User' });
+          onSuccess(user);
           setView('options');
         }, 2000);
       }
