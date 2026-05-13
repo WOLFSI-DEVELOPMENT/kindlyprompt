@@ -72,6 +72,12 @@ const CanvaIcon = () => (
 );
 
 
+const TikTokIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91.04.15 1.53.5 3.04 1.25 4.38a7.51 7.51 0 004.28 3.55v4.06c-1.32-.08-2.61-.41-3.79-1-1.02-.51-1.94-1.18-2.69-1.99v7.91c-.08 3.03-1.6 5.86-4.04 7.42-2.32 1.48-5.3 1.83-7.94.88-2.45-.88-4.43-2.9-5.26-5.39-.77-2.31-.63-4.88.4-7.07 1.05-2.22 3.01-3.9 5.31-4.57 1.13-.33 2.3-.41 3.46-.22v4.12c-.52-.16-1.08-.2-1.62-.12a3.86 3.86 0 00-2.66 1.63c-.63.92-.93 2.06-.82 3.19.12 1.26.77 2.42 1.76 3.14a4.02 4.02 0 003.55.51c1.33-.43 2.36-1.5 2.76-2.84.15-.5.21-1.02.19-1.54V.02h3.94z"/>
+  </svg>
+);
+
 export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onClose: () => void, onSuccess: (user: any) => void }) {
   const [view, setView] = useState<'options' | 'email' | 'success'>('options');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
@@ -127,15 +133,37 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
     }
   };
 
+  const handleTiktokLogin = async () => {
+    try {
+      const response = await fetch(`/api/auth/tiktok/url?origin=${encodeURIComponent(window.location.origin)}`);
+      if (!response.ok) {
+        throw new Error('Failed to get auth URL');
+      }
+      const { url } = await response.json();
+
+      const authWindow = window.open(
+        url,
+        'oauth_popup_tiktok',
+        'width=600,height=700'
+      );
+
+      if (!authWindow) {
+        alert('Please allow popups for this site to connect your account.');
+      }
+    } catch (error) {
+      console.error('OAuth error:', error);
+    }
+  };
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const origin = event.origin;
-      if (!origin.endsWith('.run.app') && !origin.includes('localhost')) {
+      if (!origin.endsWith('.run.app') && !origin.includes('localhost') && !origin.endsWith('.vercel.app')) {
         return;
       }
       if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
         setView('success');
-        const user = event.data.user || { email: 'user@canva.com', name: 'Canva User' };
+        const user = event.data.user || { email: 'user@example.com', name: 'User' };
         setTimeout(() => {
           onClose();
           onSuccess(user);
@@ -190,6 +218,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
 
                 <button onClick={handleCanvaLogin} className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
                   <CanvaIcon /> Continue with Canva
+                </button>
+
+                <button onClick={handleTiktokLogin} className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
+                  <TikTokIcon /> Continue with TikTok
                 </button>
               </>
             ) : view === 'email' ? (
