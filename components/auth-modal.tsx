@@ -115,6 +115,45 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const authWindow = window.open('', 'oauth_popup_google', 'width=600,height=700');
+      if (!authWindow) {
+        alert('Please allow popups for this site to connect your account.');
+        return;
+      }
+      authWindow.document.body.innerHTML = '<div style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">Loading...</div>';
+
+      const response = await fetch(`/api/auth/google/url?origin=${encodeURIComponent(window.location.origin)}`);
+      if (!response.ok) {
+        throw new Error('Failed to get auth URL');
+      }
+      const { url } = await response.json();
+      authWindow.location.href = url;
+    } catch (error) {
+      console.error('OAuth error:', error);
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    try {
+      const authWindow = window.open('', 'oauth_popup_github', 'width=600,height=700');
+      if (!authWindow) {
+        alert('Please allow popups for this site to connect your account.');
+        return;
+      }
+      authWindow.document.body.innerHTML = '<div style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">Loading...</div>';
+
+      const response = await fetch(`/api/auth/github/url?origin=${encodeURIComponent(window.location.origin)}`);
+      if (!response.ok) {
+        throw new Error('Failed to get auth URL');
+      }
+      const { url } = await response.json();
+      authWindow.location.href = url;
+    } catch (error) {
+      console.error('OAuth error:', error);
+    }
+  };
   const handleCanvaLogin = async () => {
     try {
       // Open window synchronously to avoid popup blockers
@@ -211,11 +250,11 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
                   <Mail size={16} /> Continue with Email
                 </button>
 
-                <button className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
+                <button onClick={handleGoogleLogin} className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
                   <GoogleIcon /> Continue with Google
                 </button>
 
-                <button className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
+                <button onClick={handleGithubLogin} className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
                   <GithubIcon /> Continue with GitHub
                 </button>
 
