@@ -42,7 +42,7 @@ export default function Home() {
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [user, setUser] = useState<{ email: string, name: string } | null>(null);
+  const [user, setUser] = useState<{ email: string, name: string, image?: string } | null>(null);
   
   const [recents, setRecents] = useState<Array<{ title: string, prompt: string, svg: string }>>(() => {
     if (typeof window !== 'undefined') {
@@ -259,8 +259,12 @@ Requirements for the generated prompt:
       <div className="absolute top-6 right-6 z-50">
         {user ? (
           <div className="bg-[#141414] text-zinc-300 text-sm font-medium px-4 py-2 rounded-full border border-white/5 shadow-lg flex items-center gap-3">
-            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-              {user.name.charAt(0).toUpperCase()}
+            <div className="w-6 h-6 rounded-full bg-blue-600 overflow-hidden flex items-center justify-center text-white text-xs font-bold">
+              {user.image ? (
+                <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                user.name.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="flex flex-col text-left">
               <span className="text-[13px] leading-tight text-zinc-200">{user.name}</span>

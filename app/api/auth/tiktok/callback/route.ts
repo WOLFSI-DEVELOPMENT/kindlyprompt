@@ -58,14 +58,15 @@ export async function GET(req: Request) {
       }
     });
 
-    let user = { email: 'user@tiktok.com', name: 'TikTok User' };
+    let user: any = { email: 'user@tiktok.com', name: 'TikTok User' };
 
     if (profileRes.ok) {
         const profileData = await profileRes.json();
         if (profileData.data?.user) {
             user = {
-                email: 'user@tiktok.com', // TikTok does not easily provide email via this scope
+                email: `${profileData.data.user.open_id || 'user'}@tiktok.com`, // TikTok does not easily provide email via this scope
                 name: profileData.data.user.display_name || 'TikTok User',
+                image: profileData.data.user.avatar_url,
             };
         }
     }
