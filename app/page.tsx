@@ -520,7 +520,7 @@ Requirements for the generated prompt:
                      className="absolute bottom-12 left-0 w-48 bg-[#1c1c1c]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-1 shadow-2xl flex flex-col z-50 overflow-hidden"
                    >
                      <div className="flex flex-col gap-0.5 mb-1 text-sm font-medium">
-                       <label htmlFor="image-upload" className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors cursor-pointer group">
+                       <label onClick={(e) => { if(!user) { e.preventDefault(); setIsAuthModalOpen(true); } }} htmlFor={user ? "image-upload" : undefined} className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors cursor-pointer group">
                          <ImageIcon size={16} className="text-zinc-500 group-hover:text-blue-400 transition-colors" />
                          Upload Image
                        </label>
@@ -939,9 +939,15 @@ Requirements for the generated prompt:
                 </button>
                 
                 <a
-                  href={lovableUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={user ? lovableUrl : '#'}
+                  target={user ? "_blank" : undefined}
+                  rel={user ? "noopener noreferrer" : undefined}
+                  onClick={(e) => {
+                    if (!user) {
+                      e.preventDefault();
+                      setIsAuthModalOpen(true);
+                    }
+                  }}
                   className={`bg-[#141414] hover:bg-[#1c1c1c] text-zinc-300 px-5 py-2.5 rounded-full text-[15px] font-medium flex items-center gap-2 transition-colors ${isGenerating ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   <svg width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fillRule="evenodd" clipRule="evenodd" d="M151.083 0c83.413 0 151.061 67.819 151.061 151.467v57.6h50.283c83.413 0 151.082 67.797 151.082 151.466 0 83.691-67.626 151.467-151.082 151.467H0V151.467C0 67.84 67.627 0 151.083 0z" fill="url(#prefix__paint0_radial_5_27)"/><defs><radialGradient id="prefix__paint0_radial_5_27" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="rotate(92.545 118.724 174.844) scale(480.474 650.325)"><stop offset=".25" stopColor="#FE7B02"/><stop offset=".433" stopColor="#FE4230"/><stop offset=".548" stopColor="#FE529A"/><stop offset=".654" stopColor="#DD67EE"/><stop offset=".95" stopColor="#4B73FF"/></radialGradient></defs></svg>
@@ -969,9 +975,15 @@ Requirements for the generated prompt:
                 </a>
 
                 <a
-                  href={aiStudioUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={user ? aiStudioUrl : '#'}
+                  target={user ? "_blank" : undefined}
+                  rel={user ? "noopener noreferrer" : undefined}
+                  onClick={(e) => {
+                    if (!user) {
+                      e.preventDefault();
+                      setIsAuthModalOpen(true);
+                    }
+                  }}
                   className={`bg-[#141414] hover:bg-[#1c1c1c] text-zinc-300 px-5 py-2.5 rounded-full text-[15px] font-medium flex items-center gap-2 transition-colors ${isGenerating ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   <svg width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g clipPath="url(#prefix__clip0_5_13)" fillRule="evenodd" clipRule="evenodd" fill="currentColor"><path d="M211.648 89.515h-76.651A57.707 57.707 0 0077.291 147.2v242.389a57.707 57.707 0 0057.706 57.707h242.411a57.707 57.707 0 0057.707-57.707V288.128l34.624-23.744v125.227a92.35 92.35 0 01-92.331 92.33H134.997a92.349 92.349 0 01-92.33-92.33v-242.39A92.336 92.336 0 0169.702 81.92a92.33 92.33 0 0165.295-27.05h96.96l-20.309 34.645z"/><path d="M380.16 0c3.093 0 5.717 2.219 6.379 5.248a149.328 149.328 0 0040.533 74.325 149.332 149.332 0 0074.347 40.555c3.029.661 5.248 3.285 5.248 6.4a6.574 6.574 0 01-5.248 6.357 149.338 149.338 0 00-74.326 40.555 149.338 149.338 0 00-40.789 75.413 6.334 6.334 0 01-6.144 5.078 6.334 6.334 0 01-6.144-5.078 149.338 149.338 0 00-40.789-75.413 149.326 149.326 0 00-75.414-40.789 6.338 6.338 0 01-5.077-6.144c0-2.987 2.133-5.547 5.077-6.144a149.336 149.336 0 0075.414-40.79 149.354 149.354 0 0040.554-74.325A6.573 6.573 0 01380.16 0z"/></g><defs><clipPath id="prefix__clip0_5_13"><path fill="#fff" d="M0 0h512v512H0z"/></clipPath></defs></svg>
