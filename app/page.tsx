@@ -94,6 +94,25 @@ export default function Home() {
     localStorage.setItem('kindly_prompt_recents', JSON.stringify(recents));
   }, [recents]);
 
+  // Load user from localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('kindly_prompt_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch(e) {}
+    }
+  }, []);
+
+  // Save user to localStorage
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('kindly_prompt_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('kindly_prompt_user');
+    }
+  }, [user]);
+
   const [chatHistory, setChatHistory] = useState<Array<{role: 'user'|'model', text: string}>>([]);
   const [refineInput, setRefineInput] = useState('');
   const [isEditingRaw, setIsEditingRaw] = useState(false);
@@ -257,34 +276,56 @@ Requirements for the generated prompt:
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[#070707] text-white font-sans selection:bg-zinc-800 relative">
       <div className="absolute top-6 right-6 z-50">
-        {user ? (
-          <div className="bg-[#141414] text-zinc-300 text-sm font-medium px-4 py-2 rounded-full border border-white/5 shadow-lg flex items-center gap-3">
-            <div className="w-6 h-6 rounded-full bg-blue-600 overflow-hidden flex items-center justify-center text-white text-xs font-bold">
-              {user.image ? (
-                <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
-              ) : (
-                user.name.charAt(0).toUpperCase()
-              )}
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="text-[13px] leading-tight text-zinc-200">{user.name}</span>
-              <span className="text-[10px] leading-tight text-zinc-500">{user.email}</span>
-            </div>
-            <button
-              onClick={() => setUser(null)}
-              className="ml-2 text-zinc-500 hover:text-zinc-300 transition-colors"
+        <AnimatePresence mode="wait">
+          {user ? (
+            <motion.div 
+              key="user-profile"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9, x: 20 }}
+              className="bg-red-500/20 rounded-full relative overflow-hidden group shadow-lg"
             >
-              <X size={14} />
-            </button>
-          </div>
-        ) : (
-          <button 
-            onClick={() => setIsAuthModalOpen(true)}
-            className="bg-[#1c1c1c] hover:bg-[#2a2a2a] text-zinc-300 text-sm font-medium px-5 py-2.5 rounded-full transition-colors border border-white/5 shadow-lg"
-          >
-            Sign In
-          </button>
-        )}
+              <div className="absolute inset-0 flex items-center justify-end px-4 text-red-500 font-bold text-[11px] tracking-wider pointer-events-none">
+                LOGOUT
+              </div>
+              <motion.div 
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={{ left: 0.6, right: 0 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.x < -60 || info.velocity.x < -400) {
+                    setUser(null);
+                  }
+                }}
+                whileTap={{ scale: 0.98, cursor: 'grabbing' }}
+                className="bg-[#1f1f1f] text-zinc-300 text-sm font-medium px-1.5 py-1.5 pr-6 rounded-full flex items-center gap-3 cursor-grab relative z-10 touch-pan-y shadow-[0_0_20px_rgba(0,0,0,0.2)]"
+                transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+              >
+                <div className="w-8 h-8 rounded-full bg-[#2a2a2a] overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-inner">
+                  {user.image ? (
+                    <img src={user.image} alt={user.name} className="w-full h-full object-cover pointer-events-none" />
+                  ) : (
+                    <span className="pointer-events-none">{user.name.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <div className="flex flex-col text-left pointer-events-none select-none">
+                  <span className="text-[13px] leading-tight text-white font-medium">{user.name}</span>
+                </div>
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.button 
+              key="sign-in"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              onClick={() => setIsAuthModalOpen(true)}
+              className="bg-[#1c1c1c] hover:bg-[#2a2a2a] text-zinc-300 text-sm font-medium px-5 py-2.5 rounded-full transition-colors border border-transparent shadow-lg"
+            >
+              Sign In
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Centered Top Nav Bar */}
