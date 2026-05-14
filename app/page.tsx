@@ -43,6 +43,8 @@ export default function Home() {
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState<{ email: string, name: string, image?: string } | null>(null);
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   
   const [recents, setRecents] = useState<Array<{ title: string, prompt: string, svg: string }>>(() => {
     if (typeof window !== 'undefined') {
@@ -113,6 +115,20 @@ export default function Home() {
     }
   }, [user]);
 
+  // Load and Save API Key
+  useEffect(() => {
+    const savedKey = localStorage.getItem('kindly_gemini_api_key');
+    if (savedKey) setGeminiApiKey(savedKey);
+  }, []);
+
+  useEffect(() => {
+    if (geminiApiKey) {
+      localStorage.setItem('kindly_gemini_api_key', geminiApiKey);
+    } else {
+      localStorage.removeItem('kindly_gemini_api_key');
+    }
+  }, [geminiApiKey]);
+
   const [chatHistory, setChatHistory] = useState<Array<{role: 'user'|'model', text: string}>>([]);
   const [refineInput, setRefineInput] = useState('');
   const [isEditingRaw, setIsEditingRaw] = useState(false);
@@ -127,7 +143,7 @@ export default function Home() {
     setIsGenerating(true);
     
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey: geminiApiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY });
       const streamResponse = await ai.models.generateContentStream({
           model: isVoice ? 'gemini-3.1-flash-live-preview' : 'gemini-3.1-flash-lite',
           contents: [
@@ -211,7 +227,7 @@ export default function Home() {
     setIsGenerating(true);
     setView('result');
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey: geminiApiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY });
       
       let contentsObj: any = text;
       if (image) {
@@ -278,41 +294,74 @@ Requirements for the generated prompt:
       <div className="absolute top-6 right-6 z-50">
         <AnimatePresence mode="wait">
           {user ? (
-            <motion.div 
-              key="user-profile"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9, x: 20 }}
-              className="bg-red-500/20 rounded-full relative overflow-hidden group shadow-lg"
-            >
-              <div className="absolute inset-0 flex items-center justify-end px-4 text-red-500 font-bold text-[11px] tracking-wider pointer-events-none">
-                LOGOUT
-              </div>
-              <motion.div 
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={{ left: 0.6, right: 0 }}
-                onDragEnd={(e, info) => {
-                  if (info.offset.x < -60 || info.velocity.x < -400) {
-                    setUser(null);
-                  }
-                }}
-                whileTap={{ scale: 0.98, cursor: 'grabbing' }}
-                className="bg-[#1f1f1f] text-zinc-300 text-sm font-medium px-1.5 py-1.5 pr-6 rounded-full flex items-center gap-3 cursor-grab relative z-10 touch-pan-y shadow-[0_0_20px_rgba(0,0,0,0.2)]"
-                transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+            showApiKeyInput ? (
+              <motion.div
+                key="api-input"
+                initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.9, x: -20 }}
+                className="bg-[#1f1f1f] flex items-center p-1 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.4)] border border-white/5 overflow-hidden"
               >
-                <div className="w-8 h-8 rounded-full bg-[#2a2a2a] overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-inner">
-                  {user.image ? (
-                    <img src={user.image} alt={user.name} className="w-full h-full object-cover pointer-events-none" />
-                  ) : (
-                    <span className="pointer-events-none">{user.name.charAt(0).toUpperCase()}</span>
-                  )}
-                </div>
-                <div className="flex flex-col text-left pointer-events-none select-none">
-                  <span className="text-[13px] leading-tight text-white font-medium">{user.name}</span>
-                </div>
+                <input
+                  type="password"
+                  placeholder="Gemini API Key..."
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  className="bg-transparent text-sm text-zinc-200 outline-none px-4 w-48 placeholder:text-zinc-600"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') setShowApiKeyInput(false);
+                  }}
+                />
+                <button
+                  onClick={() => setShowApiKeyInput(false)}
+                  className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-white transition-colors"
+                >
+                  <Check size={14} />
+                </button>
               </motion.div>
-            </motion.div>
+            ) : (
+              <motion.div 
+                key="user-profile"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                className="bg-[#1f1f1f] rounded-full relative overflow-hidden group shadow-lg border-none"
+              >
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-red-500 font-bold text-[11px] tracking-wider pointer-events-none">
+                  LOGOUT
+                </div>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-500 font-bold text-[11px] tracking-wider pointer-events-none">
+                  API KEY
+                </div>
+                <motion.div 
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={{ left: 0.6, right: 0.6 }}
+                  onDragEnd={(e, info) => {
+                    if (info.offset.x < -60 || info.velocity.x < -400) {
+                      setShowApiKeyInput(true);
+                    } else if (info.offset.x > 60 || info.velocity.x > 400) {
+                      setUser(null);
+                    }
+                  }}
+                  whileTap={{ scale: 0.98, cursor: 'grabbing' }}
+                  className="bg-[#2a2a2a] text-zinc-300 text-sm font-medium px-1.5 py-1.5 pr-6 rounded-full flex items-center gap-3 cursor-grab relative z-10 touch-pan-y shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                  transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#1c1c1c] overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-inner">
+                    {user.image ? (
+                      <img src={user.image} alt={user.name} className="w-full h-full object-cover pointer-events-none" />
+                    ) : (
+                      <span className="pointer-events-none">{user.name.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col text-left pointer-events-none select-none">
+                    <span className="text-[13px] leading-tight text-white font-medium">{user.name}</span>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )
           ) : (
             <motion.button 
               key="sign-in"
