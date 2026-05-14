@@ -53,7 +53,9 @@ export default function Home() {
   const [isPlus, setIsPlus] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [user, setUser] = useState<{ email: string, name: string, image?: string } | null>(null);
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
   const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [isApiKeyLoaded, setIsApiKeyLoaded] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   useEffect(() => {
@@ -155,40 +157,46 @@ export default function Home() {
 
   // Load user from localStorage
   useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       const savedUser = localStorage.getItem('kindly_prompt_user');
       if (savedUser) {
         try {
           setUser(JSON.parse(savedUser));
         } catch(e) {}
       }
+      setIsUserLoaded(true);
     }, 0);
+    return () => clearTimeout(timeout);
   }, []);
 
   // Save user to localStorage
   useEffect(() => {
+    if (!isUserLoaded) return;
     if (user) {
       localStorage.setItem('kindly_prompt_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('kindly_prompt_user');
     }
-  }, [user]);
+  }, [user, isUserLoaded]);
 
   // Load and Save API Key
   useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       const savedKey = localStorage.getItem('kindly_gemini_api_key');
       if (savedKey) setGeminiApiKey(savedKey);
+      setIsApiKeyLoaded(true);
     }, 0);
+    return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
+    if (!isApiKeyLoaded) return;
     if (geminiApiKey) {
       localStorage.setItem('kindly_gemini_api_key', geminiApiKey);
     } else {
       localStorage.removeItem('kindly_gemini_api_key');
     }
-  }, [geminiApiKey]);
+  }, [geminiApiKey, isApiKeyLoaded]);
 
   const [chatHistory, setChatHistory] = useState<Array<{role: 'user'|'model', text: string}>>([]);
   const [refineInput, setRefineInput] = useState('');
