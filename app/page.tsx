@@ -565,7 +565,9 @@ Requirements for the generated SKILL.md:
       {view === 'home' ? (
         // HOME VIEW
         <div className="max-w-4xl mx-auto px-4 pt-24 pb-16 flex flex-col items-center min-h-[80vh] justify-center">
-          <h1 className="text-3xl md:text-4xl font-medium tracking-tight mb-8">What do you want to prompt?</h1>
+          <h1 className="text-3xl md:text-4xl font-medium tracking-tight mb-8">
+            {selectedTool === 'prompt' ? 'What do you want to prompt?' : selectedTool === 'design' ? 'What do you want to design?' : 'What do you want to build a skill for?'}
+          </h1>
 
           {/* Input Box */}
           <div className="flex flex-col items-center w-full max-w-2xl relative">
@@ -912,7 +914,7 @@ Requirements for the generated SKILL.md:
                       const a = document.createElement('a');
                       a.href = url;
                       const safeTitle = item.title.toLowerCase().replace(/\s+/g, '_');
-                      const extension = item.type === 'design' ? 'design.md' : item.type === 'skill' ? 'skill.md' : 'prompt.md';
+                      const extension = (item as any).type === 'design' ? 'design.md' : (item as any).type === 'skill' ? 'skill.md' : 'prompt.md';
                       a.download = `${safeTitle}_${extension}`;
                       a.click();
                       URL.revokeObjectURL(url);
