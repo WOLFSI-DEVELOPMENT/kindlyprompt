@@ -81,7 +81,10 @@ export function PersonalIntelligenceModal({ isOpen, setIsOpen, onComplete }: { i
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (isOpen) setStep(0);
+    if (isOpen) {
+      const t = setTimeout(() => setStep(0), 0);
+      return () => clearTimeout(t);
+    }
   }, [isOpen]);
 
   const close = () => {

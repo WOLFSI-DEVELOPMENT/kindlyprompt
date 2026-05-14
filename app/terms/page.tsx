@@ -21,7 +21,7 @@ export default function TermsOfService() {
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">3. User Conduct</h2>
           <p className="text-zinc-400 leading-relaxed">
-            You agree to not use the service to generate content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, libelous, invasive of another's privacy, or otherwise objectionable.
+            You agree to not use the service to generate content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, libelous, invasive of another&apos;s privacy, or otherwise objectionable.
           </p>
         </section>
 

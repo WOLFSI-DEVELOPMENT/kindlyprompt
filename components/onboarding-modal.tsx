@@ -207,7 +207,7 @@ const StepSix = () => {
                 Enjoy!
             </motion.div>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-zinc-500 text-sm">
-                You're ready to start building amazing apps.
+                You&apos;re ready to start building amazing apps.
             </motion.div>
         </div>
     );
@@ -217,7 +217,10 @@ export function OnboardingModal({ isOpen, setIsOpen }: { isOpen: boolean, setIsO
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (isOpen) setStep(0);
+    if (isOpen) {
+      const t = setTimeout(() => setStep(0), 0);
+      return () => clearTimeout(t);
+    }
   }, [isOpen]);
 
   const close = () => {

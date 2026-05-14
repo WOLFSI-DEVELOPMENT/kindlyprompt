@@ -91,6 +91,15 @@ const DiscordIcon = () => (
   </svg>
 );
 
+const MicrosoftIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 21 21">
+    <path fill="#f25022" d="M0 0h10v10H0z"/>
+    <path fill="#7fba00" d="M11 0h10v10H11z"/>
+    <path fill="#00a4ef" d="M0 11h10v10H0z"/>
+    <path fill="#ffb900" d="M11 11h10v10H11z"/>
+  </svg>
+);
+
 export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onClose: () => void, onSuccess: (user: any) => void }) {
   const [view, setView] = useState<'options' | 'email' | 'success'>('options');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
@@ -163,6 +172,26 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
       console.error('OAuth error:', error);
     }
   };
+  const handleMicrosoftLogin = async () => {
+    try {
+      const authWindow = window.open('', 'oauth_popup_microsoft', 'width=600,height=700');
+      if (!authWindow) {
+        alert('Please allow popups for this site to connect your account.');
+        return;
+      }
+      authWindow.document.body.innerHTML = '<div style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">Loading...</div>';
+
+      const response = await fetch(`/api/auth/microsoft/url?origin=${encodeURIComponent(window.location.origin)}`);
+      if (!response.ok) {
+        throw new Error('Failed to get auth URL');
+      }
+      const { url } = await response.json();
+      authWindow.location.href = url;
+    } catch (error) {
+      console.error('OAuth error:', error);
+    }
+  };
+
   const handleCanvaLogin = async () => {
     try {
       // Open window synchronously to avoid popup blockers
@@ -286,6 +315,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onC
 
                 <button onClick={handleGithubLogin} className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
                   <GithubIcon /> Continue with GitHub
+                </button>
+
+                <button onClick={handleMicrosoftLogin} className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">
+                  <MicrosoftIcon /> Continue with Microsoft
                 </button>
 
                 <button onClick={handleCanvaLogin} className="w-full bg-[#1c1c1c] hover:bg-[#2a2a2a] py-3.5 px-4 rounded-full text-zinc-200 text-[15px] font-medium transition-colors flex items-center justify-center gap-2 border-none">

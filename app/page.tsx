@@ -36,6 +36,8 @@ import { PersonalIntelligenceModal } from '@/components/pi-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
 import { UpgradeModal } from '@/components/upgrade-modal';
 
+import { SKILL_CREATOR_GUIDELINES } from '@/lib/skill-guidelines';
+
 export default function Home() {
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -58,17 +60,21 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('success') === 'true') {
-        setIsPlus(true);
-        setShowSuccessModal(true);
+        const timeout = setTimeout(() => {
+          setIsPlus(true);
+          setShowSuccessModal(true);
+        }, 0);
         localStorage.setItem('hasPlus', 'true');
         // Remove param from url
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
         
         setTimeout(() => setShowSuccessModal(false), 3000);
+        return () => clearTimeout(timeout);
       } else {
         const hasPlus = localStorage.getItem('hasPlus') === 'true';
-        setIsPlus(hasPlus);
+        const timeout = setTimeout(() => setIsPlus(hasPlus), 0);
+        return () => clearTimeout(timeout);
       }
     }
   }, []);
@@ -324,7 +330,11 @@ Requirements for the generated DESIGN.md:
 4. Output ONLY the markdown text.`;
         promptDescription = 'The advanced DESIGN.md file content ready to be copy-pasted.';
       } else if (selectedTool === 'skill') {
-        systemInstruction = `You are an AI assistant specialized in writing agent skills. Your task is to take a basic user prompt and turn it into a highly detailed SKILL.md file content.
+        systemInstruction = `You are an AI assistant specialized in writing agent skills. Your task is to take a basic user prompt and turn it into a highly detailed SKILL.md file content. Read these guidelines carefully before generating the skill:
+
+<skill-creator-guidelines>
+${SKILL_CREATOR_GUIDELINES}
+</skill-creator-guidelines>
         
 Requirements for the generated SKILL.md:
 1. Include YAML frontmatter with 'name' and 'description'.
@@ -968,17 +978,29 @@ Requirements for the generated SKILL.md:
         </div>
       ) : view === 'recents' ? (
         // RECENTS VIEW
-        <div className="max-w-4xl w-full relative z-10 shrink-0 mx-auto px-4 pt-24 pb-16 min-h-[80vh]">
-          <h1 className="text-2xl font-medium tracking-tight mb-4">Recent Generations</h1>
-          <div className="flex gap-2 mb-8 border-b border-white/10 pb-4">
-            <button onClick={() => setRecentsFilter('prompt')} className={`px-4 py-2 rounded-full text-sm font-medium flex-1 sm:flex-none transition-colors border outline-none ${recentsFilter === 'prompt' ? 'bg-[#2a2a2a] text-white border-zinc-700' : 'bg-transparent text-zinc-400 border-transparent hover:text-zinc-200'}`}>Prompts</button>
-            <button onClick={() => setRecentsFilter('design')} className={`px-4 py-2 rounded-full text-sm font-medium flex-1 sm:flex-none transition-colors border outline-none ${recentsFilter === 'design' ? 'bg-[#2a2a2a] text-white border-zinc-700' : 'bg-transparent text-zinc-400 border-transparent hover:text-zinc-200'}`}>Designs</button>
-            <button onClick={() => setRecentsFilter('skill')} className={`px-4 py-2 rounded-full text-sm font-medium flex-1 sm:flex-none transition-colors border outline-none ${recentsFilter === 'skill' ? 'bg-[#2a2a2a] text-white border-zinc-700' : 'bg-transparent text-zinc-400 border-transparent hover:text-zinc-200'}`}>Skills</button>
+        <div className="max-w-5xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
+          <h1 className="text-3xl font-medium tracking-tight mb-8 text-white">History</h1>
+          <div className="flex bg-[#141414] p-1.5 rounded-2xl mb-10 border border-white/5 self-start w-fit scrollbar-hide overflow-x-auto">
+            <button onClick={() => setRecentsFilter('prompt')} className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-colors outline-none shrink-0 ${recentsFilter === 'prompt' ? 'bg-[#2a2a2a] text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}>Prompts</button>
+            <button onClick={() => setRecentsFilter('design')} className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-colors outline-none shrink-0 ${recentsFilter === 'design' ? 'bg-[#2a2a2a] text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}>Designs</button>
+            <button onClick={() => setRecentsFilter('skill')} className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-colors outline-none shrink-0 ${recentsFilter === 'skill' ? 'bg-[#2a2a2a] text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}>Skills</button>
           </div>
           {recents.filter((item) => (item.type || 'prompt') === recentsFilter).length === 0 ? (
-            <div className="text-zinc-500 font-medium">No recent generations yet.</div>
+            <div className="flex flex-col items-center justify-center text-center py-24 px-4 bg-[#141414]/50 border border-white/5 rounded-[32px] w-full">
+              <div className="w-20 h-20 rounded-full bg-[#1c1c1c] flex items-center justify-center mb-6 border border-white/5 shadow-inner">
+                <History className="text-zinc-600 w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-medium text-zinc-300 mb-3 tracking-tight">No {recentsFilter}s yet</h3>
+              <p className="text-zinc-500 max-w-sm text-[15px]">Generate some {recentsFilter === 'prompt' ? 'prompts' : recentsFilter === 'design' ? 'UI designs' : 'skills'} to see them appear in your history.</p>
+              <button 
+                onClick={() => setView('home')} 
+                className="mt-8 bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-zinc-200 transition-colors"
+               >
+                Go Generate
+              </button>
+            </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px] w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full">
               {recents.filter((item) => (item.type || 'prompt') === recentsFilter).map((item, i) => (
                 <div
                   key={i}
@@ -987,16 +1009,16 @@ Requirements for the generated SKILL.md:
                      setResult(item.prompt);
                      setView('result');
                   }}
-                  className="bg-[#141414] rounded-2xl p-5 cursor-pointer hover:bg-[#1c1c1c] transition-colors aspect-[4/3] flex flex-col relative group border border-transparent hover:border-zinc-800/50 min-h-[140px]"
+                  className="bg-[#141414] rounded-[24px] p-6 cursor-pointer hover:bg-[#1a1a1a] transition-all duration-300 aspect-[4/3] flex flex-col relative group border border-white/5 hover:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1"
                 >
                   <div 
-                    className="flex-1 flex items-center justify-center text-zinc-800 transition-colors w-16 h-16 mx-auto group-hover:scale-105 duration-500 [&>svg]:w-full [&>svg]:h-full"
+                    className="flex-1 flex items-center justify-center text-zinc-800 transition-colors w-24 h-24 mx-auto group-hover:scale-110 duration-500 [&>svg]:w-full [&>svg]:h-full"
                     dangerouslySetInnerHTML={{ __html: item.svg }} 
                   />
-                  <div className="flex items-end justify-between mt-2">
-                    <span className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 truncate pr-2">{item.title}</span>
-                    <div className="bg-[#212121] p-1.5 rounded-full text-zinc-500 group-hover:text-zinc-400 group-hover:bg-[#2a2a2a] transition-colors shrink-0">
-                      <ArrowUpRight size={14} />
+                  <div className="flex items-center justify-between mt-4">
+                    <span className="text-[15px] font-medium text-zinc-300 group-hover:text-white truncate pr-4">{item.title}</span>
+                    <div className="bg-[#212121] p-2 rounded-full text-zinc-400 group-hover:text-white group-hover:bg-[#2a2a2a] transition-colors shrink-0">
+                      <ArrowUpRight size={16} />
                     </div>
                   </div>
                 </div>
@@ -1180,7 +1202,7 @@ Requirements for the generated SKILL.md:
           </div>
 
           {/* Editor Header / Switcher */}
-          <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
              <div className="flex bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-xl">
                 <button 
                   onClick={() => setIsEditingRaw(false)}
@@ -1367,7 +1389,7 @@ Requirements for the generated SKILL.md:
       )}
       
       {view !== 'edit' && (
-        <footer className="w-full py-8 mt-auto px-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-[#070707]">
+        <footer className="w-full py-4 mt-auto px-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-[#070707]">
           <div>&copy; {new Date().getFullYear()} Kindly Prompt. All rights reserved.</div>
           <div className="flex items-center gap-6">
             <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
