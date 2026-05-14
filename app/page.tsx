@@ -452,9 +452,6 @@ Requirements for the generated SKILL.md:
                   <div className="flex flex-col text-left pointer-events-none select-none">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[13px] leading-tight text-white font-medium">{user.name}</span>
-                      {isPlus && (
-                        <span className="bg-[#1f1f1f] text-zinc-400 text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-full">Plus</span>
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -741,11 +738,7 @@ Requirements for the generated SKILL.md:
 
             <div 
               onClick={() => {
-                if (!isPlus) {
-                  setIsUpgradeModalOpen(true);
-                } else {
-                  window.open(aiStudioUrl, '_blank');
-                }
+                window.open(aiStudioUrl, '_blank');
               }}
               className="bg-[#141414] hover:bg-[#1a1a1a] cursor-pointer transition-colors rounded-full px-5 py-2.5 flex items-center gap-2"
             >
@@ -840,7 +833,7 @@ Requirements for the generated SKILL.md:
         </div>
       ) : view === 'library' ? (
         // LIBRARY VIEW
-        <div className="max-w-6xl mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
+        <div className="max-w-6xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
           <div className="flex flex-col gap-2 mb-12">
             <h1 className="text-3xl font-medium tracking-tight">Prompt Library</h1>
             <p className="text-zinc-500 text-sm">Curated collection of high-performance prompts for vibe coding and UI design.</p>
@@ -975,7 +968,7 @@ Requirements for the generated SKILL.md:
         </div>
       ) : view === 'recents' ? (
         // RECENTS VIEW
-        <div className="max-w-4xl mx-auto px-4 pt-24 pb-16 min-h-[80vh]">
+        <div className="max-w-4xl w-full relative z-10 shrink-0 mx-auto px-4 pt-24 pb-16 min-h-[80vh]">
           <h1 className="text-2xl font-medium tracking-tight mb-4">Recent Generations</h1>
           <div className="flex gap-2 mb-8 border-b border-white/10 pb-4">
             <button onClick={() => setRecentsFilter('prompt')} className={`px-4 py-2 rounded-full text-sm font-medium flex-1 sm:flex-none transition-colors border outline-none ${recentsFilter === 'prompt' ? 'bg-[#2a2a2a] text-white border-zinc-700' : 'bg-transparent text-zinc-400 border-transparent hover:text-zinc-200'}`}>Prompts</button>
@@ -1153,18 +1146,13 @@ Requirements for the generated SKILL.md:
                 </a>
 
                 <a
-                  href={user && isPlus ? aiStudioUrl : '#'}
-                  target={user && isPlus ? "_blank" : undefined}
-                  rel={user && isPlus ? "noopener noreferrer" : undefined}
+                  href={user ? aiStudioUrl : '#'}
+                  target={user ? "_blank" : undefined}
+                  rel={user ? "noopener noreferrer" : undefined}
                   onClick={(e) => {
                     if (!user) {
                       e.preventDefault();
                       setIsAuthModalOpen(true);
-                      return;
-                    }
-                    if (!isPlus) {
-                      e.preventDefault();
-                      setIsUpgradeModalOpen(true);
                       return;
                     }
                   }}
@@ -1379,7 +1367,7 @@ Requirements for the generated SKILL.md:
       )}
       
       {view !== 'edit' && (
-        <footer className="w-full py-8 mt-auto px-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-zinc-500 text-sm gap-4">
+        <footer className="w-full py-8 mt-auto px-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-[#070707]">
           <div>&copy; {new Date().getFullYear()} Kindly Prompt. All rights reserved.</div>
           <div className="flex items-center gap-6">
             <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
