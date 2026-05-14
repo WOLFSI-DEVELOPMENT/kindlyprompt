@@ -32,6 +32,8 @@ import ReactMarkdown from 'react-markdown';
 import { GoogleGenAI, Type } from '@google/genai';
 import { SuggestToolModal } from '@/components/suggest-modal';
 import { AuthModal } from '@/components/auth-modal';
+import { PersonalIntelligenceModal } from '@/components/pi-modal';
+import { OnboardingModal } from '@/components/onboarding-modal';
 
 export default function Home() {
   const [input, setInput] = useState('');
@@ -45,6 +47,30 @@ export default function Home() {
   const [user, setUser] = useState<{ email: string, name: string, image?: string } | null>(null);
   const [geminiApiKey, setGeminiApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+
+  const [isPiModalOpen, setIsPiModalOpen] = useState(false);
+  const [isPiCardVisible, setIsPiCardVisible] = useState(false);
+  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+      const piActive = localStorage.getItem('piActive');
+      
+      if (!hasSeenOnboarding) {
+        setIsOnboardingModalOpen(true);
+      }
+      if (piActive !== 'true') {
+        setIsPiCardVisible(true);
+      }
+    }, 0);
+  }, []);
+
+  const handlePiComplete = () => {
+    localStorage.setItem('piActive', 'true');
+    localStorage.setItem('hasSeenPI', 'true');
+    setIsPiCardVisible(false);
+  };
   
   const [recents, setRecents] = useState<Array<{ title: string, prompt: string, svg: string }>>(() => {
     if (typeof window !== 'undefined') {
@@ -98,12 +124,14 @@ export default function Home() {
 
   // Load user from localStorage
   useEffect(() => {
-    const savedUser = localStorage.getItem('kindly_prompt_user');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch(e) {}
-    }
+    setTimeout(() => {
+      const savedUser = localStorage.getItem('kindly_prompt_user');
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch(e) {}
+      }
+    }, 0);
   }, []);
 
   // Save user to localStorage
@@ -117,8 +145,10 @@ export default function Home() {
 
   // Load and Save API Key
   useEffect(() => {
-    const savedKey = localStorage.getItem('kindly_gemini_api_key');
-    if (savedKey) setGeminiApiKey(savedKey);
+    setTimeout(() => {
+      const savedKey = localStorage.getItem('kindly_gemini_api_key');
+      if (savedKey) setGeminiApiKey(savedKey);
+    }, 0);
   }, []);
 
   useEffect(() => {
@@ -171,7 +201,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [result]);
+  }, [result, geminiApiKey]);
 
   const toggleListening = () => {
     const nextListening = !isListening;
@@ -503,109 +533,119 @@ Requirements for the generated prompt:
           <h1 className="text-3xl md:text-4xl font-medium tracking-tight mb-8">What do you want to prompt?</h1>
 
           {/* Input Box */}
-          <div 
-            className="bg-[#1c1c1c] rounded-xl flex flex-col transition-all border border-transparent focus-within:border-zinc-700/50 shadow-sm max-w-2xl w-full relative"
-            style={{ boxSizing: 'border-box', minHeight: '100px' }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-          >
-            {imageRef && (
-              <div className="absolute top-3 left-4 w-16 h-9 rounded-full overflow-hidden shrink-0 border border-zinc-700/50 shadow-sm z-10 group">
-                <img src={imageRef} alt="Reference" className="w-full h-full object-cover" />
-                <button 
-                  onClick={() => setImageRef(null)} 
-                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                >
-                  <X size={14} className="text-white" />
+          <div className="flex flex-col items-center w-full max-w-2xl relative">
+            <div 
+              className={`bg-[#1c1c1c] rounded-xl flex flex-col transition-all border border-transparent focus-within:border-zinc-700/50 shadow-sm w-full relative z-10`}
+              style={{ boxSizing: 'border-box', minHeight: '100px' }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+            >
+              {imageRef && (
+                <div className="absolute top-3 left-4 w-16 h-9 rounded-full overflow-hidden shrink-0 border border-zinc-700/50 shadow-sm z-10 group">
+                  <img src={imageRef} alt="Reference" className="w-full h-full object-cover" />
+                  <button 
+                    onClick={() => setImageRef(null)} 
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                  >
+                    <X size={14} className="text-white" />
+                  </button>
+                </div>
+              )}
+              <div className="flex-1 flex px-4 pt-4 pb-12 relative w-full">
+                <textarea
+                  className={`w-full bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 placeholder:select-none text-base custom-scrollbar ${imageRef ? 'mt-8' : ''}`}
+                  style={{ boxSizing: 'border-box', paddingRight: '40px', minHeight: '60px' }}
+                  placeholder="Describe your app or vibe, or paste an image..."
+                  value={input}
+                  onPaste={handlePaste}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      generatePrompt(input, imageRef);
+                    }
+                  }}
+                />
+              </div>
+              
+              <div className="absolute bottom-[5px] left-[5px] flex items-end">
+                 <input 
+                   type="file" 
+                   accept="image/*" 
+                   id="image-upload" 
+                   className="hidden" 
+                   onChange={(e) => {
+                     if (e.target.files && e.target.files[0]) {
+                       handleImageUpload(e.target.files[0]);
+                       setIsAddMenuOpen(false);
+                     }
+                     e.target.value = '';
+                   }}
+                 />
+                 <button 
+                   onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
+                   className={`text-zinc-500 hover:text-zinc-300 p-2 cursor-pointer flex items-center justify-center rounded-full transition-colors hover:bg-[#2a2a2a] ${isAddMenuOpen ? 'bg-[#2a2a2a] text-zinc-300' : ''}`} 
+                   title="Add context"
+                 >
+                   <Plus size={18} className={`transition-transform duration-200 ${isAddMenuOpen ? 'rotate-45' : ''}`} />
+                 </button>
+
+                 <AnimatePresence>
+                   {isAddMenuOpen && (
+                     <motion.div 
+                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                       animate={{ opacity: 1, y: 0, scale: 1 }}
+                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                       transition={{ duration: 0.15 }}
+                       className="absolute bottom-12 left-0 w-48 bg-[#1c1c1c]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-1 shadow-2xl flex flex-col z-50 overflow-hidden"
+                     >
+                       <div className="flex flex-col gap-0.5 mb-1 text-sm font-medium">
+                         <label onClick={(e) => { if(!user) { e.preventDefault(); setIsAuthModalOpen(true); } }} htmlFor={user ? "image-upload" : undefined} className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors cursor-pointer group">
+                           <ImageIcon size={16} className="text-zinc-500 group-hover:text-blue-400 transition-colors" />
+                           Upload Image
+                         </label>
+                         <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
+                           <Link size={16} className="text-zinc-500 transition-colors" />
+                           Add URL
+                         </button>
+                       </div>
+                       <div className="h-px bg-white/5 mx-2 my-1" />
+                       <div className="flex flex-col gap-0.5 mt-1 text-sm font-medium">
+                         <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
+                           <MessageSquare size={16} className="text-zinc-500 transition-colors" />
+                           Prompt
+                         </button>
+                         <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
+                           <Paintbrush size={16} className="text-zinc-500 transition-colors" />
+                           Design
+                         </button>
+                         <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
+                           <Zap size={16} className="text-zinc-500 transition-colors" />
+                           Skill
+                         </button>
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+              </div>
+
+              <button
+                onClick={() => generatePrompt(input, imageRef)}
+                disabled={!input.trim() && !imageRef}
+                className="bg-[#2a2a2a] hover:bg-[#383838] p-2 text-zinc-300 disabled:opacity-50 disabled:bg-[#1a1a1a] disabled:text-zinc-700 rounded-full transition-colors flex items-center justify-center border border-transparent disabled:border-zinc-800"
+                style={{ position: 'absolute', bottom: '5px', right: '5px' }}
+              >
+                <ArrowUp size={18} />
+              </button>
+            </div>
+            {isPiCardVisible && (
+              <div className="w-full h-[42px] bg-[#1a1a1a]/80 backdrop-blur-md rounded-b-2xl flex items-center justify-between px-4 z-0 shadow-lg border border-t-0 border-white/5 -mt-[7px] pt-[7px] relative">
+                <span className="text-[11px] font-medium tracking-wide text-zinc-400 capitalize">Activate personal intelligence</span>
+                <button onClick={() => { setIsPiModalOpen(true); localStorage.setItem('hasSeenPI', 'true'); }} className="bg-[#2a2a2a] text-zinc-300 px-4 h-[24px] rounded-full text-[10px] hover:bg-[#383838] transition-colors border-none outline-none flex items-center justify-center font-medium shadow-sm">
+                  Activate
                 </button>
               </div>
             )}
-            <div className="flex-1 flex px-4 pt-4 pb-12 relative w-full">
-              <textarea
-                className={`w-full bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 placeholder:select-none text-base custom-scrollbar ${imageRef ? 'mt-8' : ''}`}
-                style={{ boxSizing: 'border-box', paddingRight: '40px', minHeight: '60px' }}
-                placeholder="Describe your app or vibe, or paste an image..."
-                value={input}
-                onPaste={handlePaste}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    generatePrompt(input, imageRef);
-                  }
-                }}
-              />
-            </div>
-            
-            <div className="absolute bottom-[5px] left-[5px] flex items-end">
-               <input 
-                 type="file" 
-                 accept="image/*" 
-                 id="image-upload" 
-                 className="hidden" 
-                 onChange={(e) => {
-                   if (e.target.files && e.target.files[0]) {
-                     handleImageUpload(e.target.files[0]);
-                     setIsAddMenuOpen(false);
-                   }
-                   e.target.value = '';
-                 }}
-               />
-               <button 
-                 onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
-                 className={`text-zinc-500 hover:text-zinc-300 p-2 cursor-pointer flex items-center justify-center rounded-full transition-colors hover:bg-[#2a2a2a] ${isAddMenuOpen ? 'bg-[#2a2a2a] text-zinc-300' : ''}`} 
-                 title="Add context"
-               >
-                 <Plus size={18} className={`transition-transform duration-200 ${isAddMenuOpen ? 'rotate-45' : ''}`} />
-               </button>
-
-               <AnimatePresence>
-                 {isAddMenuOpen && (
-                   <motion.div 
-                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                     transition={{ duration: 0.15 }}
-                     className="absolute bottom-12 left-0 w-48 bg-[#1c1c1c]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-1 shadow-2xl flex flex-col z-50 overflow-hidden"
-                   >
-                     <div className="flex flex-col gap-0.5 mb-1 text-sm font-medium">
-                       <label onClick={(e) => { if(!user) { e.preventDefault(); setIsAuthModalOpen(true); } }} htmlFor={user ? "image-upload" : undefined} className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors cursor-pointer group">
-                         <ImageIcon size={16} className="text-zinc-500 group-hover:text-blue-400 transition-colors" />
-                         Upload Image
-                       </label>
-                       <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
-                         <Link size={16} className="text-zinc-500 transition-colors" />
-                         Add URL
-                       </button>
-                     </div>
-                     <div className="h-px bg-white/5 mx-2 my-1" />
-                     <div className="flex flex-col gap-0.5 mt-1 text-sm font-medium">
-                       <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
-                         <MessageSquare size={16} className="text-zinc-500 transition-colors" />
-                         Prompt
-                       </button>
-                       <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
-                         <Paintbrush size={16} className="text-zinc-500 transition-colors" />
-                         Design
-                       </button>
-                       <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
-                         <Zap size={16} className="text-zinc-500 transition-colors" />
-                         Skill
-                       </button>
-                     </div>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-            </div>
-
-            <button
-              onClick={() => generatePrompt(input, imageRef)}
-              disabled={!input.trim() && !imageRef}
-              className="bg-[#2a2a2a] hover:bg-[#383838] p-2 text-zinc-300 disabled:opacity-50 disabled:bg-[#1a1a1a] disabled:text-zinc-700 rounded-full transition-colors flex items-center justify-center border border-transparent disabled:border-zinc-800"
-              style={{ position: 'absolute', bottom: '5px', right: '5px' }}
-            >
-              <ArrowUp size={18} />
-            </button>
           </div>
 
           {/* Export Targets */}
@@ -1245,6 +1285,15 @@ Requirements for the generated prompt:
       </main>
       <SuggestToolModal isOpen={isSuggestModalOpen} onClose={() => setIsSuggestModalOpen(false)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={(u) => setUser(u)} />
+      <PersonalIntelligenceModal 
+        isOpen={isPiModalOpen} 
+        setIsOpen={(v) => { 
+          if (!v) localStorage.setItem('hasSeenPI', 'true');
+          setIsPiModalOpen(v); 
+        }} 
+        onComplete={handlePiComplete} 
+      />
+      <OnboardingModal isOpen={isOnboardingModalOpen} setIsOpen={setIsOnboardingModalOpen} />
     </div>
   );
 }

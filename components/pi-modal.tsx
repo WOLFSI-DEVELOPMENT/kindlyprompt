@@ -76,23 +76,21 @@ const SuccessAnimation = () => {
   );
 };
 
-export function PersonalIntelligenceModal() {
-  const [isOpen, setIsOpen] = useState(false);
+export function PersonalIntelligenceModal({ isOpen, setIsOpen, onComplete }: { isOpen: boolean, setIsOpen: (v: boolean) => void, onComplete: () => void }) {
   const [step, setStep] = useState(0);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Show one-time popup on mount
-    const hasSeen = localStorage.getItem('hasSeenPI');
-    if (!hasSeen) {
-      const timer = setTimeout(() => setIsOpen(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+    if (isOpen) setStep(0);
+  }, [isOpen]);
 
   const close = () => {
-    localStorage.setItem('hasSeenPI', 'true');
     setIsOpen(false);
+  };
+
+  const handleFinish = () => {
+    onComplete();
+    close();
   };
 
   const copyPromptText = `You are my personalized AI coding assistant. I want you to analyze my previous project files, my communication style, and my aesthetic preferences to create a deeply tailored MEMORY.md file. 
@@ -113,14 +111,6 @@ Create this file entirely structured around these rigid design bounds so that ev
 
   return (
     <>
-      <button 
-        onClick={() => { setStep(0); setIsOpen(true); }}
-        className="fixed bottom-6 right-6 z-40 bg-[#1c1c1c] border border-white/5 hover:bg-[#2a2a2a] text-zinc-400 p-3 rounded-full shadow-lg transition-all hover:scale-105"
-        title="Personal Intelligence"
-      >
-        <Sparkles size={20} />
-      </button>
-
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#070707]/90 backdrop-blur-md">
           <button onClick={close} className="absolute top-6 right-6 text-zinc-500 hover:text-zinc-300 transition-colors z-50">
@@ -283,7 +273,7 @@ Create this file entirely structured around these rigid design bounds so that ev
               </div>
               <div className="mt-4 flex justify-center">
                 <button
-                  onClick={close}
+                  onClick={handleFinish}
                   className="bg-[#2a2a2a] hover:bg-[#383838] px-8 py-3 rounded-full text-zinc-200 text-sm font-medium transition-colors flex items-center justify-center border border-transparent"
                 >
                   Get Started
