@@ -42,6 +42,8 @@ export default function Home() {
   const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
+  const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill'>('prompt');
+  const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill'>('prompt');
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState<{ email: string, name: string, image?: string } | null>(null);
@@ -72,7 +74,7 @@ export default function Home() {
     setIsPiCardVisible(false);
   };
   
-  const [recents, setRecents] = useState<Array<{ title: string, prompt: string, svg: string }>>(() => {
+  const [recents, setRecents] = useState<Array<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill' }>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('kindly_prompt_recents');
       if (saved) {
@@ -86,7 +88,7 @@ export default function Home() {
     }
     return [];
   });
-  const [currentResult, setCurrentResult] = useState<{ title: string, prompt: string, svg: string } | null>(null);
+  const [currentResult, setCurrentResult] = useState<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill' } | null>(null);
   const [imageRef, setImageRef] = useState<string | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
@@ -240,7 +242,12 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'PROMPT.md';
+    
+    let filename = 'PROMPT.md';
+    if (currentResult.type === 'design') filename = 'DESIGN.md';
+    if (currentResult.type === 'skill') filename = 'SKILL.md';
+    
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -272,6 +279,38 @@ export default function Home() {
         }];
       }
 
+      let systemInstruction = '';
+      let promptDescription = '';
+      if (selectedTool === 'prompt') {
+        systemInstruction = `You are an expert prompt engineer and UI designer for "vibe coders". 
+Your task is to take a basic user prompt for an app or website and turn it into a next-level, highly detailed prompt.
+
+Requirements for the generated prompt:
+1. It MUST explicitly specify exact spacing (using Tailwind scales like p-4, m-8), layout structures, theme colors (hex codes or Tailwind palette), features, typography and vibe.
+2. It MUST explicitly BAN glows, gradients, and shadows. Add clear instructions to the AI interpreting the prompt like "Do not use glows", "No gradients", "Strictly no drop shadows or box shadows".
+3. Use a brutalist, clean, flat, or minimal solid aesthetic approach in the description by default, unless the user specifies a different vibe.
+4. Include detailed instructions for individual interactive elements to have clear, solid state changes (e.g. solid color background changes for hover).`;
+        promptDescription = 'The advanced prompt ready to be copy-pasted.';
+      } else if (selectedTool === 'design') {
+        systemInstruction = `You are an expert design documenter. Your task is to take a basic user prompt and turn it into a highly detailed DESIGN.md file content.
+        
+Requirements for the generated DESIGN.md:
+1. Structure it nicely with markdown headings (e.g., # App Design, ## Typography, ## Colors, etc.).
+2. Detail the exact color palette, typography choices, and spacing guidelines.
+3. Describe the layout structure and interaction patterns.
+4. Output ONLY the markdown text.`;
+        promptDescription = 'The advanced DESIGN.md file content ready to be copy-pasted.';
+      } else if (selectedTool === 'skill') {
+        systemInstruction = `You are an AI assistant specialized in writing agent skills. Your task is to take a basic user prompt and turn it into a highly detailed SKILL.md file content.
+        
+Requirements for the generated SKILL.md:
+1. Include YAML frontmatter with 'name' and 'description'.
+2. Structure the skill instructions with clear headings.
+3. Detail the exact steps, rules, and constraints the agent should follow when using this skill.
+4. Output ONLY the markdown text.`;
+        promptDescription = 'The advanced SKILL.md file content ready to be copy-pasted.';
+      }
+
       const response = await ai.models.generateContent({
         model: 'gemini-3.1-flash',
         contents: contentsObj,
@@ -281,19 +320,12 @@ export default function Home() {
             type: Type.OBJECT,
             properties: {
               title: { type: Type.STRING, description: 'A two or three word short title for this app idea.' },
-              prompt: { type: Type.STRING, description: 'The advanced prompt ready to be copy-pasted.' },
+              prompt: { type: Type.STRING, description: promptDescription },
               svg_icon: { type: Type.STRING, description: 'A functional SVG string (only the <svg> tag and contents). Use viewBox 0 0 48 48. Build a very simple geometric layout abstractly representing the app using <rect> or <circle> elements. Use exactly fill="#27272a" or clear stroke="#27272a". Never add width or height attributes to the root <svg>, only viewBox. Make it a clean flat icon.' }
             },
             required: ['title', 'prompt', 'svg_icon']
           },
-          systemInstruction: `You are an expert prompt engineer and UI designer for "vibe coders". 
-Your task is to take a basic user prompt for an app or website and turn it into a next-level, highly detailed prompt.
-
-Requirements for the generated prompt:
-1. It MUST explicitly specify exact spacing (using Tailwind scales like p-4, m-8), layout structures, theme colors (hex codes or Tailwind palette), features, typography and vibe.
-2. It MUST explicitly BAN glows, gradients, and shadows. Add clear instructions to the AI interpreting the prompt like "Do not use glows", "No gradients", "Strictly no drop shadows or box shadows".
-3. Use a brutalist, clean, flat, or minimal solid aesthetic approach in the description by default, unless the user specifies a different vibe.
-4. Include detailed instructions for individual interactive elements to have clear, solid state changes (e.g. solid color background changes for hover).`,
+          systemInstruction: systemInstruction,
         },
       });
       
@@ -303,7 +335,8 @@ Requirements for the generated prompt:
         const newItem = {
           title: parsed.title || 'Generated App',
           prompt: parsed.prompt || result || 'Failed to parse prompt.',
-          svg: parsed.svg_icon || `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`
+          svg: parsed.svg_icon || `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`,
+          type: selectedTool
         };
         setCurrentResult(newItem);
         setRecents(prev => [newItem, ...prev]);
@@ -484,7 +517,9 @@ Requirements for the generated prompt:
               <div className="w-[1px] h-4 bg-white/10 mx-2" />
               
               <div className="flex items-center gap-2 px-3 text-zinc-500 select-none">
-                 <span className="text-[10px] font-mono tracking-tighter uppercase opacity-50">Kindly Prompt</span>
+                 <span className="text-[10px] font-mono tracking-tighter uppercase opacity-50">
+                    {selectedTool === 'prompt' ? 'Kindly Prompt' : selectedTool === 'design' ? 'Kindly Design' : 'Kindly Skill'}
+                 </span>
               </div>
             </motion.div>
           </div>
@@ -555,7 +590,7 @@ Requirements for the generated prompt:
                 <textarea
                   className={`w-full bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 placeholder:select-none text-base custom-scrollbar ${imageRef ? 'mt-8' : ''}`}
                   style={{ boxSizing: 'border-box', paddingRight: '40px', minHeight: '60px' }}
-                  placeholder="Describe your app or vibe, or paste an image..."
+                  placeholder={selectedTool === 'prompt' ? "Describe your app or vibe, or paste an image..." : selectedTool === 'design' ? "Describe your design needs, or paste an image..." : "Describe the agent skill you need..."}
                   value={input}
                   onPaste={handlePaste}
                   onChange={(e) => setInput(e.target.value)}
@@ -611,16 +646,16 @@ Requirements for the generated prompt:
                        </div>
                        <div className="h-px bg-white/5 mx-2 my-1" />
                        <div className="flex flex-col gap-0.5 mt-1 text-sm font-medium">
-                         <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
-                           <MessageSquare size={16} className="text-zinc-500 transition-colors" />
+                         <button onClick={() => { setSelectedTool('prompt'); setIsAddMenuOpen(false); }} className={`w-full text-left px-3 py-2 flex items-center gap-2 rounded-full transition-colors group ${selectedTool === 'prompt' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-300 hover:bg-[#1f1f1f]'}`}>
+                           <MessageSquare size={16} className={`transition-colors ${selectedTool === 'prompt' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`} />
                            Prompt
                          </button>
-                         <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
-                           <Paintbrush size={16} className="text-zinc-500 transition-colors" />
+                         <button onClick={() => { setSelectedTool('design'); setIsAddMenuOpen(false); }} className={`w-full text-left px-3 py-2 flex items-center gap-2 rounded-full transition-colors group ${selectedTool === 'design' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-300 hover:bg-[#1f1f1f]'}`}>
+                           <Paintbrush size={16} className={`transition-colors ${selectedTool === 'design' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`} />
                            Design
                          </button>
-                         <button className="w-full text-left px-3 py-2 flex items-center gap-2 rounded-full text-zinc-300 hover:bg-[#2a2a2a] hover:text-white transition-colors group cursor-not-allowed opacity-70">
-                           <Zap size={16} className="text-zinc-500 transition-colors" />
+                         <button onClick={() => { setSelectedTool('skill'); setIsAddMenuOpen(false); }} className={`w-full text-left px-3 py-2 flex items-center gap-2 rounded-full transition-colors group ${selectedTool === 'skill' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-300 hover:bg-[#1f1f1f]'}`}>
+                           <Zap size={16} className={`transition-colors ${selectedTool === 'skill' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`} />
                            Skill
                          </button>
                        </div>
@@ -870,12 +905,15 @@ Requirements for the generated prompt:
                     <Sparkles size={14} /> USE
                   </button>
                   <button 
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       const blob = new Blob([item.prompt], { type: 'text/markdown' });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = `${item.title.toLowerCase().replace(/\s+/g, '_')}_prompt.md`;
+                      const safeTitle = item.title.toLowerCase().replace(/\s+/g, '_');
+                      const extension = item.type === 'design' ? 'design.md' : item.type === 'skill' ? 'skill.md' : 'prompt.md';
+                      a.download = `${safeTitle}_${extension}`;
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
@@ -892,12 +930,17 @@ Requirements for the generated prompt:
       ) : view === 'recents' ? (
         // RECENTS VIEW
         <div className="max-w-4xl mx-auto px-4 pt-24 pb-16 min-h-[80vh]">
-          <h1 className="text-2xl font-medium tracking-tight mb-8">Recent Generations</h1>
-          {recents.length === 0 ? (
+          <h1 className="text-2xl font-medium tracking-tight mb-4">Recent Generations</h1>
+          <div className="flex gap-2 mb-8 border-b border-white/10 pb-4">
+            <button onClick={() => setRecentsFilter('prompt')} className={`px-4 py-2 rounded-full text-sm font-medium flex-1 sm:flex-none transition-colors border outline-none ${recentsFilter === 'prompt' ? 'bg-[#2a2a2a] text-white border-zinc-700' : 'bg-transparent text-zinc-400 border-transparent hover:text-zinc-200'}`}>Prompts</button>
+            <button onClick={() => setRecentsFilter('design')} className={`px-4 py-2 rounded-full text-sm font-medium flex-1 sm:flex-none transition-colors border outline-none ${recentsFilter === 'design' ? 'bg-[#2a2a2a] text-white border-zinc-700' : 'bg-transparent text-zinc-400 border-transparent hover:text-zinc-200'}`}>Designs</button>
+            <button onClick={() => setRecentsFilter('skill')} className={`px-4 py-2 rounded-full text-sm font-medium flex-1 sm:flex-none transition-colors border outline-none ${recentsFilter === 'skill' ? 'bg-[#2a2a2a] text-white border-zinc-700' : 'bg-transparent text-zinc-400 border-transparent hover:text-zinc-200'}`}>Skills</button>
+          </div>
+          {recents.filter((item) => (item.type || 'prompt') === recentsFilter).length === 0 ? (
             <div className="text-zinc-500 font-medium">No recent generations yet.</div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px] w-full">
-              {recents.map((item, i) => (
+              {recents.filter((item) => (item.type || 'prompt') === recentsFilter).map((item, i) => (
                 <div
                   key={i}
                   onClick={() => {
@@ -1024,7 +1067,7 @@ Requirements for the generated prompt:
                   className="bg-[#141414] hover:bg-[#1c1c1c] text-zinc-300 px-5 py-2.5 rounded-full text-[15px] font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
                 >
                   <Download size={16} />
-                  Download PROMPT.md
+                  {currentResult?.type === 'design' ? 'Download DESIGN.md' : currentResult?.type === 'skill' ? 'Download SKILL.md' : 'Download PROMPT.md'}
                 </button>
                 
                 <a

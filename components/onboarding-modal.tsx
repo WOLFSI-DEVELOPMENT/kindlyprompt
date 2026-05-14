@@ -268,7 +268,10 @@ export function OnboardingModal({ isOpen, setIsOpen }: { isOpen: boolean, setIsO
                      transition={{ duration: 0.3 }}
                      className="w-full h-full absolute inset-0"
                   >
-                      {steps[step].component()}
+                      {(() => {
+                        const StepComponent = steps[step].component;
+                        return <StepComponent />;
+                      })()}
                   </motion.div>
               </AnimatePresence>
             </div>
