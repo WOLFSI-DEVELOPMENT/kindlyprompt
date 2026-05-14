@@ -34,6 +34,7 @@ import { SuggestToolModal } from '@/components/suggest-modal';
 import { AuthModal } from '@/components/auth-modal';
 import { PersonalIntelligenceModal } from '@/components/pi-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
+import { UpgradeModal } from '@/components/upgrade-modal';
 
 export default function Home() {
   const [input, setInput] = useState('');
@@ -46,9 +47,31 @@ export default function Home() {
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill'>('prompt');
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isPlus, setIsPlus] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [user, setUser] = useState<{ email: string, name: string, image?: string } | null>(null);
   const [geminiApiKey, setGeminiApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        setIsPlus(true);
+        setShowSuccessModal(true);
+        localStorage.setItem('hasPlus', 'true');
+        // Remove param from url
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+        
+        setTimeout(() => setShowSuccessModal(false), 3000);
+      } else {
+        const hasPlus = localStorage.getItem('hasPlus') === 'true';
+        setIsPlus(hasPlus);
+      }
+    }
+  }, []);
 
   const [isPiModalOpen, setIsPiModalOpen] = useState(false);
   const [isPiCardVisible, setIsPiCardVisible] = useState(false);
@@ -354,6 +377,13 @@ Requirements for the generated SKILL.md:
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[#070707] text-white font-sans selection:bg-zinc-800 relative">
+      {view !== 'edit' && (
+        <div className="absolute top-6 left-6 z-50">
+          <a href="/" className="block hover:opacity-80 transition-opacity">
+            <img src="https://i.ibb.co/WL4x4zC/AI-text-generation-app-icon-202605140740-modified.png" alt="Kindly Prompt Logo" className="w-[38px] h-[38px] rounded-xl shadow-xl border border-white/10" />
+          </a>
+        </div>
+      )}
       <div className="absolute top-6 right-6 z-50">
         <AnimatePresence mode="wait">
           {user ? (
@@ -420,7 +450,12 @@ Requirements for the generated SKILL.md:
                     )}
                   </div>
                   <div className="flex flex-col text-left pointer-events-none select-none">
-                    <span className="text-[13px] leading-tight text-white font-medium">{user.name}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[13px] leading-tight text-white font-medium">{user.name}</span>
+                      {isPlus && (
+                        <span className="bg-[#1f1f1f] text-zinc-400 text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-full">Plus</span>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               </motion.div>
@@ -704,7 +739,16 @@ Requirements for the generated SKILL.md:
                <span className="text-zinc-300 text-[15px] font-medium leading-[0]">ChatGPT</span>
             </div>
 
-            <div className="bg-[#141414] hover:bg-[#1a1a1a] cursor-pointer transition-colors rounded-full px-5 py-2.5 flex items-center gap-2">
+            <div 
+              onClick={() => {
+                if (!isPlus) {
+                  setIsUpgradeModalOpen(true);
+                } else {
+                  window.open(aiStudioUrl, '_blank');
+                }
+              }}
+              className="bg-[#141414] hover:bg-[#1a1a1a] cursor-pointer transition-colors rounded-full px-5 py-2.5 flex items-center gap-2"
+            >
               <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g clipPath="url(#prefix__clip0_5_13)" fillRule="evenodd" clipRule="evenodd" fill="currentColor"><path d="M211.648 89.515h-76.651A57.707 57.707 0 0077.291 147.2v242.389a57.707 57.707 0 0057.706 57.707h242.411a57.707 57.707 0 0057.707-57.707V288.128l34.624-23.744v125.227a92.35 92.35 0 01-92.331 92.33H134.997a92.349 92.349 0 01-92.33-92.33v-242.39A92.336 92.336 0 0169.702 81.92a92.33 92.33 0 0165.295-27.05h96.96l-20.309 34.645z"/><path d="M380.16 0c3.093 0 5.717 2.219 6.379 5.248a149.328 149.328 0 0040.533 74.325 149.332 149.332 0 0074.347 40.555c3.029.661 5.248 3.285 5.248 6.4a6.574 6.574 0 01-5.248 6.357 149.338 149.338 0 00-74.326 40.555 149.338 149.338 0 00-40.789 75.413 6.334 6.334 0 01-6.144 5.078 6.334 6.334 0 01-6.144-5.078 149.338 149.338 0 00-40.789-75.413 149.326 149.326 0 00-75.414-40.789 6.338 6.338 0 01-5.077-6.144c0-2.987 2.133-5.547 5.077-6.144a149.336 149.336 0 0075.414-40.79 149.354 149.354 0 0040.554-74.325A6.573 6.573 0 01380.16 0z"/></g><defs><clipPath id="prefix__clip0_5_13"><path fill="#fff" d="M0 0h512v512H0z"/></clipPath></defs></svg>
               <span className="text-zinc-300 text-[15px] font-medium">AI Studio</span>
             </div>
@@ -1109,13 +1153,19 @@ Requirements for the generated SKILL.md:
                 </a>
 
                 <a
-                  href={user ? aiStudioUrl : '#'}
-                  target={user ? "_blank" : undefined}
-                  rel={user ? "noopener noreferrer" : undefined}
+                  href={user && isPlus ? aiStudioUrl : '#'}
+                  target={user && isPlus ? "_blank" : undefined}
+                  rel={user && isPlus ? "noopener noreferrer" : undefined}
                   onClick={(e) => {
                     if (!user) {
                       e.preventDefault();
                       setIsAuthModalOpen(true);
+                      return;
+                    }
+                    if (!isPlus) {
+                      e.preventDefault();
+                      setIsUpgradeModalOpen(true);
+                      return;
                     }
                   }}
                   className={`bg-[#141414] hover:bg-[#1c1c1c] text-zinc-300 px-5 py-2.5 rounded-full text-[15px] font-medium flex items-center gap-2 transition-colors ${isGenerating ? 'opacity-50 pointer-events-none' : ''}`}
@@ -1327,9 +1377,38 @@ Requirements for the generated SKILL.md:
           </div>
         </div>
       )}
+      
+      {view !== 'edit' && (
+        <footer className="w-full py-8 mt-auto px-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-zinc-500 text-sm gap-4">
+          <div>&copy; {new Date().getFullYear()} Kindly Prompt. All rights reserved.</div>
+          <div className="flex items-center gap-6">
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Terms of Service</a>
+          </div>
+        </footer>
+      )}
       </main>
       <SuggestToolModal isOpen={isSuggestModalOpen} onClose={() => setIsSuggestModalOpen(false)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={(u) => setUser(u)} />
+      <UpgradeModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} />
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 shadow-2xl z-[9999] flex items-center gap-3 pr-6"
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Check size={16} />
+            </div>
+            <div>
+              <div className="text-sm font-medium text-white tracking-tight">Successfully Upgraded</div>
+              <div className="text-xs text-zinc-400">Welcome to Kindly Prompt Plus.</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <PersonalIntelligenceModal 
         isOpen={isPiModalOpen} 
         setIsOpen={(v) => { 
