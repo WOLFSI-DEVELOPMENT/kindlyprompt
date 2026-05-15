@@ -29,7 +29,9 @@ import {
   Paintbrush,
   Zap,
   Search,
-  FileText
+  FileText,
+  BookOpen,
+  Code2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -56,6 +58,7 @@ import { SuggestToolModal } from '@/components/suggest-modal';
 import { AuthModal } from '@/components/auth-modal';
 import { PersonalIntelligenceModal } from '@/components/pi-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
+import { SuperAgentModal } from '@/components/super-agent-modal';
 import { UpgradeModal } from '@/components/upgrade-modal';
 
 import { SKILL_CREATOR_GUIDELINES } from '@/lib/skill-guidelines';
@@ -64,10 +67,16 @@ export default function Home() {
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState('');
+  const [streamedResult, setStreamedResult] = useState('');
+  const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
   const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill'>('prompt');
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
+  const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent'>('ultra-fast');
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
@@ -82,12 +91,7 @@ export default function Home() {
   const [geminiApiKey, setGeminiApiKey] = useState('');
   const [isApiKeyLoaded, setIsApiKeyLoaded] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-  const [showSplash, setShowSplash] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('hasSeenSplash');
-    }
-    return true;
-  });
+  const [showSplash, setShowSplash] = useState(true);
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -106,14 +110,21 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (showSplash) {
-      const timer = setTimeout(() => {
-        setShowSplash(false);
-        sessionStorage.setItem('hasSeenSplash', 'true');
-      }, 2000);
-      return () => clearTimeout(timer);
+    if (typeof window !== 'undefined') {
+      if (sessionStorage.getItem('hasSeenSplash')) {
+        const timer = setTimeout(() => {
+          setShowSplash(false);
+        }, 0);
+        return () => clearTimeout(timer);
+      } else {
+        const timer = setTimeout(() => {
+          setShowSplash(false);
+          sessionStorage.setItem('hasSeenSplash', 'true');
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [showSplash]);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -141,17 +152,23 @@ export default function Home() {
   const [isPiModalOpen, setIsPiModalOpen] = useState(false);
   const [isPiCardVisible, setIsPiCardVisible] = useState(false);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
+  const [isSuperAgentModalOpen, setIsSuperAgentModalOpen] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
       const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
       const piActive = localStorage.getItem('piActive');
+      const hasSeenSuperAgent = localStorage.getItem('hasSeenSuperAgent');
       
       if (!hasSeenOnboarding) {
         setIsOnboardingModalOpen(true);
       }
       if (piActive !== 'true') {
         setIsPiCardVisible(true);
+      }
+      if (!hasSeenSuperAgent) {
+        setIsSuperAgentModalOpen(true);
+        localStorage.setItem('hasSeenSuperAgent', 'true');
       }
     }, 0);
   }, []);
@@ -207,6 +224,64 @@ export default function Home() {
       }
     }
   };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if typing in an input or textarea unless it is part of the shortcut
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const isInput = tag === 'input' || tag === 'textarea';
+
+      // Ctrl + Enter to go home
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        setView('home');
+        setInput('');
+        setResult('');
+      }
+      
+      // Ctrl + K for Focus Input and Home
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchQuery('');
+        // Make sure we are not already trying to focus
+        setTimeout(() => {
+          if (view === 'recents' || view === 'library') {
+             // It will focus the search input inherently 
+             const searchInput = document.querySelector('input[placeholder="Search..."]') as HTMLInputElement;
+             if(searchInput) searchInput.focus();
+          } else {
+             setView('home');
+             const mainInput = document.querySelector('textarea') as HTMLTextAreaElement;
+             if(mainInput) mainInput.focus();
+          }
+        }, 100);
+      }
+
+      // Ctrl + H for History
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        e.preventDefault();
+        setView('recents');
+      }
+
+      // Ctrl + L for Library
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault();
+        setView('library');
+      }
+      
+      // Ctrl + C to copy result
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && view === 'result' && !window.getSelection()?.toString()) {
+        e.preventDefault();
+        navigator.clipboard.writeText(result);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [view, result]);
 
   // Save recents to localStorage
   useEffect(() => {
@@ -271,25 +346,23 @@ export default function Home() {
     
     try {
       const ai = new GoogleGenAI({ apiKey: geminiApiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY });
-      const streamResponse = await ai.models.generateContentStream({
-          model: isVoice ? 'gemini-3.1-flash-live-preview' : 'gemini-3.1-flash-lite',
+      const response = await ai.models.generateContent({
+          model: isVoice ? 'gemini-3.1-flash-live-preview' : (modelType === 'super-agent' ? 'gemini-3-flash-preview' : 'gemini-3.1-flash-lite'),
           contents: [
               { role: 'user', parts: [{ text: `Here is the current prompt I am generating:\n\n${result}\n\nPlease update it according to this instruction: ${instruction}\n\nProvide the updated full prompt string. Do not include markdown \`\`\` blocks around your answer.` }]}
           ],
           config: isVoice ? {
             responseModalities: ["AUDIO" as any]
-          } : undefined
+          } : {
+            tools: modelType === 'super-agent' ? [{ googleSearch: {} }, { urlContext: {} }, { codeExecution: {} }] : undefined
+          }
       });
       
-      let fullText = "";
-      for await (const chunk of streamResponse) {
-        let chunkText = chunk.text || "";
-        if (chunkText.startsWith('```markdown')) chunkText = chunkText.replace(/^```markdown\n?/, '').replace(/\n?```$/, '');
-        else if (chunkText.startsWith('```')) chunkText = chunkText.replace(/^```\n?/, '').replace(/\n?```$/, '');
-        
-        fullText += chunkText;
-        setResult(fullText.trim());
-      }
+      let fullText = response.text || "";
+      if (fullText.startsWith('```markdown')) fullText = fullText.replace(/^```markdown\n?/, '').replace(/\n?```$/, '');
+      else if (fullText.startsWith('```')) fullText = fullText.replace(/^```\n?/, '').replace(/\n?```$/, '');
+      
+      setResult(fullText.trim());
       
       setChatHistory(prev => [...prev, { role: 'model', text: 'Prompt updated.' }]);
     } catch(e) {
@@ -298,7 +371,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [result, geminiApiKey]);
+  }, [result, geminiApiKey, modelType]);
 
   const toggleListening = () => {
     const nextListening = !isListening;
@@ -410,10 +483,17 @@ Requirements for the generated SKILL.md:
         promptDescription = 'The advanced SKILL.md file content ready to be copy-pasted.';
       }
 
+      setStreamedResult('');
+      setAgentLogs([{ id: 'start', text: 'Initializing...', type: 'info' }]);
+      if (modelType === 'super-agent') {
+        setAgentLogs(prev => [...prev, { id: 'research', text: 'Researching best approaches...', type: 'search' }]);
+      }
+
       const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash',
+        model: modelType === 'super-agent' ? 'gemini-3-flash-preview' : 'gemini-3.1-flash-lite',
         contents: contentsObj,
         config: {
+          tools: modelType === 'super-agent' ? [{ googleSearch: {} }, { codeExecution: {} }] : undefined,
           responseMimeType: 'application/json',
           responseSchema: {
             type: Type.OBJECT,
@@ -428,7 +508,37 @@ Requirements for the generated SKILL.md:
         },
       });
       
-      const responseText = response.text || '{}';
+      let fullJsonText = response.text || "";
+      setStreamedResult(fullJsonText);
+      
+      // Update logs if grounding info exists
+      const candidates = response.candidates;
+      if (candidates?.[0]?.groundingMetadata?.webSearchQueries?.length) {
+        candidates[0].groundingMetadata.webSearchQueries.forEach(query => {
+          setAgentLogs(prev => {
+            if (prev.some(log => log.text === `Searching web: ${query}`)) return prev;
+            return [...prev, { id: Math.random().toString(), text: `Searching web: ${query}`, type: 'search' }];
+          });
+        });
+      }
+      if (candidates?.[0]?.groundingMetadata?.groundingChunks?.length) {
+        candidates[0].groundingMetadata.groundingChunks.forEach((c: any) => {
+          if (c.web?.uri) {
+            setAgentLogs(prev => {
+              try {
+                const urlObj = new URL(c.web.uri);
+                const hostname = urlObj.hostname.replace(/^www\./, '');
+                if (prev.some(log => log.text === `Reading ${hostname}`)) return prev;
+                return [...prev, { id: Math.random().toString(), text: `Reading ${hostname}`, type: 'read' }];
+              } catch (e) {
+                return prev;
+              }
+            });
+          }
+        });
+      }
+      
+      const responseText = fullJsonText || '{}';
       try {
         const parsed = JSON.parse(responseText);
         const newItem = {
@@ -782,9 +892,45 @@ Requirements for the generated SKILL.md:
                       <Plus size={16} />
                     </label>
 
-                    <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
-                      <span className="font-semibold text-white text-sm">Ultra Fast</span>
-                      <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
+                    <div className="relative">
+                      <div 
+                        onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                        className={`flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${isModelDropdownOpen ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}
+                      >
+                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : 'Super Agent'}</span>
+                        <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
+                      </div>
+                      
+                      <AnimatePresence>
+                        {isModelDropdownOpen && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsModelDropdownOpen(false)} />
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute top-full left-0 mt-2 bg-[#121212] border border-[#2a2a2a] rounded-2xl p-1.5 z-50 shadow-2xl min-w-[200px]"
+                            >
+                              <div className="flex flex-col gap-1">
+                                <button
+                                  onClick={() => { setModelType('ultra-fast'); setIsModelDropdownOpen(false); }}
+                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors ${modelType === 'ultra-fast' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
+                                >
+                                  Ultra Fast
+                                </button>
+                                <button
+                                  onClick={() => { setModelType('super-agent'); setIsModelDropdownOpen(false); }}
+                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center justify-between ${modelType === 'super-agent' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
+                                >
+                                  <span>Super Agent</span>
+                                  <Zap size={12} className={modelType === 'super-agent' ? 'text-white' : 'text-zinc-500'} />
+                                </button>
+                              </div>
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
 
@@ -797,7 +943,7 @@ Requirements for the generated SKILL.md:
                         }
                       }}
                       disabled={!input.trim() && !imageRef && !attachedText}
-                      className="w-9 h-9 rounded-full bg-[#7be5df] hover:bg-[#68d1cc] disabled:opacity-50 flex items-center justify-center text-black transition-colors shrink-0"
+                      className="w-9 h-9 rounded-full bg-white hover:bg-zinc-200 disabled:opacity-50 flex items-center justify-center text-black transition-colors shrink-0"
                     >
                       <ArrowUp size={18} className="stroke-[2.5]" />
                     </button>
@@ -805,56 +951,74 @@ Requirements for the generated SKILL.md:
                 </div>
               </div>
 
-              <div className="p-3 pt-4">
-                {/* Tool Selection Chips */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <button 
-                    onClick={() => setSelectedTool('prompt')} 
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+              <AnimatePresence initial={false}>
+                {showSuggestions && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="overflow-hidden"
                   >
-                     <MessageSquare size={14} /> Prompt
-                  </button>
-                  <button 
-                    onClick={() => setSelectedTool('design')} 
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'design' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
-                  >
-                     <Paintbrush size={14} /> Design
-                  </button>
-                  <button 
-                    onClick={() => setSelectedTool('skill')} 
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'skill' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
-                  >
-                     <Zap size={14} /> Skill
-                  </button>
-                </div>
+                    <div className="p-3 pt-4">
+                      {/* Tool Selection Chips */}
+                      <div className="flex flex-wrap items-center gap-2 mb-4">
+                        <button 
+                          onClick={() => setSelectedTool('prompt')} 
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                        >
+                           <MessageSquare size={14} /> Prompt
+                        </button>
+                        <button 
+                          onClick={() => setSelectedTool('design')} 
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'design' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                        >
+                           <Paintbrush size={14} /> Design
+                        </button>
+                        <button 
+                          onClick={() => setSelectedTool('skill')} 
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'skill' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                        >
+                           <Zap size={14} /> Skill
+                        </button>
+                      </div>
 
-                {/* In-Line Text Suggestions */}
-                <div className="flex flex-col gap-4 px-1 pb-1">
-                   {(selectedTool === 'prompt' ? [
-                     "Build a personal habit tracker with a dark UI",
-                     "Create a real-time multiplayer drawing app",
-                     "Generate a dashboard for tracking crypto prices"
-                   ] : selectedTool === 'design' ? [
-                     "Make a minimalist portfolio design with large typography",
-                     "A dark-mode dashboard for tracking server analytics",
-                     "A retro terminal UI for a weather app"
-                   ] : [
-                     "Build an agent skill to read and parse local log files",
-                     "Create a skill to search the web for recent news articles",
-                     "Add a skill to securely connect to a PostgreSQL database"
-                   ]).map((suggestion, i) => (
-                     <button 
-                       key={i}
-                       onClick={() => handleSuggestionClick(suggestion)}
-                       className="text-left w-full flex items-center gap-4 text-[15px] text-zinc-300 hover:text-white transition-colors group"
-                     >
-                       <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-400 shrink-0" strokeWidth={1.5} />
-                       <span className="truncate">{suggestion}</span>
-                     </button>
-                   ))}
-                </div>
-              </div>
+                      {/* In-Line Text Suggestions */}
+                      <div className="flex flex-col gap-4 px-1 pb-1">
+                         {(selectedTool === 'prompt' ? [
+                           "Build a personal habit tracker with a dark UI",
+                           "Create a real-time multiplayer drawing app",
+                           "Generate a dashboard for tracking crypto prices"
+                         ] : selectedTool === 'design' ? [
+                           "Make a minimalist portfolio design with large typography",
+                           "A dark-mode dashboard for tracking server analytics",
+                           "A retro terminal UI for a weather app"
+                         ] : [
+                           "Build an agent skill to read and parse local log files",
+                           "Create a skill to search the web for recent news articles",
+                           "Add a skill to securely connect to a PostgreSQL database"
+                         ]).map((suggestion, i) => (
+                           <button 
+                             key={i}
+                             onClick={() => handleSuggestionClick(suggestion)}
+                             className="text-left w-full flex items-center gap-4 text-[15px] text-zinc-300 hover:text-white transition-colors group"
+                           >
+                             <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-400 shrink-0" strokeWidth={1.5} />
+                             <span className="truncate">{suggestion}</span>
+                           </button>
+                         ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+            
+            <button
+              onClick={() => setShowSuggestions(!showSuggestions)}
+              className="mt-3 w-12 h-1.5 rounded-full bg-zinc-600/50 hover:bg-zinc-500 transition-colors shrink-0"
+              aria-label="Toggle suggestions"
+            />
           </div>
 
           {/* Export Targets - Moved to bottom */}
@@ -1238,11 +1402,51 @@ Requirements for the generated SKILL.md:
           >
             <div className="h-[240px] text-zinc-300 whitespace-pre-wrap font-mono text-[15px] leading-relaxed overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {isGenerating ? (
-                 <div className="flex flex-col gap-3 animate-pulse">
-                   <div className="h-4 bg-zinc-800/50 rounded w-3/4"></div>
-                   <div className="h-4 bg-zinc-800/50 rounded w-full"></div>
-                   <div className="h-4 bg-zinc-800/50 rounded w-5/6"></div>
-                   <div className="h-4 bg-zinc-800/50 rounded w-1/2 mt-4"></div>
+                 <div className="flex flex-col gap-4 h-full relative">
+                   {agentLogs.length === 0 ? (
+                     <div className="flex flex-col gap-3 animate-pulse">
+                       <div className="h-4 bg-zinc-800/50 rounded w-3/4"></div>
+                       <div className="h-4 bg-zinc-800/50 rounded w-full"></div>
+                       <div className="h-4 bg-zinc-800/50 rounded w-5/6"></div>
+                       <div className="h-4 bg-zinc-800/50 rounded w-1/2 mt-4"></div>
+                     </div>
+                   ) : (
+                     <div className="flex flex-col gap-3 font-sans pb-4">
+                       <AnimatePresence>
+                         {agentLogs.map((log) => (
+                           <motion.div
+                             key={log.id}
+                             initial={{ opacity: 0, x: -10, y: 10 }}
+                             animate={{ opacity: 1, x: 0, y: 0 }}
+                             className="flex items-center gap-3 text-sm"
+                           >
+                             {log.type === 'search' ? (
+                               <Search size={14} className="text-zinc-500 shrink-0" />
+                             ) : log.type === 'code' ? (
+                               <Code2 size={14} className="text-[#a46de5] shrink-0" />
+                             ) : log.type === 'read' ? (
+                               <BookOpen size={14} className="text-zinc-500 shrink-0" />
+                             ) : (
+                               <Sparkles size={14} className="text-zinc-500 shrink-0" />
+                             )}
+                             <span className={log.type === 'search' ? 'text-zinc-300 font-medium' : 'text-zinc-500'}>
+                               {log.text}
+                             </span>
+                           </motion.div>
+                         ))}
+                       </AnimatePresence>
+                     </div>
+                   )}
+                   {streamedResult && (
+                     <div className="mt-4 pt-4 border-t border-white/5 opacity-80 text-zinc-400">
+                       <ReactMarkdown>{
+                         (() => {
+                           const m = streamedResult.match(/"prompt"\s*:\s*"([^]+?)(?:",?|$)/);
+                           return m ? m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\') : 'Writing...';
+                         })()
+                       }</ReactMarkdown>
+                     </div>
+                   )}
                  </div>
               ) : (
                 result
@@ -1530,7 +1734,27 @@ Requirements for the generated SKILL.md:
       
       {view !== 'edit' && (
         <footer className="w-full py-4 mt-auto px-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-[#070707]">
-          <div>&copy; {new Date().getFullYear()} Kindly Prompt. All rights reserved.</div>
+          <div className="flex items-center gap-4">
+            <div>&copy; {new Date().getFullYear()} Kindly Prompt.</div>
+            <button
+              onClick={() => setIsOnboardingModalOpen(true)}
+              className="hover:text-zinc-300 transition-colors"
+            >
+              How it works
+            </button>
+            <button
+              onClick={() => setIsPiModalOpen(true)}
+              className="hover:text-zinc-300 transition-colors"
+            >
+              Personal Intelligence
+            </button>
+            <button
+              onClick={() => setIsSuperAgentModalOpen(true)}
+              className="hover:text-zinc-300 transition-colors flex items-center gap-1.5"
+            >
+              Super Agent
+            </button>
+          </div>
           <div className="flex items-center gap-6">
             <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
             <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Terms of Service</a>
@@ -1568,6 +1792,88 @@ Requirements for the generated SKILL.md:
         onComplete={handlePiComplete} 
       />
       <OnboardingModal isOpen={isOnboardingModalOpen} setIsOpen={setIsOnboardingModalOpen} />
+      <SuperAgentModal isOpen={isSuperAgentModalOpen} setIsOpen={setIsSuperAgentModalOpen} />
+      
+      {/* Shortcuts pill */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <div className="relative">
+          <AnimatePresence>
+            {showShortcutsMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowShortcutsMenu(false)} />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute bottom-full right-0 mb-2 bg-[#1c1c1c] border border-white/5 rounded-2xl p-2 z-50 shadow-2xl min-w-[240px]"
+                >
+                  <div className="flex flex-col gap-1">
+                    <div className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <MessageSquare size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">New Generate</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Ctrl</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Enter</kbd>
+                      </div>
+                    </div>
+                    <div className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Search size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">Search Library</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Ctrl</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">K</kbd>
+                      </div>
+                    </div>
+                    <div className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <History size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">History</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Ctrl</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">H</kbd>
+                      </div>
+                    </div>
+                    <div className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <BookOpen size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">Library</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Ctrl</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">L</kbd>
+                      </div>
+                    </div>
+                     <div className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Code2 size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">Copy Result</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Ctrl</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">C</kbd>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+          <button 
+            onClick={() => setShowShortcutsMenu(!showShortcutsMenu)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1c1c1c] hover:bg-[#2a2a2a] transition-colors text-zinc-400 hover:text-zinc-200"
+          >
+            <span className="font-sans text-[14px]">⌘</span>
+            <span className="text-[13px] font-medium">Shortcuts</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
