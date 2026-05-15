@@ -28,7 +28,8 @@ import {
   Link,
   Paintbrush,
   Zap,
-  Search
+  Search,
+  FileText
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -177,6 +178,7 @@ export default function Home() {
   });
   const [currentResult, setCurrentResult] = useState<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill', date?: string } | null>(null);
   const [imageRef, setImageRef] = useState<string | null>(null);
+  const [attachedText, setAttachedText] = useState<{name: string, content: string} | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
   const handleImageUpload = (file: File) => {
@@ -710,116 +712,147 @@ Requirements for the generated SKILL.md:
 
       {view === 'home' ? (
         // HOME VIEW
-        <div className="max-w-4xl mx-auto px-4 pt-24 pb-16 flex flex-col items-center min-h-[80vh] justify-center">
+        <div className="max-w-4xl mx-auto w-full px-4 pt-[15vh] pb-32 flex flex-col items-center">
           <h1 className="text-3xl md:text-4xl font-medium tracking-tight mb-8">
             {selectedTool === 'prompt' ? 'What do you want to prompt?' : selectedTool === 'design' ? 'What do you want to design?' : 'What do you want to build a skill for?'}
           </h1>
 
           {/* Suggestions & Input Section */}
-          <div className="flex flex-col items-center w-full max-w-[800px] relative mb-16">
+          <div className="flex flex-col items-center w-full max-w-[700px] relative mb-16">
             
-            <div className="bg-[#0f0f0f] rounded-[32px] flex flex-col p-5 m-1 w-full relative z-10 transition-colors group border border-white/[0.04] shadow-2xl">
-              {imageRef && (
-                <div className="absolute top-5 left-5 w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-white/10 z-10">
-                  <img src={imageRef} alt="Context" className="w-full h-full object-cover" />
+            <div className="bg-[#1c1c1c] rounded-[32px] flex flex-col p-1 w-full relative z-10 transition-colors group shadow-2xl">
+              
+              <div className="bg-[#0f0f0f] rounded-[28px] p-3 flex flex-col relative">
+                <div className="absolute top-4 left-4 z-10 flex gap-2">
+                  {imageRef && (
+                    <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10 relative group/img">
+                      <img src={imageRef} alt="Context" className="w-full h-full object-cover" />
+                      <button 
+                         onClick={() => setImageRef(null)} 
+                         className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
+                      >
+                         <X size={14} className="text-white" />
+                      </button>
+                    </div>
+                  )}
+
+                  {attachedText && (
+                    <div className="bg-[#222222] text-zinc-300 rounded-full pl-3 pr-2 py-1.5 flex items-center gap-2 h-[34px] border border-white/5">
+                      <FileText size={14} className="text-zinc-400" />
+                      <span className="text-xs font-medium max-w-[150px] truncate">{attachedText.name}</span>
+                      <button 
+                         onClick={() => setAttachedText(null)} 
+                         className="text-zinc-500 hover:text-zinc-300 ml-1 rounded-full hover:bg-white/10 p-0.5 transition-colors"
+                      >
+                         <X size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                 <textarea
+                  className={`w-full bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 text-[15px] leading-relaxed custom-scrollbar ${(imageRef || attachedText) ? (imageRef ? 'pt-16 min-h-[80px]' : 'pt-12 min-h-[70px]') : 'min-h-[30px]'}`}
+                  placeholder={selectedTool === 'prompt' ? "Describe the app you want to build..." : selectedTool === 'design' ? "Describe your ideal user interface..." : "Describe the agent skill you need..."}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onPaste={(e) => {
+                    const pastedText = e.clipboardData.getData('text');
+                    if (pastedText && pastedText.length > 300) {
+                      e.preventDefault();
+                      setAttachedText({ name: 'Attached text', content: pastedText });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if(input.trim() || imageRef || attachedText) {
+                        // Include attached text in prompt logic later, for now just call generate
+                        generatePrompt(attachedText ? `${input}\n\nAttached Data:\n${attachedText.content}` : input, imageRef);
+                        setAttachedText(null);
+                      }
+                    }
+                  }}
+                />
+                
+                {/* Action Bar */}
+                <div className="flex items-center justify-between mt-1">
+                  <div className="flex items-center gap-3">
+                    <input type="file" accept="image/*" id="input-upload" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleImageUpload(e.target.files[0]) }} />
+                    <label htmlFor="input-upload" className="w-8 h-8 rounded-full bg-[#2a2a2a] hover:bg-[#383838] flex items-center justify-center text-zinc-300 transition-colors cursor-pointer shrink-0">
+                      <Plus size={16} />
+                    </label>
+
+                    <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
+                      <span className="font-semibold text-white text-sm">Ultra Fast</span>
+                      <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => {
+                        if(input.trim() || imageRef || attachedText) {
+                          generatePrompt(attachedText ? `${input}\n\nAttached Data:\n${attachedText.content}` : input, imageRef);
+                          setAttachedText(null);
+                        }
+                      }}
+                      disabled={!input.trim() && !imageRef && !attachedText}
+                      className="w-9 h-9 rounded-full bg-[#7be5df] hover:bg-[#68d1cc] disabled:opacity-50 flex items-center justify-center text-black transition-colors shrink-0"
+                    >
+                      <ArrowUp size={18} className="stroke-[2.5]" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 pt-4">
+                {/* Tool Selection Chips */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                   <button 
-                     onClick={() => setImageRef(null)} 
-                     className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setSelectedTool('prompt')} 
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
                   >
-                     <X size={14} className="text-white" />
+                     <MessageSquare size={14} /> Prompt
+                  </button>
+                  <button 
+                    onClick={() => setSelectedTool('design')} 
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'design' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                  >
+                     <Paintbrush size={14} /> Design
+                  </button>
+                  <button 
+                    onClick={() => setSelectedTool('skill')} 
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'skill' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                  >
+                     <Zap size={14} /> Skill
                   </button>
                 </div>
-              )}
-              
-              <textarea
-                className={`w-full bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 text-[15px] leading-relaxed custom-scrollbar ${imageRef ? 'pt-20 min-h-[140px]' : 'min-h-[100px]'}`}
-                placeholder={selectedTool === 'prompt' ? "Describe the app you want to build..." : selectedTool === 'design' ? "Describe your ideal user interface..." : "Describe the agent skill you need..."}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if(input.trim() || imageRef) generatePrompt(input, imageRef);
-                  }
-                }}
-              />
-              
-              {/* Action Bar */}
-              <div className="flex items-center justify-between mt-2 mb-8">
-                <div className="flex items-center gap-4">
-                  <input type="file" accept="image/*" id="input-upload" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleImageUpload(e.target.files[0]) }} />
-                  <label htmlFor="input-upload" className="w-8 h-8 rounded-full bg-[#2a2a2a] hover:bg-[#383838] flex items-center justify-center text-zinc-300 transition-colors cursor-pointer shrink-0">
-                    <Plus size={16} />
-                  </label>
 
-                  <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap">
-                    <div className="w-5 h-5 flex items-center justify-center font-bold text-white tracking-tighter text-base mr-1 pb-[1px]">G</div>
-                    <span className="font-semibold text-white text-sm">Google</span>
-                    <span className="text-zinc-400 text-sm">Gemini 3.1 Flash Lite</span>
-                    <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
-                  </div>
+                {/* In-Line Text Suggestions */}
+                <div className="flex flex-col gap-4 px-1 pb-1">
+                   {(selectedTool === 'prompt' ? [
+                     "Build a personal habit tracker with a dark UI",
+                     "Create a real-time multiplayer drawing app",
+                     "Generate a dashboard for tracking crypto prices"
+                   ] : selectedTool === 'design' ? [
+                     "Make a minimalist portfolio design with large typography",
+                     "A dark-mode dashboard for tracking server analytics",
+                     "A retro terminal UI for a weather app"
+                   ] : [
+                     "Build an agent skill to read and parse local log files",
+                     "Create a skill to search the web for recent news articles",
+                     "Add a skill to securely connect to a PostgreSQL database"
+                   ]).map((suggestion, i) => (
+                     <button 
+                       key={i}
+                       onClick={() => handleSuggestionClick(suggestion)}
+                       className="text-left w-full flex items-center gap-4 text-[15px] text-zinc-300 hover:text-white transition-colors group"
+                     >
+                       <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-400 shrink-0" strokeWidth={1.5} />
+                       <span className="truncate">{suggestion}</span>
+                     </button>
+                   ))}
                 </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="hidden sm:flex items-center gap-1 text-[13px] font-semibold text-zinc-300 cursor-pointer hover:text-white transition-colors">
-                    Auto Run <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
-                  </div>
-                  <button
-                    onClick={() => generatePrompt(input, imageRef)}
-                    disabled={!input.trim() && !imageRef}
-                    className="w-9 h-9 rounded-full bg-[#7be5df] hover:bg-[#68d1cc] disabled:opacity-50 flex items-center justify-center text-black transition-colors shrink-0"
-                  >
-                    <ArrowUp size={18} className="stroke-[2.5]" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Tool Selection Chips */}
-              <div className="flex flex-wrap items-center gap-2 mb-6">
-                <button 
-                  onClick={() => setSelectedTool('prompt')} 
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
-                >
-                   <MessageSquare size={16} /> Prompt
-                </button>
-                <button 
-                  onClick={() => setSelectedTool('design')} 
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${selectedTool === 'design' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
-                >
-                   <Paintbrush size={16} /> Design
-                </button>
-                <button 
-                  onClick={() => setSelectedTool('skill')} 
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${selectedTool === 'skill' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
-                >
-                   <Zap size={16} /> Skill
-                </button>
-              </div>
-
-              {/* In-Line Text Suggestions */}
-              <div className="flex flex-col gap-5 px-1 pb-2">
-                 {(selectedTool === 'prompt' ? [
-                   "Create a cartoon animation from a storyboard",
-                   "Generate a short drama scene",
-                   "Write a Python script for data analysis"
-                 ] : selectedTool === 'design' ? [
-                   "Make a minimalist portfolio design with large typography",
-                   "A dark-mode dashboard for tracking server analytics",
-                   "A retro terminal UI for a weather app"
-                 ] : [
-                   "Build an agent skill to read and parse local log files",
-                   "Create a skill to search the web for recent news articles",
-                   "Add a skill to securely connect to a PostgreSQL database"
-                 ]).map((suggestion, i) => (
-                   <button 
-                     key={i}
-                     onClick={() => handleSuggestionClick(suggestion)}
-                     className="text-left w-full flex items-center gap-4 text-[15px] text-zinc-300 hover:text-white transition-colors group"
-                   >
-                     <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-400 shrink-0" strokeWidth={1.5} />
-                     <span className="truncate">{suggestion}</span>
-                   </button>
-                 ))}
               </div>
             </div>
           </div>
