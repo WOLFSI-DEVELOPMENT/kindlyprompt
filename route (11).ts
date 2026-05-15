@@ -4,42 +4,43 @@ import { cookies } from 'next/headers';
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get('code');
-  const state = url.searchParams.get('state');
   const error = url.searchParams.get('error');
+  const errorDescription = url.searchParams.get('error_description');
 
   if (error) {
-    return new NextResponse(`Error: ${error}`, { status: 400 });
+    return new NextResponse(`Error: ${error} - ${errorDescription}`, { status: 400 });
   }
 
   if (!code) {
     return new NextResponse('Error: No code provided', { status: 400 });
   }
-
+  
   const cookieStore = await cookies();
-  const verifier = cookieStore.get('tiktok_code_verifier')?.value;
-  const redirectUri = cookieStore.get('tiktok_redirect_uri')?.value;
-  const savedState = cookieStore.get('tiktok_state')?.value;
+  const verifier = cookieStore.get('canva_code_verifier')?.value;
+  const redirectUri = cookieStore.get('canva_redirect_uri')?.value;
 
-  if (state !== savedState) {
-    return new NextResponse('Error: State mismatch', { status: 400 });
+  if (!verifier || !redirectUri) {
+    return new NextResponse('Error: Missing session parameters', { status: 400 });
   }
 
-  const clientKey = process.env.TIKTOK_CLIENT_KEY || '';
-  const clientSecret = process.env.TIKTOK_CLIENT_SECRET || '';
+  const clientId = process.env.CANVA_CLIENT_ID || 'OC-AZ4jP-qenVi9';
+  const clientSecret = process.env.CANVA_CLIENT_SECRET || 'cnvcaxexJOzmQpijz-75hup2DxzXE-l7IcKkan2mKBHUPSpE3b75b9c0';
+
+  const authHeader = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   try {
-    const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    // Exchange code for token
+    const tokenRes = await fetch('https://api.canva.com/rest/v1/oauth/token', {
       method: 'POST',
       headers: {
+        'Authorization': authHeader,
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Cache-Control': 'no-cache'
       },
       body: new URLSearchParams({
-        client_key: clientKey,
-        client_secret: clientSecret,
         grant_type: 'authorization_code',
+        code_verifier: verifier,
         code: code,
-        redirect_uri: redirectUri!
+        redirect_uri: redirectUri,
       }).toString()
     });
 
@@ -52,24 +53,22 @@ export async function GET(req: Request) {
     const accessToken = tokenData.access_token;
 
     // Fetch user profile
-    const profileRes = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name', {
+    const profileRes = await fetch('https://api.canva.com/rest/v1/users/me/profile', {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       }
     });
 
-    let user: any = { email: 'user@tiktok.com', name: 'TikTok User' };
-
-    if (profileRes.ok) {
-        const profileData = await profileRes.json();
-        if (profileData.data?.user) {
-            user = {
-                email: `${profileData.data.user.open_id || 'user'}@tiktok.com`, // TikTok does not easily provide email via this scope
-                name: profileData.data.user.display_name || 'TikTok User',
-                image: profileData.data.user.avatar_url,
-            };
-        }
+    if (!profileRes.ok) {
+        const profileErrBody = await profileRes.text();
+        return new NextResponse(`Profile fetch failed: ${profileRes.status} ${profileErrBody}`, { status: profileRes.status });
     }
+
+    const profileData = await profileRes.json();
+    const user = {
+        email: profileData.profile?.email || 'canva.user@noemail.com',
+        name: profileData.profile?.display_name || 'Canva User',
+    };
 
     const html = `
       <html>

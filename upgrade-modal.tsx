@@ -16,26 +16,24 @@ export async function GET(req: Request) {
   }
 
   const cookieStore = await cookies();
-  const verifier = cookieStore.get('tiktok_code_verifier')?.value;
-  const redirectUri = cookieStore.get('tiktok_redirect_uri')?.value;
-  const savedState = cookieStore.get('tiktok_state')?.value;
+  const redirectUri = cookieStore.get('google_redirect_uri')?.value;
+  const savedState = cookieStore.get('google_state')?.value;
 
   if (state !== savedState) {
     return new NextResponse('Error: State mismatch', { status: 400 });
   }
 
-  const clientKey = process.env.TIKTOK_CLIENT_KEY || '';
-  const clientSecret = process.env.TIKTOK_CLIENT_SECRET || '';
+  const clientId = process.env.GOOGLE_CLIENT_ID || '';
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
 
   try {
-    const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Cache-Control': 'no-cache'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: new URLSearchParams({
-        client_key: clientKey,
+        client_id: clientId,
         client_secret: clientSecret,
         grant_type: 'authorization_code',
         code: code,
@@ -52,23 +50,21 @@ export async function GET(req: Request) {
     const accessToken = tokenData.access_token;
 
     // Fetch user profile
-    const profileRes = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name', {
+    const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       }
     });
 
-    let user: any = { email: 'user@tiktok.com', name: 'TikTok User' };
+    let user: any = { email: 'user@google.com', name: 'Google User' };
 
     if (profileRes.ok) {
         const profileData = await profileRes.json();
-        if (profileData.data?.user) {
-            user = {
-                email: `${profileData.data.user.open_id || 'user'}@tiktok.com`, // TikTok does not easily provide email via this scope
-                name: profileData.data.user.display_name || 'TikTok User',
-                image: profileData.data.user.avatar_url,
-            };
-        }
+        user = {
+            email: profileData.email,
+            name: profileData.name || 'Google User',
+            image: profileData.picture,
+        };
     }
 
     const html = `

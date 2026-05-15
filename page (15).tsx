@@ -16,30 +16,29 @@ export async function GET(req: Request) {
   }
 
   const cookieStore = await cookies();
-  const verifier = cookieStore.get('tiktok_code_verifier')?.value;
-  const redirectUri = cookieStore.get('tiktok_redirect_uri')?.value;
-  const savedState = cookieStore.get('tiktok_state')?.value;
+  const redirectUri = cookieStore.get('discord_redirect_uri')?.value;
+  const savedState = cookieStore.get('discord_state')?.value;
 
   if (state !== savedState) {
     return new NextResponse('Error: State mismatch', { status: 400 });
   }
 
-  const clientKey = process.env.TIKTOK_CLIENT_KEY || '';
-  const clientSecret = process.env.TIKTOK_CLIENT_SECRET || '';
+  const clientId = process.env.DISCORD_CLIENT_ID || '';
+  const clientSecret = process.env.DISCORD_CLIENT_SECRET || '';
 
   try {
-    const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Cache-Control': 'no-cache'
+        'Accept': 'application/json'
       },
       body: new URLSearchParams({
-        client_key: clientKey,
+        client_id: clientId,
         client_secret: clientSecret,
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: redirectUri!
+        redirect_uri: redirectUri || ''
       }).toString()
     });
 
@@ -49,26 +48,28 @@ export async function GET(req: Request) {
     }
 
     const tokenData = await tokenRes.json();
+    if (tokenData.error) {
+       return new NextResponse(`Token exchange failed: ${tokenData.error_description}`, { status: 400 });
+    }
     const accessToken = tokenData.access_token;
 
     // Fetch user profile
-    const profileRes = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name', {
+    const profileRes = await fetch('https://discord.com/api/users/@me', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json'
       }
     });
 
-    let user: any = { email: 'user@tiktok.com', name: 'TikTok User' };
+    let user: any = { email: 'user@discord.com', name: 'Discord User' };
 
     if (profileRes.ok) {
         const profileData = await profileRes.json();
-        if (profileData.data?.user) {
-            user = {
-                email: `${profileData.data.user.open_id || 'user'}@tiktok.com`, // TikTok does not easily provide email via this scope
-                name: profileData.data.user.display_name || 'TikTok User',
-                image: profileData.data.user.avatar_url,
-            };
-        }
+        user = {
+            email: profileData.email,
+            name: profileData.username,
+            image: profileData.avatar ? `https://cdn.discordapp.com/avatars/${profileData.id}/${profileData.avatar}.png` : undefined,
+        };
     }
 
     const html = `
