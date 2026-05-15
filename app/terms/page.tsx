@@ -7,21 +7,21 @@ export default function TermsOfService() {
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">1. Acceptance of Terms</h2>
           <p className="text-zinc-400 leading-relaxed">
-            By accessing and using this service, you accept and agree to be bound by the terms and provision of this agreement.
+            By accessing and using Kindly Prompt, you accept and agree to be bound by the terms and provision of this agreement.
           </p>
         </section>
 
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">2. Description of Service</h2>
           <p className="text-zinc-400 leading-relaxed">
-            We provide an AI-powered productivity tool that helps generate prompts, design documents, and agent skills. We reserve the right to modify or discontinue, temporarily or permanently, the service with or without notice.
+            Kindly Prompt provides an AI-powered productivity tool that helps generate prompts, design documents, and agent skills. We reserve the right to modify or discontinue, temporarily or permanently, the service with or without notice.
           </p>
         </section>
 
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">3. User Conduct</h2>
           <p className="text-zinc-400 leading-relaxed">
-            You agree to not use the service to generate content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, libelous, invasive of another&apos;s privacy, or otherwise objectionable.
+            You agree to not use Kindly Prompt to generate content that is unlawful, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, libelous, invasive of another&apos;s privacy, or otherwise objectionable.
           </p>
         </section>
 

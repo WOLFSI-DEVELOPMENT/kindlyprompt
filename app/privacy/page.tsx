@@ -7,28 +7,28 @@ export default function PrivacyPolicy() {
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">1. Information We Collect</h2>
           <p className="text-zinc-400 leading-relaxed">
-            We collect information you provide directly to us when you create an account, such as your name, email address, and profile picture (including information retrieved via third-party logins like TikTok, Google, etc., using basic profile scopes). We also collect the content of the prompts, designs, and skills you generate using our service.
+            We collect information you provide directly to us when you create an account with Kindly Prompt, such as your name, email address, and profile picture (including information retrieved via third-party logins like TikTok, Google, etc., using basic profile scopes). We also collect the content of the prompts, designs, and skills you generate using our service.
           </p>
         </section>
 
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">2. How We Use Your Information</h2>
           <p className="text-zinc-400 leading-relaxed">
-            We use the information we collect to provide, maintain, and improve our services. Your profile information is used to personalize your experience and manage your account. The prompts and content you generate are processed by our AI models to provide the service you requested. We do not use your personal content to train public AI models without your explicit consent.
+            We use the information we collect to provide, maintain, and improve Kindly Prompt. Your profile information is used to personalize your experience and manage your account. The prompts and content you generate are processed by our AI models to provide the service you requested. We do not use your personal content to train public AI models without your explicit consent.
           </p>
         </section>
 
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">3. Third-Party Services</h2>
           <p className="text-zinc-400 leading-relaxed">
-            We use third-party AI providers (such as Google Gemini, OpenAI, or Anthropic) to process your prompts. Your use of our service is also subject to their respective privacy policies regarding data processing. When you log in with third-party providers (like TikTok), we only access the basic information necessary to authenticate you.
+            Kindly Prompt uses third-party AI providers (such as Google Gemini, OpenAI, or Anthropic) to process your prompts. Your use of our service is also subject to their respective privacy policies regarding data processing. When you log in with third-party providers (like TikTok), we only access the basic information necessary to authenticate you.
           </p>
         </section>
 
         <section className="flex flex-col gap-4">
           <h2 className="text-2xl font-medium text-white">4. Data Security</h2>
           <p className="text-zinc-400 leading-relaxed">
-            We implement appropriate technical and organizational measures to protect your personal data against unauthorized or unlawful processing, accidental loss, destruction, or damage.
+            We implement appropriate technical and organizational measures to protect your personal data processed by Kindly Prompt against unauthorized or unlawful processing, accidental loss, destruction, or damage.
           </p>
         </section>
 

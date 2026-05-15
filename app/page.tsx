@@ -31,7 +31,8 @@ import {
   Search,
   FileText,
   BookOpen,
-  Code2
+  Code2,
+  Folder
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -60,6 +61,7 @@ import { PersonalIntelligenceModal } from '@/components/pi-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
 import { SuperAgentModal } from '@/components/super-agent-modal';
 import { UpgradeModal } from '@/components/upgrade-modal';
+import { WelcomePhModal } from '@/components/welcome-ph-modal';
 
 import { SKILL_CREATOR_GUIDELINES } from '@/lib/skill-guidelines';
 
@@ -564,6 +566,7 @@ Requirements for the generated SKILL.md:
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[#070707] text-white font-sans selection:bg-zinc-800 relative">
+      <WelcomePhModal />
       <div className="md:hidden absolute inset-0 z-[9999] bg-black flex items-center justify-center p-6 text-center">
         <p className="text-zinc-400 font-medium tracking-wide">Mobile version coming soon</p>
       </div>
@@ -603,13 +606,6 @@ Requirements for the generated SKILL.md:
         )}
       </AnimatePresence>
 
-      {view !== 'edit' && (
-        <div className="absolute top-6 left-6 z-50">
-          <a href="/" className="block hover:opacity-80 transition-opacity">
-            <img src="https://i.ibb.co/WL4x4zC/AI-text-generation-app-icon-202605140740-modified.png" alt="Kindly Prompt Logo" className="w-[38px] h-[38px] rounded-xl shadow-xl border border-white/10" />
-          </a>
-        </div>
-      )}
       <div className="absolute top-6 right-6 z-50">
         <AnimatePresence mode="wait">
           {user ? (
@@ -698,88 +694,39 @@ Requirements for the generated SKILL.md:
         </AnimatePresence>
       </div>
 
-      {/* Centered Top Nav Bar */}
+      {/* Left Vertical Nav Bar */}
       <AnimatePresence>
         {view !== 'edit' && (
-          <div className="fixed top-6 left-0 right-0 z-50 pointer-events-none flex justify-center">
-            <motion.div 
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              drag="x"
-              dragConstraints={{ left: -20, right: 20 }}
-              dragElastic={0.2}
-              dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
-              whileDrag={{ scale: 1.02, cursor: 'grabbing' }}
-              onDragEnd={(_, info) => {
-                const threshold = 30;
-                const velocityThreshold = 200;
-                if ((info.offset.x < -threshold || info.velocity.x < -velocityThreshold)) {
-                  if (view === 'home' || view === 'result') setView('recents');
-                  else if (view === 'recents') setView('library');
-                } else if ((info.offset.x > threshold || info.velocity.x > velocityThreshold)) {
-                  if (view === 'library') setView('recents');
-                  else if (view === 'recents') setView('home');
-                }
-              }}
-              className="pointer-events-auto flex items-center bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/5 rounded-full p-1.5 shadow-2xl cursor-grab touch-none select-none"
-            >
-              <div className="flex items-center gap-1">
+          <div className="fixed top-0 bottom-0 left-0 z-50 w-16 bg-[#1f1f1f] border-none flex flex-col items-center pt-4 pb-6 gap-4 shadow-xl">
+            <a href="/" className="flex-shrink-0 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
+                 <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
+              </div>
+            </a>
+            
+            <div className="flex flex-col items-center gap-4 w-full">
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setView('home')}
-                  className="relative px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 outline-none group"
+                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
                 >
-                  {(view === 'home' || view === 'result') && (
-                    <motion.div 
-                      layoutId="active-nav-bg"
-                      className="absolute inset-0 bg-[#1c1c1c] shadow-lg rounded-full"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <Plus size={14} className={`relative z-10 transition-colors ${view === 'home' || view === 'result' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                  <span className={`relative z-10 transition-colors ${view === 'home' || view === 'result' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>GENERATE</span>
+                  <Plus size={20} strokeWidth={1.5} className={`transition-colors ${view === 'home' || view === 'result' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setView('recents')}
-                  className="relative px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 outline-none group"
+                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
                 >
-                  {view === 'recents' && (
-                    <motion.div 
-                      layoutId="active-nav-bg"
-                      className="absolute inset-0 bg-[#1c1c1c] shadow-lg rounded-full"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <History size={14} className={`relative z-10 transition-colors ${view === 'recents' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                  <span className={`relative z-10 transition-colors ${view === 'recents' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>HISTORY</span>
+                  <Folder size={20} strokeWidth={1.5} className={`transition-colors ${view === 'recents' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setView('library')}
-                  className="relative px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 outline-none group"
+                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
                 >
-                  {view === 'library' && (
-                    <motion.div 
-                      layoutId="active-nav-bg"
-                      className="absolute inset-0 bg-[#1c1c1c] shadow-lg rounded-full"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <Library size={14} className={`relative z-10 transition-colors ${view === 'library' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                  <span className={`relative z-10 transition-colors ${view === 'library' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>LIBRARY</span>
+                  <Library size={20} strokeWidth={1.5} className={`transition-colors ${view === 'library' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 </motion.button>
               </div>
-              
-              <div className="w-[1px] h-4 bg-white/10 mx-2" />
-              
-              <div className="flex items-center gap-2 px-3 text-zinc-500 select-none">
-                 <span className="text-[10px] font-mono tracking-tighter uppercase opacity-50">
-                    {selectedTool === 'prompt' ? 'Kindly Prompt' : selectedTool === 'design' ? 'Kindly Design' : 'Kindly Skill'}
-                 </span>
-              </div>
-            </motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -1539,7 +1486,7 @@ Requirements for the generated SKILL.md:
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setView('result')}
-              className="bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-full p-2.5 text-zinc-400 hover:text-white transition-colors shadow-xl"
+              className="bg-[#1f1f1f] border-none rounded-full p-2.5 text-zinc-400 hover:text-white transition-colors shadow-[0_0_20px_rgba(0,0,0,0.5)]"
             >
               <X size={20} />
             </motion.button>
@@ -1547,16 +1494,16 @@ Requirements for the generated SKILL.md:
 
           {/* Editor Header / Switcher */}
           <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
-             <div className="flex bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-xl">
+             <div className="flex bg-[#1f1f1f] border-none rounded-full p-1 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
                 <button 
                   onClick={() => setIsEditingRaw(false)}
-                  className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all flex items-center gap-2 ${!isEditingRaw ? 'bg-[#1c1c1c] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all flex items-center gap-2 ${!isEditingRaw ? 'bg-[#2a2a2a] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   <Eye size={14} /> PREVIEW
                 </button>
                 <button 
                   onClick={() => setIsEditingRaw(true)}
-                  className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all flex items-center gap-2 ${isEditingRaw ? 'bg-[#1c1c1c] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all flex items-center gap-2 ${isEditingRaw ? 'bg-[#2a2a2a] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   <Edit3 size={14} /> RAW
                 </button>
@@ -1576,7 +1523,7 @@ Requirements for the generated SKILL.md:
                     setTimeout(() => setCopied(false), 2000);
                   }
                 }}
-                className="bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-full px-4 py-2 text-zinc-300 text-xs font-bold transition-all shadow-xl hover:bg-[#1c1c1c]"
+                className="bg-[#1f1f1f] border-none rounded-full px-4 py-2 text-zinc-300 text-xs font-bold transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:bg-[#2a2a2a]"
               >
                 {copied ? 'SAVED' : 'SAVE'}
               </button>
@@ -1632,7 +1579,7 @@ Requirements for the generated SKILL.md:
             </AnimatePresence>
             <motion.div 
               layout
-              className="bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 rounded-[32px] p-2 flex items-center gap-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+              className="bg-[#1f1f1f] border-none rounded-[32px] p-2 flex items-center gap-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
             >
               <AnimatePresence>
                 {isListening && (
