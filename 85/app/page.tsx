@@ -74,12 +74,12 @@ export default function Home() {
   const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'event'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
-  const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill'>('prompt');
+  const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
   const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent' | 'agent-max'>('ultra-fast');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
-  const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill'>('prompt');
+  const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -222,7 +222,7 @@ export default function Home() {
     setIsPiCardVisible(false);
   };
   
-  const [recents, setRecents] = useState<Array<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill', date?: string }>>(() => {
+  const [recents, setRecents] = useState<Array<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill' | 'spec', date?: string }>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('kindly_prompt_recents');
       if (saved) {
@@ -236,7 +236,7 @@ export default function Home() {
     }
     return [];
   });
-  const [currentResult, setCurrentResult] = useState<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill', date?: string } | null>(null);
+  const [currentResult, setCurrentResult] = useState<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill' | 'spec', date?: string } | null>(null);
   const [imageRef, setImageRef] = useState<string | null>(null);
   const [attachedText, setAttachedText] = useState<{name: string, content: string} | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
@@ -459,6 +459,7 @@ export default function Home() {
     let filename = 'PROMPT.md';
     if (currentResult.type === 'design') filename = 'DESIGN.md';
     if (currentResult.type === 'skill') filename = 'SKILL.md';
+    if (currentResult.type === 'spec') filename = 'SPEC.md';
     
     a.download = filename;
     document.body.appendChild(a);
@@ -535,6 +536,23 @@ Requirements for the generated SKILL.md:
 5. Make the skill operational, not motivational: every instruction should change what the agent does.
 6. Output ONLY the markdown text.`;
         promptDescription = 'The advanced SKILL.md file content ready to be copy-pasted.';
+      } else if (selectedTool === 'spec') {
+        systemInstruction = `You are a senior AI specification architect. Your task is to take a basic user request and turn it into a complete SPEC.md file: one single source of truth that combines PROMPT.md, DESIGN.md, SKILL.md, and RESEARCH.md into a professional unified specification.
+
+SPEC.md must merge:
+- PROMPT.md content: core mission, purpose, behavior, and instructions.
+- DESIGN.md content: design system and visual specifications.
+- SKILL.md content: skill definition, triggers, workflow, and metadata.
+- RESEARCH.md content: knowledge base, assumptions, references, and research context.
+
+Requirements for the generated SPEC.md:
+1. Use the filename heading "# SPEC.md" or a clear "# <Project/Agent Name> SPEC.md" title.
+2. Include these 15 sections in this order: Overview; Core Mission & Purpose; Trigger Conditions; Agent Behavior & Instructions; Design System & Visual Specs; Skill Definition & Metadata; Knowledge Base & Research; Operational Guidelines; Real-World Examples; Integration & Dependencies; Configuration & Customization; Performance & Optimization; Version History & Changelog; Complementary Agents & Skills; Support & Metadata.
+3. Make it a single source of truth, not a loose collection of notes. Avoid duplicate or contradictory guidance.
+4. Include concrete operational best practices, mistakes to avoid, real use cases, dependency notes, customization options, troubleshooting guidance, and metadata.
+5. Make every section implementation-ready for an AI agent or developer to act on.
+6. Output ONLY the markdown text.`;
+        promptDescription = 'The unified SPEC.md file content ready to be copy-pasted.';
       }
 
       if (modelType === 'agent-max') {
@@ -932,7 +950,7 @@ Behavior:
               />
             </motion.div>
             <h1 className="text-3xl md:text-4xl font-medium tracking-tight">
-              {selectedTool === 'prompt' ? 'What do you want to prompt?' : selectedTool === 'design' ? 'What do you want to design?' : 'What do you want to build a skill for?'}
+              {selectedTool === 'prompt' ? 'What do you want to prompt?' : selectedTool === 'design' ? 'What do you want to design?' : selectedTool === 'skill' ? 'What do you want to build a skill for?' : 'What should SPEC.md define?'}
             </h1>
           </div>
 
@@ -971,7 +989,7 @@ Behavior:
                 
                  <textarea
                   className={`w-full bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 text-[15px] leading-relaxed custom-scrollbar ${(imageRef || attachedText) ? (imageRef ? 'pt-16 min-h-[80px]' : 'pt-12 min-h-[70px]') : 'min-h-[30px]'}`}
-                  placeholder={selectedTool === 'prompt' ? "Describe the app you want to build..." : selectedTool === 'design' ? "Describe your ideal user interface..." : "Describe the agent skill you need..."}
+                  placeholder={selectedTool === 'prompt' ? "Describe the app you want to build..." : selectedTool === 'design' ? "Describe your ideal user interface..." : selectedTool === 'skill' ? "Describe the agent skill you need..." : "Describe the unified spec you need..."}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onPaste={(e) => {
@@ -1097,6 +1115,12 @@ Behavior:
                         >
                            <Zap size={14} /> Skill
                         </button>
+                        <button 
+                          onClick={() => setSelectedTool('spec')} 
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'spec' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                        >
+                           <FileText size={14} /> SPEC.md
+                        </button>
                       </div>
 
                       {/* In-Line Text Suggestions */}
@@ -1109,10 +1133,14 @@ Behavior:
                            "Make a minimalist portfolio design with large typography",
                            "A dark-mode dashboard for tracking server analytics",
                            "A retro terminal UI for a weather app"
-                         ] : [
+                         ] : selectedTool === 'skill' ? [
                            "Build an agent skill to read and parse local log files",
                            "Create a skill to search the web for recent news articles",
                            "Add a skill to securely connect to a PostgreSQL database"
+                         ] : [
+                           "Create a SPEC.md for a vibe coding prompt engineer",
+                           "Unify prompt, design, skill, and research docs for a SaaS builder",
+                           "Write a SPEC.md for an AI design review agent"
                          ]).map((suggestion, i) => (
                            <button 
                              key={i}
@@ -1419,7 +1447,7 @@ Behavior:
                       const a = document.createElement('a');
                       a.href = url;
                       const safeTitle = item.title.toLowerCase().replace(/\s+/g, '_');
-                      const extension = (item as any).type === 'design' ? 'design.md' : (item as any).type === 'skill' ? 'skill.md' : 'prompt.md';
+                      const extension = (item as any).type === 'design' ? 'design.md' : (item as any).type === 'skill' ? 'skill.md' : (item as any).type === 'spec' ? 'spec.md' : 'prompt.md';
                       a.download = `${safeTitle}_${extension}`;
                       a.click();
                       URL.revokeObjectURL(url);
@@ -1561,7 +1589,7 @@ Behavior:
                             </div>
                           ) : (
                             <div className="w-8 h-8 rounded-lg bg-[#2a2a2a] shrink-0 flex items-center justify-center transition-colors">
-                              {item.type === 'design' ? <Paintbrush size={14} className="text-zinc-400" /> : item.type === 'skill' ? <Zap size={14} className="text-zinc-400" /> : <MessageSquare size={14} className="text-zinc-400" />}
+                              {item.type === 'design' ? <Paintbrush size={14} className="text-zinc-400" /> : item.type === 'skill' ? <Zap size={14} className="text-zinc-400" /> : item.type === 'spec' ? <FileText size={14} className="text-zinc-400" /> : <MessageSquare size={14} className="text-zinc-400" />}
                             </div>
                           )}
                           
@@ -1942,7 +1970,7 @@ Behavior:
                   className="bg-[#141414] hover:bg-[#1c1c1c] text-zinc-300 px-5 py-2.5 rounded-full text-[15px] font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
                 >
                   <Download size={16} />
-                  {currentResult?.type === 'design' ? 'Download DESIGN.md' : currentResult?.type === 'skill' ? 'Download SKILL.md' : 'Download PROMPT.md'}
+                  {currentResult?.type === 'design' ? 'Download DESIGN.md' : currentResult?.type === 'skill' ? 'Download SKILL.md' : currentResult?.type === 'spec' ? 'Download SPEC.md' : 'Download PROMPT.md'}
                 </button>
                 
                 <a
