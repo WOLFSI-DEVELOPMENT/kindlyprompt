@@ -697,7 +697,7 @@ Requirements for the generated SKILL.md:
       {/* Left Vertical Nav Bar */}
       <AnimatePresence>
         {view !== 'edit' && (
-          <div className="fixed top-0 bottom-0 left-0 z-50 w-16 bg-[#1f1f1f] border-none flex flex-col items-center pt-4 pb-6 gap-4 shadow-xl">
+          <div className="fixed top-0 bottom-0 left-0 z-50 w-14 bg-[#141414] border-none flex flex-col items-center pt-4 pb-6 gap-4">
             <a href="/" className="flex-shrink-0 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
