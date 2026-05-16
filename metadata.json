@@ -1,0 +1,6 @@
+{
+  "name": "Kindly Prompt",
+  "description": "An AI tool powered by Gemini 3.1 Flash Lite for vibe coders to generate advanced prompts focusing on spacing, theme colors, features, and banning glows, gradients, and shadows.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
