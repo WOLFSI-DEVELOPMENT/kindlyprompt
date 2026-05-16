@@ -1618,9 +1618,9 @@ Behavior:
           </div>
         </div>
       ) : view === 'result' && modelType === 'agent-max' ? (
-        <div className={`mx-auto grid min-h-screen w-full gap-4 px-6 pt-10 ${agentMaxPreviewOpen ? 'max-w-7xl grid-cols-1 pb-10 xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]' : 'max-w-4xl grid-cols-1 pb-44'}`}>
-          <section className="flex min-w-0 flex-col gap-5">
-            <div className="rounded-[28px] bg-[#101010] p-7">
+        <div className="grid min-h-screen w-full grid-cols-1 bg-[#0d0909] lg:grid-cols-[minmax(320px,36vw)_1fr]">
+          <section className="order-2 flex min-h-screen min-w-0 flex-col bg-[#0d0909] lg:order-2">
+            <div className="flex-1 overflow-y-auto px-6 pb-12 pt-16 sm:px-10 lg:px-14">
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="flex items-center gap-2 text-xl font-bold text-white">
@@ -1641,9 +1641,9 @@ Behavior:
                   <div className="relative">
                     <button
                       onClick={() => setAgentMaxExportOpen(!agentMaxExportOpen)}
-                      className="flex items-center gap-2 rounded-full bg-[#1c1c1c] px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-[#242424]"
-                    >
-                      Export <ChevronDown size={14} />
+                    className="rounded-full bg-white/15 px-5 py-1.5 text-xs font-medium lowercase text-zinc-200 transition-colors hover:bg-white/20"
+                  >
+                      export
                     </button>
                     {agentMaxExportOpen && (
                       <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl bg-[#181818] p-2 shadow-2xl">
@@ -1691,7 +1691,7 @@ Behavior:
               {!isGenerating && result && (
                 <button
                   onClick={() => setAgentMaxPreviewOpen(!agentMaxPreviewOpen)}
-                  className="mt-7 flex w-full items-center justify-between rounded-2xl bg-[#1b1b1b] p-5 text-left transition-colors hover:bg-[#242424]"
+                  className="hidden"
                 >
                   <div>
                     <div className="font-bold text-white">{agentMaxPreviewOpen ? 'Close split chat' : 'Open split chat'}</div>
@@ -1704,21 +1704,26 @@ Behavior:
           </section>
 
           <AnimatePresence>
-            {agentMaxPreviewOpen && (
+            {true && (
               <motion.aside
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 40 }}
-                className="sticky top-8 flex h-[calc(100vh-4rem)] min-w-0 flex-col overflow-hidden rounded-[28px] bg-[#141414]"
+                className="order-1 flex h-screen min-w-0 flex-col overflow-hidden border-r border-white/10 bg-[#111111] lg:order-1"
               >
                 <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
-                  <div>
-                    <span className="text-sm font-bold text-zinc-200">Agent Max Chat</span>
-                    <p className="mt-1 text-xs text-zinc-600">Ask follow-ups while the result stays open.</p>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">
+                      <Bot size={17} />
+                    </span>
+                    <div>
+                      <span className="text-sm font-bold text-zinc-200">Agent Max</span>
+                      <p className="mt-1 text-xs text-zinc-600">Chat workspace</p>
+                    </div>
                   </div>
-                  <button onClick={() => setAgentMaxPreviewOpen(false)} className="text-zinc-500 hover:text-zinc-200"><X size={18} /></button>
+                  <button onClick={() => setView('home')} className="rounded-full px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200">New</button>
                 </div>
-                <div className="flex-1 space-y-3 overflow-y-auto p-5">
+                <div className="flex-1 space-y-3 overflow-y-auto px-5 pb-36 pt-5">
                   {chatHistory.length === 0 && !isGenerating && (
                     <div className="rounded-[22px] bg-[#101010] p-5 text-sm leading-relaxed text-zinc-500">
                       Tell Agent Max what to change, add, research, or generate next. Your document stays live on the left.
@@ -1749,14 +1754,14 @@ Behavior:
                     </motion.div>
                   ))}
                 </div>
-                <div className="border-t border-white/5 p-3">
-                  <div className="flex items-end gap-2 rounded-[24px] bg-[#0d0d0d] px-3 py-2">
+                <div className="bg-gradient-to-t from-[#111111] via-[#111111] to-transparent p-2 pt-10">
+                  <div className="flex min-h-[74px] items-end gap-2 rounded-[14px] border border-white/10 bg-[#1b1b1b] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
                     <button
                       onClick={() => setChatHistory([])}
                       title="Clear thread"
-                      className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
+                      className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
                     >
-                      <Plus size={18} />
+                      <Plus size={16} />
                     </button>
                     <textarea
                       value={refineInput}
@@ -1769,18 +1774,18 @@ Behavior:
                       }}
                       rows={1}
                       placeholder="Message Agent Max..."
-                      className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2.5 text-[15px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
+                      className="max-h-28 min-h-14 flex-1 resize-none bg-transparent px-1 py-2 text-[14px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
                     />
                     <button
                       onClick={() => refinePrompt(refineInput)}
                       disabled={!refineInput.trim() || isGenerating}
-                      className={`mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
+                      className={`mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${
                         isGenerating
                           ? 'bg-zinc-700 text-zinc-300'
                           : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
                       }`}
                     >
-                      {isGenerating ? <Square size={15} fill="currentColor" /> : <ArrowUp size={18} />}
+                      {isGenerating ? <Square size={14} fill="currentColor" /> : <ArrowUp size={17} />}
                     </button>
                   </div>
                 </div>
@@ -1788,7 +1793,7 @@ Behavior:
             )}
           </AnimatePresence>
 
-          {!agentMaxPreviewOpen && (
+          {false && (
             <div className="fixed bottom-6 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 px-4">
               <div className="rounded-[32px] border border-white/10 bg-[#0a0a0a]/90 p-2 backdrop-blur-2xl shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
                 <div className="flex items-end gap-2 rounded-[26px] bg-[#141414] px-3 py-2">
