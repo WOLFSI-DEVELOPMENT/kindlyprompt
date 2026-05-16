@@ -674,9 +674,10 @@ Behavior:
         )}
       </AnimatePresence>
 
-      <div className="absolute top-6 right-6 z-50">
-        <AnimatePresence mode="wait">
-          {user ? (
+      {view === 'home' && (
+        <div className="absolute top-6 right-6 z-50">
+          <AnimatePresence mode="wait">
+            {user ? (
             showApiKeyInput ? (
               <motion.div
                 key="api-input"
@@ -747,20 +748,21 @@ Behavior:
                 </motion.div>
               </motion.div>
             )
-          ) : (
-            <motion.button 
-              key="sign-in"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              onClick={() => setIsAuthModalOpen(true)}
-              className="bg-[#1c1c1c] hover:bg-[#2a2a2a] text-zinc-300 text-sm font-medium px-5 py-2.5 rounded-full transition-colors border border-transparent shadow-lg"
-            >
-              Sign In
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
+            ) : (
+              <motion.button 
+                key="sign-in"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                onClick={() => setIsAuthModalOpen(true)}
+                className="bg-[#1c1c1c] hover:bg-[#2a2a2a] text-zinc-300 text-sm font-medium px-5 py-2.5 rounded-full transition-colors border border-transparent shadow-lg"
+              >
+                Sign In
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       <AnimatePresence>
         {view === 'home' && !supportNoticeHidden && (
@@ -1587,8 +1589,8 @@ Behavior:
           </div>
         </div>
       ) : view === 'result' && modelType === 'agent-max' ? (
-        <div className={`mx-auto flex min-h-screen w-full gap-4 px-6 pb-44 pt-10 ${agentMaxPreviewOpen ? 'max-w-7xl' : 'max-w-4xl flex-col'}`}>
-          <section className={`${agentMaxPreviewOpen ? 'w-[52%]' : 'w-full'} flex flex-col gap-5`}>
+        <div className={`mx-auto grid min-h-screen w-full gap-4 px-6 pt-10 ${agentMaxPreviewOpen ? 'max-w-7xl grid-cols-1 pb-10 xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]' : 'max-w-4xl grid-cols-1 pb-44'}`}>
+          <section className="flex min-w-0 flex-col gap-5">
             <div className="rounded-[28px] bg-[#101010] p-7">
               <div className="mb-6 flex items-center justify-between">
                 <div>
@@ -1658,38 +1660,13 @@ Behavior:
                   className="mt-7 flex w-full items-center justify-between rounded-2xl bg-[#1b1b1b] p-5 text-left transition-colors hover:bg-[#242424]"
                 >
                   <div>
-                    <div className="font-bold text-white">Preview documents</div>
-                    <div className="mt-1 text-sm text-zinc-500">Open a formatted side preview and edit the parts you do not like.</div>
+                    <div className="font-bold text-white">{agentMaxPreviewOpen ? 'Close split chat' : 'Open split chat'}</div>
+                    <div className="mt-1 text-sm text-zinc-500">{agentMaxPreviewOpen ? 'Return to the centered floating composer.' : 'Keep the document on the left and chat with Agent Max on the right.'}</div>
                   </div>
                   <ArrowRight size={18} className="text-zinc-500" />
                 </button>
               )}
             </div>
-
-            {chatHistory.length > 0 && (
-              <div className="flex flex-col gap-3 rounded-[28px] bg-[#0f0f0f] p-5">
-                <div className="flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-[0.18em] text-zinc-600">
-                  <MessageSquare size={13} />
-                  Agent thread
-                </div>
-                <div className="flex flex-col gap-3">
-                  {chatHistory.map((message, index) => (
-                    <motion.div
-                      key={`${message.role}-${index}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`max-w-[86%] rounded-[20px] px-4 py-3 text-sm leading-relaxed ${
-                        message.role === 'user'
-                          ? 'ml-auto bg-white text-black'
-                          : 'mr-auto bg-[#1b1b1b] text-zinc-300'
-                      }`}
-                    >
-                      {message.text}
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
           </section>
 
           <AnimatePresence>
@@ -1698,58 +1675,124 @@ Behavior:
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 40 }}
-                className="sticky top-8 h-[calc(100vh-4rem)] flex-1 overflow-hidden rounded-[28px] bg-[#141414]"
+                className="sticky top-8 flex h-[calc(100vh-4rem)] min-w-0 flex-col overflow-hidden rounded-[28px] bg-[#141414]"
               >
                 <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
-                  <span className="text-sm font-bold text-zinc-300">Document Preview</span>
+                  <div>
+                    <span className="text-sm font-bold text-zinc-200">Agent Max Chat</span>
+                    <p className="mt-1 text-xs text-zinc-600">Ask follow-ups while the result stays open.</p>
+                  </div>
                   <button onClick={() => setAgentMaxPreviewOpen(false)} className="text-zinc-500 hover:text-zinc-200"><X size={18} /></button>
                 </div>
-                <textarea
-                  value={result}
-                  onChange={(e) => setResult(e.target.value)}
-                  className="h-full w-full resize-none bg-transparent p-6 font-mono text-sm leading-relaxed text-zinc-300 outline-none"
-                />
+                <div className="flex-1 space-y-3 overflow-y-auto p-5">
+                  {chatHistory.length === 0 && !isGenerating && (
+                    <div className="rounded-[22px] bg-[#101010] p-5 text-sm leading-relaxed text-zinc-500">
+                      Tell Agent Max what to change, add, research, or generate next. Your document stays live on the left.
+                    </div>
+                  )}
+                  {agentLogs.length > 0 && (
+                    <div className="space-y-2 rounded-[22px] bg-[#101010] p-4">
+                      {agentLogs.map((log) => (
+                        <div key={log.id} className="flex items-start gap-3 text-xs">
+                          {log.type === 'search' ? <Search size={14} className="mt-0.5 text-cyan-300" /> : log.type === 'read' ? <BookOpen size={14} className="mt-0.5 text-zinc-500" /> : <Zap size={14} className="mt-0.5 text-zinc-500" />}
+                          <span className={log.type === 'search' ? 'font-semibold text-cyan-200' : 'text-zinc-500'}>{log.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {chatHistory.map((message, index) => (
+                    <motion.div
+                      key={`${message.role}-${index}`}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`max-w-[88%] rounded-[22px] px-4 py-3 text-sm leading-relaxed ${
+                        message.role === 'user'
+                          ? 'ml-auto bg-white text-black'
+                          : 'mr-auto bg-[#202020] text-zinc-300'
+                      }`}
+                    >
+                      {message.text}
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="border-t border-white/5 p-3">
+                  <div className="flex items-end gap-2 rounded-[24px] bg-[#0d0d0d] px-3 py-2">
+                    <button
+                      onClick={() => setChatHistory([])}
+                      title="Clear thread"
+                      className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
+                    >
+                      <Plus size={18} />
+                    </button>
+                    <textarea
+                      value={refineInput}
+                      onChange={(e) => setRefineInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          refinePrompt(refineInput);
+                        }
+                      }}
+                      rows={1}
+                      placeholder="Message Agent Max..."
+                      className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2.5 text-[15px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
+                    />
+                    <button
+                      onClick={() => refinePrompt(refineInput)}
+                      disabled={!refineInput.trim() || isGenerating}
+                      className={`mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
+                        isGenerating
+                          ? 'bg-zinc-700 text-zinc-300'
+                          : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
+                      }`}
+                    >
+                      {isGenerating ? <Square size={15} fill="currentColor" /> : <ArrowUp size={18} />}
+                    </button>
+                  </div>
+                </div>
               </motion.aside>
             )}
           </AnimatePresence>
 
-          <div className="fixed bottom-6 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 px-4">
-            <div className="rounded-[32px] border border-white/10 bg-[#0a0a0a]/90 p-2 backdrop-blur-2xl shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
-              <div className="flex items-end gap-2 rounded-[26px] bg-[#141414] px-3 py-2">
-                <button
-                  onClick={() => setChatHistory([])}
-                  title="Clear thread"
-                  className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
-                >
-                  <Plus size={18} />
-                </button>
-                <textarea
-                  value={refineInput}
-                  onChange={(e) => setRefineInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      refinePrompt(refineInput);
-                    }
-                  }}
-                  rows={1}
-                  placeholder="Ask Agent Max to edit, research, add files, rewrite, or keep going..."
-                  className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2.5 text-[15px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
-                />
-                <button
-                  onClick={() => refinePrompt(refineInput)}
-                  disabled={!refineInput.trim() || isGenerating}
-                  className={`mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
-                    isGenerating
-                      ? 'bg-zinc-700 text-zinc-300'
-                      : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
-                  }`}
-                >
-                  {isGenerating ? <Square size={15} fill="currentColor" /> : <ArrowUp size={18} />}
-                </button>
+          {!agentMaxPreviewOpen && (
+            <div className="fixed bottom-6 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 px-4">
+              <div className="rounded-[32px] border border-white/10 bg-[#0a0a0a]/90 p-2 backdrop-blur-2xl shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
+                <div className="flex items-end gap-2 rounded-[26px] bg-[#141414] px-3 py-2">
+                  <button
+                    onClick={() => setChatHistory([])}
+                    title="Clear thread"
+                    className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
+                  >
+                    <Plus size={18} />
+                  </button>
+                  <textarea
+                    value={refineInput}
+                    onChange={(e) => setRefineInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        refinePrompt(refineInput);
+                      }
+                    }}
+                    rows={1}
+                    placeholder="Ask Agent Max to edit, research, add files, rewrite, or keep going..."
+                    className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2.5 text-[15px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
+                  />
+                  <button
+                    onClick={() => refinePrompt(refineInput)}
+                    disabled={!refineInput.trim() || isGenerating}
+                    className={`mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
+                      isGenerating
+                        ? 'bg-zinc-700 text-zinc-300'
+                        : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
+                    }`}
+                  >
+                    {isGenerating ? <Square size={15} fill="currentColor" /> : <ArrowUp size={18} />}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       ) : view === 'result' ? (
         // RESULT VIEW
