@@ -32,7 +32,8 @@ import {
   FileText,
   BookOpen,
   Code2,
-  GitBranch
+  GitBranch,
+  Bot
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -1039,7 +1040,7 @@ Behavior:
                                   className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center justify-between ${modelType === 'agent-max' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
                                 >
                                   <span>Agent Max</span>
-                                  <Sparkles size={12} className={modelType === 'agent-max' ? 'text-white' : 'text-zinc-500'} />
+                                  <Bot size={12} className={modelType === 'agent-max' ? 'text-white' : 'text-zinc-500'} />
                                 </button>
                               </div>
                             </motion.div>
@@ -1594,7 +1595,12 @@ Behavior:
             <div className="rounded-[28px] bg-[#101010] p-7">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-white">Agent Max</h2>
+                  <h2 className="flex items-center gap-2 text-xl font-bold text-white">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">
+                      <Bot size={17} />
+                    </span>
+                    Agent Max
+                  </h2>
                   <p className="text-sm text-zinc-500">Research, files, docs, prompts, skills, and edits in one agent workspace.</p>
                 </div>
                 <div className="flex items-center gap-2">
