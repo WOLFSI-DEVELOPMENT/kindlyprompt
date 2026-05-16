@@ -7,5 +7,11 @@
     "dev": "cd 85 && npm run dev",
     "lint": "cd 85 && npm run lint",
     "start": "cd 85 && npm run start"
+  },
+  "dependencies": {
+    "@types/node": "^25.8.0",
+    "@types/react": "^19.2.14",
+    "next": "^15.4.9",
+    "typescript": "^6.0.3"
   }
 }

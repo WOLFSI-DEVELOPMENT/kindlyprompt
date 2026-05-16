@@ -77,7 +77,7 @@ export default function Home() {
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
-  const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent' | 'agent-max'>('ultra-fast');
+  const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent'>('ultra-fast');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
@@ -555,27 +555,14 @@ Requirements for the generated SPEC.md:
         promptDescription = 'The unified SPEC.md file content ready to be copy-pasted.';
       }
 
-      if (modelType === 'agent-max') {
-        systemInstruction = `You are Agent Max, an advanced autonomous creation agent for Kindly Prompt.
-You can generate prompts, DESIGN.md files, SKILL.md files, implementation plans, docs, scripts, specs, checklists, and other useful file-format content.
-
-Behavior:
-1. First research and reason like a coding agent: identify what the user is asking for, what files/docs/skills would matter, and what web sources or current context should be checked.
-2. Use available tools for web search, URL context, and code execution when helpful.
-3. Produce a polished final artifact in markdown. If multiple files are appropriate, separate them with clear headings like "File: DESIGN.md".
-4. After the artifact, add a short "What I did" section explaining the generated files, key choices, and suggested next steps.
-5. Keep output flat, formatted, and practical. Do not wrap the response in chat bubbles.`;
-        promptDescription = 'A complete Agent Max artifact with files, docs, prompts, skills, or other requested formats plus a concise explanation of what was created.';
-      }
-
-      setStreamedResult('');
+            setStreamedResult('');
       setAgentLogs([{ id: 'start', text: 'Initializing...', type: 'info' }]);
       if (modelType !== 'ultra-fast') {
         setAgentLogs(prev => [
           ...prev,
-          { id: 'skill', text: modelType === 'agent-max' ? 'Using skill: advanced file and document generation' : 'Using Super Agent mode', type: 'code' },
+          { id: 'skill', text: 'Using Super Agent mode', type: 'code' },
           { id: 'research', text: 'Researching best approaches...', type: 'search' },
-          ...(modelType === 'agent-max' ? [{ id: 'webpages', text: 'Reading webpages and project context as needed', type: 'read' as const }] : [])
+
         ]);
       }
 
@@ -847,7 +834,7 @@ Behavior:
       {/* Left Vertical Nav Bar */}
       <AnimatePresence>
         {view !== 'edit' && (
-          <div className="fixed top-0 bottom-0 left-0 z-50 w-12 bg-[#1f1f1f] flex flex-col items-center pt-3 pb-6 gap-6">
+          <div className="fixed top-0 bottom-0 left-0 z-50 w-10 bg-[#141414] border-none flex flex-col items-center pt-4 pb-6 gap-4">
             <a href="/" className="flex-shrink-0 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
@@ -1024,7 +1011,7 @@ Behavior:
                         onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
                         className={`flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${isModelDropdownOpen ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}
                       >
-                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : modelType === 'super-agent' ? 'Super Agent' : 'Agent Max'}</span>
+                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : 'Super Agent'}</span>
                         <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
                       </div>
                       
@@ -1053,13 +1040,7 @@ Behavior:
                                   <span>Super Agent</span>
                                   <Zap size={12} className={modelType === 'super-agent' ? 'text-white' : 'text-zinc-500'} />
                                 </button>
-                                <button
-                                  onClick={() => { setModelType('agent-max'); setIsModelDropdownOpen(false); }}
-                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center justify-between ${modelType === 'agent-max' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
-                                >
-                                  <span>Agent Max</span>
-                                  <Bot size={12} className={modelType === 'agent-max' ? 'text-white' : 'text-zinc-500'} />
-                                </button>
+
                               </div>
                             </motion.div>
                           </>
@@ -1616,222 +1597,6 @@ Behavior:
               </div>
             )}
           </div>
-        </div>
-      ) : view === 'result' && modelType === 'agent-max' ? (
-        <div className="grid min-h-screen w-full grid-cols-1 bg-[#0d0909] lg:grid-cols-[minmax(320px,36vw)_1fr]">
-          <section className="order-2 flex min-h-screen min-w-0 flex-col bg-[#0d0909] lg:order-2">
-            <div className="flex-1 overflow-y-auto px-6 pb-12 pt-16 sm:px-10 lg:px-14">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h2 className="flex items-center gap-2 text-xl font-bold text-white">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">
-                      <Bot size={17} />
-                    </span>
-                    Agent Max
-                  </h2>
-                  <p className="text-sm text-zinc-500">Research, files, docs, prompts, skills, and edits in one agent workspace.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigator.clipboard.writeText(result)}
-                    className="rounded-full bg-[#1c1c1c] px-3 py-2 text-sm text-zinc-300 hover:bg-[#242424]"
-                  >
-                    <Copy size={15} />
-                  </button>
-                  <div className="relative">
-                    <button
-                      onClick={() => setAgentMaxExportOpen(!agentMaxExportOpen)}
-                    className="rounded-full bg-white/15 px-5 py-1.5 text-xs font-medium lowercase text-zinc-200 transition-colors hover:bg-white/20"
-                  >
-                      export
-                    </button>
-                    {agentMaxExportOpen && (
-                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl bg-[#181818] p-2 shadow-2xl">
-                        {[
-                          ['Lovable', lovableUrl, 'https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png'],
-                          ['Claude', claudeUrl, 'https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/dark/claude-color.png'],
-                          ['Claude Code', claudeCodeUrl, 'https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/dark/claudecode-color.png'],
-                          ['Codex', '', 'https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/dark/codex.png'],
-                          ['Antigravity', '', 'https://antigravity.google/assets/image/brand/antigravity-icon__full-color.png'],
-                        ].map(([label, href, icon]) => href ? (
-                          <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-300 hover:bg-[#242424]">
-                            <img src={icon} alt="" className="h-4 w-4 object-contain" /> {label}
-                          </a>
-                        ) : (
-                          <button key={label} onClick={() => navigator.clipboard.writeText(result)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-zinc-300 hover:bg-[#242424]">
-                            <img src={icon} alt="" className="h-4 w-4 object-contain" /> Copy for {label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {isGenerating ? (
-                <div className="space-y-5">
-                  <p className="text-xl font-semibold leading-relaxed text-zinc-100">
-                    I’ll start by researching the request, reading relevant sources, then generate polished files and explain what changed.
-                  </p>
-                  <div className="space-y-3">
-                    {agentLogs.map((log) => (
-                      <motion.div key={log.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-3 text-sm">
-                        {log.type === 'search' ? <Search size={16} className="mt-0.5 text-cyan-300" /> : log.type === 'read' ? <BookOpen size={16} className="mt-0.5 text-zinc-400" /> : <Zap size={16} className="mt-0.5 text-zinc-400" />}
-                        <span className={log.type === 'search' ? 'font-semibold text-cyan-200' : 'text-zinc-400'}>{log.text}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="prose prose-invert max-w-none prose-headings:text-white prose-p:text-zinc-300 prose-li:text-zinc-300 prose-pre:bg-[#181818] prose-pre:rounded-2xl">
-                  <ReactMarkdown>{result}</ReactMarkdown>
-                </div>
-              )}
-
-              {!isGenerating && result && (
-                <button
-                  onClick={() => setAgentMaxPreviewOpen(!agentMaxPreviewOpen)}
-                  className="hidden"
-                >
-                  <div>
-                    <div className="font-bold text-white">{agentMaxPreviewOpen ? 'Close split chat' : 'Open split chat'}</div>
-                    <div className="mt-1 text-sm text-zinc-500">{agentMaxPreviewOpen ? 'Return to the centered floating composer.' : 'Keep the document on the left and chat with Agent Max on the right.'}</div>
-                  </div>
-                  <ArrowRight size={18} className="text-zinc-500" />
-                </button>
-              )}
-            </div>
-          </section>
-
-          <AnimatePresence>
-            {true && (
-              <motion.aside
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 40 }}
-                className="order-1 flex h-screen min-w-0 flex-col overflow-hidden border-r border-white/10 bg-[#111111] lg:order-1"
-              >
-                <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">
-                      <Bot size={17} />
-                    </span>
-                    <div>
-                      <span className="text-sm font-bold text-zinc-200">Agent Max</span>
-                      <p className="mt-1 text-xs text-zinc-600">Chat workspace</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setView('home')} className="rounded-full px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200">New</button>
-                </div>
-                <div className="flex-1 space-y-3 overflow-y-auto px-5 pb-36 pt-5">
-                  {chatHistory.length === 0 && !isGenerating && (
-                    <div className="rounded-[22px] bg-[#101010] p-5 text-sm leading-relaxed text-zinc-500">
-                      Tell Agent Max what to change, add, research, or generate next. Your document stays live on the left.
-                    </div>
-                  )}
-                  {agentLogs.length > 0 && (
-                    <div className="space-y-2 rounded-[22px] bg-[#101010] p-4">
-                      {agentLogs.map((log) => (
-                        <div key={log.id} className="flex items-start gap-3 text-xs">
-                          {log.type === 'search' ? <Search size={14} className="mt-0.5 text-cyan-300" /> : log.type === 'read' ? <BookOpen size={14} className="mt-0.5 text-zinc-500" /> : <Zap size={14} className="mt-0.5 text-zinc-500" />}
-                          <span className={log.type === 'search' ? 'font-semibold text-cyan-200' : 'text-zinc-500'}>{log.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {chatHistory.map((message, index) => (
-                    <motion.div
-                      key={`${message.role}-${index}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`max-w-[88%] rounded-[22px] px-4 py-3 text-sm leading-relaxed ${
-                        message.role === 'user'
-                          ? 'ml-auto bg-white text-black'
-                          : 'mr-auto bg-[#202020] text-zinc-300'
-                      }`}
-                    >
-                      {message.text}
-                    </motion.div>
-                  ))}
-                </div>
-                <div className="bg-gradient-to-t from-[#111111] via-[#111111] to-transparent p-2 pt-10">
-                  <div className="flex min-h-[74px] items-end gap-2 rounded-[14px] border border-white/10 bg-[#1b1b1b] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
-                    <button
-                      onClick={() => setChatHistory([])}
-                      title="Clear thread"
-                      className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
-                    >
-                      <Plus size={16} />
-                    </button>
-                    <textarea
-                      value={refineInput}
-                      onChange={(e) => setRefineInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          refinePrompt(refineInput);
-                        }
-                      }}
-                      rows={1}
-                      placeholder="Message Agent Max..."
-                      className="max-h-28 min-h-14 flex-1 resize-none bg-transparent px-1 py-2 text-[14px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
-                    />
-                    <button
-                      onClick={() => refinePrompt(refineInput)}
-                      disabled={!refineInput.trim() || isGenerating}
-                      className={`mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${
-                        isGenerating
-                          ? 'bg-zinc-700 text-zinc-300'
-                          : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
-                      }`}
-                    >
-                      {isGenerating ? <Square size={14} fill="currentColor" /> : <ArrowUp size={17} />}
-                    </button>
-                  </div>
-                </div>
-              </motion.aside>
-            )}
-          </AnimatePresence>
-
-          {false && (
-            <div className="fixed bottom-6 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 px-4">
-              <div className="rounded-[32px] border border-white/10 bg-[#0a0a0a]/90 p-2 backdrop-blur-2xl shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
-                <div className="flex items-end gap-2 rounded-[26px] bg-[#141414] px-3 py-2">
-                  <button
-                    onClick={() => setChatHistory([])}
-                    title="Clear thread"
-                    className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
-                  >
-                    <Plus size={18} />
-                  </button>
-                  <textarea
-                    value={refineInput}
-                    onChange={(e) => setRefineInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        refinePrompt(refineInput);
-                      }
-                    }}
-                    rows={1}
-                    placeholder="Ask Agent Max to edit, research, add files, rewrite, or keep going..."
-                    className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2.5 text-[15px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
-                  />
-                  <button
-                    onClick={() => refinePrompt(refineInput)}
-                    disabled={!refineInput.trim() || isGenerating}
-                    className={`mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
-                      isGenerating
-                        ? 'bg-zinc-700 text-zinc-300'
-                        : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
-                    }`}
-                  >
-                    {isGenerating ? <Square size={15} fill="currentColor" /> : <ArrowUp size={18} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       ) : view === 'result' ? (
         // RESULT VIEW
