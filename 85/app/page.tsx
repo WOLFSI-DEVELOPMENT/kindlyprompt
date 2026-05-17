@@ -22,7 +22,7 @@ import {
   File01Icon,
   FlashIcon,
   Folder02Icon,
-  GitBranchIcon,
+  FolderLibraryIcon,
   Image01Icon,
   Link01Icon,
   Message01Icon,
@@ -78,7 +78,7 @@ const FileText = createHugeIcon(File01Icon);
 const BookOpen = createHugeIcon(BookOpen01Icon);
 const Clipboard = createHugeIcon(ClipboardIcon);
 const Code2 = createHugeIcon(CodeIcon);
-const GitBranch = createHugeIcon(GitBranchIcon);
+const FolderLibrary = createHugeIcon(FolderLibraryIcon);
 const Discover = createHugeIcon(DiscoverCircleIcon);
 const SidebarLeft = createHugeIcon(SidebarLeftIcon);
 const SidebarRight = createHugeIcon(SidebarRightIcon);
@@ -527,7 +527,7 @@ export default function Home() {
   const discoveryTabs = [
     { label: 'Discover', view: 'discover' as const, icon: Discover },
     { label: 'Skills', view: 'skills' as const, icon: Clipboard },
-    { label: 'Library', view: 'library' as const, icon: GitBranch },
+    { label: 'Library', view: 'library' as const, icon: FolderLibrary },
   ];
 
   const generatePrompt = async (text: string, image: string | null = null) => {
@@ -873,7 +873,7 @@ export default function Home() {
                 {[
                   { label: 'New task', view: 'home' as const, icon: Plus, active: view === 'home' || view === 'result' },
                   { label: 'History', view: 'recents' as const, icon: History, active: view === 'recents' },
-                  { label: 'Library', view: 'library' as const, icon: GitBranch, active: view === 'library' },
+                  { label: 'Library', view: 'library' as const, icon: FolderLibrary, active: view === 'library' },
                   { label: 'Discover', view: 'discover' as const, icon: Discover, active: view === 'discover' },
                   { label: 'Skills', view: 'skills' as const, icon: Clipboard, active: view === 'skills' },
                 ].map((item) => {
