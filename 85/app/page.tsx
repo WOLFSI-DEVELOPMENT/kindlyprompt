@@ -609,7 +609,7 @@ export default function Home() {
       name: 'Researcher',
       description: 'Supported Grounding with Google Search for current context.',
       color: '#efe2c8',
-      image: 'https://i.ibb.co/NdQ7fcTw/Kawaii-blob-character-with-docum-202605171327-modified.png',
+      image: 'https://i.ibb.co/CSH6NMB/Kawaii-blob-character-with-beret-202605171327-modified.png',
       hat: true,
       lashes: false,
       status: 'Grounding with Google Search completed',
@@ -649,7 +649,7 @@ export default function Home() {
       name: 'Composer',
       description: 'Combines all agent work into one final prompt.',
       color: '#e6d2bd',
-      image: 'https://i.ibb.co/CSH6NMB/Kawaii-blob-character-with-beret-202605171327-modified.png',
+      image: 'https://i.ibb.co/NdQ7fcTw/Kawaii-blob-character-with-docum-202605171327-modified.png',
       hat: false,
       lashes: false,
       status: 'Final prompt assembly completed',
@@ -999,7 +999,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         initial={{ y: 6, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ delay: index * 0.05, duration: 0.28 }}
-        className={`${compact ? 'h-11 w-11' : 'h-16 w-16'} relative overflow-hidden rounded-full bg-[#f1f1ef] shadow-[0_10px_28px_rgba(0,0,0,0.28)] ring-2 ring-black/10`}
+        className={`${compact ? 'h-11 w-11' : 'h-16 w-16'} relative overflow-hidden rounded-full bg-[#f1f1ef] shadow-[0_10px_28px_rgba(0,0,0,0.28)] ring-[3px] ring-[#2a2a2a]`}
       >
         <img src={agent.image} alt="" className="h-full w-full object-cover" />
       </motion.div>
