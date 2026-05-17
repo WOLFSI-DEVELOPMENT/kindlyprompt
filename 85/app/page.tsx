@@ -603,6 +603,53 @@ export default function Home() {
   const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(result)}`;
   const claudeCodeUrl = `claude-cli://open?prompt=${encodeURIComponent(result)}`;
   const conductorUrl = `conductor://prompt=${encodeURIComponent(result)}`;
+  const superAgents = [
+    {
+      id: 'researcher',
+      name: 'Researcher',
+      description: 'Supported Grounding with Google Search for current context.',
+      color: '#efe2c8',
+      hat: true,
+      lashes: false,
+      status: 'Grounding with Google Search completed',
+    },
+    {
+      id: 'validator',
+      name: 'Validator',
+      description: 'Validates the idea before generation starts.',
+      color: '#f3dccd',
+      hat: false,
+      lashes: true,
+      status: 'Idea validation completed',
+    },
+    {
+      id: 'designer',
+      name: 'Designer',
+      description: 'Inspects provided designs and analyzes visual direction.',
+      color: '#ead8b6',
+      hat: false,
+      lashes: true,
+      status: 'Design analysis completed',
+    },
+    {
+      id: 'engineer',
+      name: 'Engineer',
+      description: 'Writes backend instructions and merges agent findings.',
+      color: '#f4e9d2',
+      hat: true,
+      lashes: false,
+      status: 'Backend instructions completed',
+    },
+    {
+      id: 'composer',
+      name: 'Composer',
+      description: 'Combines all agent work into one final prompt.',
+      color: '#e6d2bd',
+      hat: false,
+      lashes: false,
+      status: 'Final prompt assembly completed',
+    },
+  ];
   const weeklyEvent = {
     id: 'chrome-extension-discover-skills-super-agent-2026-05',
     title: 'New weekly event',
@@ -874,20 +921,107 @@ Return proposed memory entries and ask for confirmation before saving.`
   );
 
   const renderSkillPixelVisual = (skill: AgentSkill, size = 'md') => {
-    const cell = size === 'lg' ? 'h-3 w-3' : 'h-1.5 w-1.5';
+    const large = size === 'lg';
+    const iconType = agentSkills.findIndex((item) => item.slug === skill.slug) % 5;
     return (
-      <div className={`${size === 'lg' ? 'h-20 w-20' : 'h-14 w-14'} shrink-0 rounded-full bg-[#d8d8d8] p-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.18)]`}>
-        <div className="grid grid-cols-8 gap-0.5">
-          {Array.from({ length: 64 }).map((_, index) => (
-            <span
-              key={`${skill.slug}-${index}`}
-              className={`${cell} ${skill.pixels.includes(index) ? 'bg-[#111111]' : index % 3 === 0 ? 'bg-[#8f8f8f]' : 'bg-[#f2f2f2]'}`}
+      <div className={`${large ? 'h-24 w-24' : 'h-20 w-20'} shrink-0 text-zinc-100`}>
+        <svg viewBox="0 0 80 80" className="h-full w-full overflow-visible" shapeRendering="crispEdges" aria-hidden="true">
+          <rect x="26" y="54" width="28" height="18" fill="#efefef" />
+          <rect x="22" y="68" width="36" height="6" fill="#b8b8b8" />
+          <rect x="30" y="54" width="4" height="20" fill="#202020" />
+          <rect x="46" y="54" width="4" height="20" fill="#202020" />
+          <circle cx="40" cy="34" r="29" fill="#f4f4f4" />
+          <circle cx="40" cy="34" r="29" fill="none" stroke="#9f9f9f" strokeWidth="4" />
+          <rect x="14" y="17" width="52" height="8" fill="#d4d4d4" />
+          <rect x="18" y="28" width="44" height="16" fill="#1a1a1a" />
+          <rect x="24" y="32" width="8" height="8" fill="#f2f2f2" />
+          <rect x="48" y="32" width="8" height="8" fill="#f2f2f2" />
+          <rect x="34" y="46" width="12" height="5" fill="#1a1a1a" />
+          {iconType === 0 && (
+            <>
+              <rect x="26" y="10" width="28" height="5" fill="#202020" />
+              <rect x="30" y="4" width="20" height="8" fill="#d8d8d8" />
+              <rect x="33" y="4" width="14" height="8" fill="#202020" />
+            </>
+          )}
+          {iconType === 1 && (
+            <>
+              <rect x="19" y="46" width="6" height="18" fill="#2a2a2a" />
+              <rect x="55" y="46" width="6" height="18" fill="#2a2a2a" />
+              <rect x="26" y="24" width="28" height="4" fill="#8e8e8e" />
+            </>
+          )}
+          {iconType === 2 && (
+            <>
+              <rect x="20" y="29" width="8" height="3" fill="#c8c8c8" />
+              <rect x="52" y="29" width="8" height="3" fill="#c8c8c8" />
+              <rect x="36" y="10" width="8" height="8" fill="#202020" />
+            </>
+          )}
+          {iconType === 3 && (
+            <>
+              <rect x="14" y="38" width="8" height="5" fill="#bdbdbd" />
+              <rect x="58" y="38" width="8" height="5" fill="#bdbdbd" />
+              <rect x="31" y="51" width="18" height="4" fill="#8f8f8f" />
+            </>
+          )}
+          {iconType === 4 && (
+            <>
+              <rect x="27" y="30" width="5" height="12" fill="#d0d0d0" />
+              <rect x="48" y="30" width="5" height="12" fill="#d0d0d0" />
+              <rect x="34" y="14" width="12" height="5" fill="#1a1a1a" />
+            </>
+          )}
+          {skill.pixels.slice(0, 12).map((pixel, index) => (
+            <rect
+              key={`${skill.slug}-detail-${pixel}`}
+              x={18 + (pixel % 8) * 6}
+              y={18 + Math.floor(index / 4) * 9}
+              width="4"
+              height="4"
+              fill={index % 2 === 0 ? '#111111' : '#9d9d9d'}
+              opacity="0.9"
             />
           ))}
-        </div>
+        </svg>
       </div>
     );
   };
+
+  const renderAgentFace = (agent: typeof superAgents[number], index: number, compact = false) => (
+    <div className="group relative flex flex-col items-center">
+      <motion.div
+        initial={{ y: 8, opacity: 0 }}
+        animate={{ y: compact ? 0 : Math.abs(index - 2) * 16, opacity: 1 }}
+        transition={{ delay: index * 0.05, duration: 0.28 }}
+        className={`${compact ? 'h-11 w-11' : 'h-16 w-16'} relative rounded-full shadow-[inset_0_-8px_12px_rgba(0,0,0,0.14),0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-white/30`}
+        style={{ backgroundColor: agent.color }}
+      >
+        {agent.hat && (
+          <>
+            <div className="absolute -top-2 left-1/2 h-3 w-8 -translate-x-1/2 rounded-t-lg bg-[#2a2927]" />
+            <div className="absolute top-1 left-1/2 h-1.5 w-11 -translate-x-1/2 rounded-full bg-[#2a2927]" />
+          </>
+        )}
+        <div className="absolute left-[28%] top-[38%] h-2.5 w-1.5 rounded-full bg-[#151515]" />
+        <div className="absolute right-[28%] top-[38%] h-2.5 w-1.5 rounded-full bg-[#151515]" />
+        {agent.lashes && (
+          <>
+            <div className="absolute left-[21%] top-[34%] h-0.5 w-2 rotate-[-25deg] rounded-full bg-[#151515]" />
+            <div className="absolute right-[21%] top-[34%] h-0.5 w-2 rotate-[25deg] rounded-full bg-[#151515]" />
+          </>
+        )}
+        <div className="absolute left-1/2 top-[62%] h-1 w-5 -translate-x-1/2 rounded-full bg-[#151515]/80" />
+        <div className="absolute inset-x-3 top-2 h-2 rounded-full bg-white/35 blur-[1px]" />
+      </motion.div>
+      {!compact && (
+        <div className="pointer-events-none absolute top-full z-20 mt-3 w-52 rounded-2xl bg-[#1b1b1b] px-4 py-3 text-center opacity-0 shadow-2xl transition-opacity group-hover:opacity-100">
+          <div className="text-sm font-bold text-white">{agent.name}</div>
+          <div className="mt-1 text-xs leading-relaxed text-zinc-400">{agent.description}</div>
+        </div>
+      )}
+    </div>
+  );
 
   const copySkill = (skill: AgentSkill) => {
     navigator.clipboard.writeText(skill.content);
@@ -1033,11 +1167,15 @@ Return proposed memory entries and ask for confirmation before saving.`
       setStreamedResult('');
       setAgentLogs([{ id: 'start', text: 'Initializing...', type: 'info' }]);
       if (modelType !== 'ultra-fast') {
-        setAgentLogs(prev => [
-          ...prev,
-          { id: 'skill', text: 'Using Super Agent mode', type: 'code' },
-          { id: 'research', text: 'Researching best approaches...', type: 'search' },
-        ]);
+        setAgentLogs([{ id: 'start', text: 'Super Agents starting...', type: 'info' }]);
+        superAgents.forEach((agent, index) => {
+          setTimeout(() => {
+            setAgentLogs(prev => [
+              ...prev.filter(log => log.id !== `agent-${agent.id}`),
+              { id: `agent-${agent.id}`, text: `${agent.name}: ${agent.status}`, type: index === 0 ? 'search' : index === 3 ? 'code' : 'info' },
+            ]);
+          }, 350 + index * 420);
+        });
       }
 
       const response = await fetch('/api/generate', {
@@ -1101,14 +1239,14 @@ Return proposed memory entries and ask for confirmation before saving.`
         setResult(newItem.prompt);
         showDesktopNotification('Your prompt is ready', {
           body: `${newItem.title} has finished generating.`,
-          tag: `prompt-generated-${Date.now()}`,
+          tag: `prompt-generated-${newItem.date}`,
           data: { view: 'result' },
         });
       } catch (err) {
         setResult(responseText);
         showDesktopNotification('Your prompt is ready', {
           body: 'Your generated prompt has finished.',
-          tag: `prompt-generated-${Date.now()}`,
+          tag: 'prompt-generated-latest',
           data: { view: 'result' },
         });
       }
@@ -1443,35 +1581,45 @@ Return proposed memory entries and ask for confirmation before saving.`
       {view === 'home' ? (
         // HOME VIEW
         <div className="max-w-4xl mx-auto w-full px-4 pt-[15vh] pb-32 flex flex-col items-center">
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <motion.div
-              animate={{
-                y: faceMood === 'focused' ? [0, -1, 0] : [0, 1, 0],
-                rotate: faceMood === 'curious' ? [0, -2, 2, 0] : 0
-              }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative h-11 w-[72px] rounded-full bg-white shadow-[inset_0_-8px_12px_rgba(0,0,0,0.18),inset_0_6px_10px_rgba(255,255,255,0.85),0_12px_26px_rgba(0,0,0,0.42)] ring-1 ring-white/50"
-              aria-hidden="true"
-            >
-              <div className="absolute inset-x-3 top-1 h-2 rounded-full bg-white/70 blur-[1px]" />
-              <motion.span
-                animate={{ x: eyeShift, height: [16, 16, 3, 16, 16, 3, 16] }}
-                transition={{
-                  x: { duration: 0.2 },
-                  height: { duration: 10, repeat: Infinity, times: [0, 0.48, 0.5, 0.52, 0.94, 0.96, 1] }
+          <div className="mb-8 flex flex-col items-center justify-center gap-5">
+            {modelType === 'super-agent' ? (
+              <div className="flex h-24 items-start justify-center gap-3">
+                {superAgents.map((agent, index) => (
+                  <div key={agent.id} className={index === 0 || index === 4 ? 'pt-8' : index === 1 || index === 3 ? 'pt-3' : ''}>
+                    {renderAgentFace(agent, index)}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <motion.div
+                animate={{
+                  y: faceMood === 'focused' ? [0, -1, 0] : [0, 1, 0],
+                  rotate: faceMood === 'curious' ? [0, -2, 2, 0] : 0
                 }}
-                className="absolute left-[24px] top-[14px] h-4 w-2 rounded-full bg-black"
-              />
-              <motion.span
-                animate={{ x: eyeShift, y: faceMood === 'focused' ? -1 : 0, height: [16, 16, 3, 16] }}
-                transition={{
-                  x: { duration: 0.2 },
-                  y: { duration: 0.2 },
-                  height: { duration: 10, repeat: Infinity, times: [0, 0.94, 0.96, 1] }
-                }}
-                className="absolute right-[24px] top-[14px] h-4 w-2 rounded-full bg-black"
-              />
-            </motion.div>
+                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative h-11 w-[72px] rounded-full bg-white shadow-[inset_0_-8px_12px_rgba(0,0,0,0.18),inset_0_6px_10px_rgba(255,255,255,0.85),0_12px_26px_rgba(0,0,0,0.42)] ring-1 ring-white/50"
+                aria-hidden="true"
+              >
+                <div className="absolute inset-x-3 top-1 h-2 rounded-full bg-white/70 blur-[1px]" />
+                <motion.span
+                  animate={{ x: eyeShift, height: [16, 16, 3, 16, 16, 3, 16] }}
+                  transition={{
+                    x: { duration: 0.2 },
+                    height: { duration: 10, repeat: Infinity, times: [0, 0.48, 0.5, 0.52, 0.94, 0.96, 1] }
+                  }}
+                  className="absolute left-[24px] top-[14px] h-4 w-2 rounded-full bg-black"
+                />
+                <motion.span
+                  animate={{ x: eyeShift, y: faceMood === 'focused' ? -1 : 0, height: [16, 16, 3, 16] }}
+                  transition={{
+                    x: { duration: 0.2 },
+                    y: { duration: 0.2 },
+                    height: { duration: 10, repeat: Infinity, times: [0, 0.94, 0.96, 1] }
+                  }}
+                  className="absolute right-[24px] top-[14px] h-4 w-2 rounded-full bg-black"
+                />
+              </motion.div>
+            )}
             <h1 className="text-3xl md:text-4xl font-medium tracking-tight">
               {selectedTool === 'prompt' ? 'What do you want to prompt?' : selectedTool === 'design' ? 'What do you want to design?' : selectedTool === 'skill' ? 'What do you want to build a skill for?' : 'What should SPEC.md define?'}
             </h1>
@@ -1592,7 +1740,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                         onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
                         className={`flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${isModelDropdownOpen ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}
                       >
-                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : 'Super Agent'}</span>
+                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : 'Super Agents'}</span>
                         <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
                       </div>
                       
@@ -1618,7 +1766,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                                   onClick={() => { setModelType('super-agent'); setIsModelDropdownOpen(false); }}
                                   className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center justify-between ${modelType === 'super-agent' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
                                 >
-                                  <span>Super Agent</span>
+                                  <span>Super Agents</span>
                                   <Zap size={12} className={modelType === 'super-agent' ? 'text-white' : 'text-zinc-500'} />
                                 </button>
                               </div>
@@ -2351,7 +2499,31 @@ Return proposed memory entries and ask for confirmation before saving.`
             <div className="h-[240px] text-zinc-300 whitespace-pre-wrap font-mono text-[15px] leading-relaxed overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {isGenerating ? (
                  <div className="flex flex-col gap-4 h-full relative">
-                   {agentLogs.length === 0 ? (
+                   {modelType === 'super-agent' ? (
+                     <div className="flex flex-col gap-3 font-sans pb-4">
+                       {superAgents.map((agent, index) => {
+                         const complete = agentLogs.some((log) => log.id === `agent-${agent.id}`);
+                         return (
+                           <motion.div
+                             key={agent.id}
+                             initial={{ opacity: 0, x: -10 }}
+                             animate={{ opacity: 1, x: 0 }}
+                             transition={{ delay: index * 0.04 }}
+                             className="flex items-center gap-3 rounded-2xl bg-[#101010] px-3 py-2"
+                           >
+                             {renderAgentFace(agent, index, true)}
+                             <div className="min-w-0 flex-1">
+                               <div className="text-sm font-bold text-zinc-100">{agent.name}</div>
+                               <div className="truncate text-xs text-zinc-500">{complete ? agent.status : 'Working...'}</div>
+                             </div>
+                             <div className={`flex h-7 w-7 items-center justify-center rounded-full ${complete ? 'bg-emerald-400/15 text-emerald-300' : 'bg-zinc-800 text-zinc-500'}`}>
+                               {complete ? <Check size={15} /> : <RefreshCw size={14} className="animate-spin" />}
+                             </div>
+                           </motion.div>
+                         );
+                       })}
+                     </div>
+                   ) : agentLogs.length === 0 ? (
                      <div className="flex flex-col gap-3 animate-pulse">
                        <div className="h-4 bg-zinc-800/50 rounded w-3/4"></div>
                        <div className="h-4 bg-zinc-800/50 rounded w-full"></div>
