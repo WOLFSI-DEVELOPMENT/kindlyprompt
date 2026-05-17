@@ -101,6 +101,16 @@ function timeAgo(dateString?: string) {
   if (interval > 1) return Math.floor(interval) + " minutes ago";
   return "just now";
 }
+
+type AgentSkill = {
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  installs: number;
+  pixels: number[];
+  content: string;
+};
 import { SuggestToolModal } from '@/components/suggest-modal';
 import { AuthModal } from '@/components/auth-modal';
 import { PersonalIntelligenceModal } from '@/components/pi-modal';
@@ -126,6 +136,8 @@ export default function Home() {
   const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
+  const [skillSearch, setSkillSearch] = useState('');
+  const [selectedSkillCard, setSelectedSkillCard] = useState<AgentSkill | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
@@ -607,6 +619,193 @@ export default function Home() {
     'Skill: launch checklist agent',
     'Skill: support request sorter',
   ];
+  const agentSkills: AgentSkill[] = [
+    {
+      slug: '/cinematic-motion-language',
+      name: 'cinematic-motion-language',
+      description: 'Structured prompt vocabulary for high-precision cinematic video generation and motion direction.',
+      category: 'Video',
+      installs: 214,
+      pixels: [4,5,6,11,13,18,20,25,26,27,28,29,34,36,42,44,49,50,51],
+      content: `---
+name: cinematic-motion-language
+description: Structured prompt vocabulary for high-precision cinematic video generation and motion direction.
+---
+
+Use this skill when the user wants cinematic movement, camera language, shot composition, pacing, or production-ready video prompts.
+
+Translate rough visual intent into precise shot language. Include camera movement, lens feel, subject blocking, atmosphere, lighting, pacing, and transition notes. Keep prompts concrete and avoid vague words like cinematic unless you define the exact visual behavior.
+
+Return a compact shot plan followed by a final generation prompt.`
+    },
+    {
+      slug: '/interface-critic',
+      name: 'interface-critic',
+      description: 'Audit screens for hierarchy, density, spacing, contrast, and product-quality interaction polish.',
+      category: 'Design',
+      installs: 188,
+      pixels: [2,3,4,5,10,13,18,21,26,27,28,29,34,37,42,45,50,51,52,53],
+      content: `---
+name: interface-critic
+description: Audit screens for hierarchy, density, spacing, contrast, and product-quality interaction polish.
+---
+
+Use this skill when the user wants a UI reviewed, tightened, or made more professional.
+
+Inspect the interface like a senior product designer. Prioritize layout hierarchy, information density, spacing rhythm, control affordance, visual consistency, copy clarity, and accessibility. Give direct fixes, not generic praise.
+
+Return findings ordered by user impact, then a short implementation checklist.`
+    },
+    {
+      slug: '/vercel-deploy-fixer',
+      name: 'vercel-deploy-fixer',
+      description: 'Diagnose Vercel build failures, package issues, env gaps, and Next.js deployment regressions.',
+      category: 'Engineering',
+      installs: 301,
+      pixels: [8,9,14,15,20,21,26,27,28,29,34,35,40,41,46,47,52,53],
+      content: `---
+name: vercel-deploy-fixer
+description: Diagnose Vercel build failures, package issues, env gaps, and Next.js deployment regressions.
+---
+
+Use this skill when a Vercel deploy or Next.js production build fails.
+
+Start from the exact failing command and log line. Reproduce locally when possible. Check dependency installs, type errors, route runtime constraints, missing environment variables, server/client boundaries, and build-only behavior.
+
+Return the root cause, the minimal patch, and the verification command.`
+    },
+    {
+      slug: '/prompt-architect',
+      name: 'prompt-architect',
+      description: 'Turn messy app ideas into complete AI coding prompts with scope, UX, data, and edge cases.',
+      category: 'Prompting',
+      installs: 267,
+      pixels: [1,2,8,9,15,16,22,23,24,25,29,30,36,37,43,44,50,51],
+      content: `---
+name: prompt-architect
+description: Turn messy app ideas into complete AI coding prompts with scope, UX, data, and edge cases.
+---
+
+Use this skill when the user has a rough product idea and needs a build-ready coding prompt.
+
+Extract the product goal, core workflows, target user, data model, UI states, integrations, constraints, and acceptance criteria. Fill small gaps with sensible defaults and clearly mark assumptions.
+
+Return a polished prompt that another AI coding agent can execute without follow-up questions.`
+    },
+    {
+      slug: '/repo-cartographer',
+      name: 'repo-cartographer',
+      description: 'Map unfamiliar codebases fast and explain the files, flows, risks, and edit points.',
+      category: 'Codebase',
+      installs: 156,
+      pixels: [7,8,9,13,19,20,21,25,31,32,33,37,43,44,45,49,55,56,57],
+      content: `---
+name: repo-cartographer
+description: Map unfamiliar codebases fast and explain the files, flows, risks, and edit points.
+---
+
+Use this skill when entering a new repository or planning a feature across unknown code.
+
+Identify the app structure, key routes, shared components, state boundaries, APIs, persistence, tests, and deployment assumptions. Prefer evidence from files over guesses.
+
+Return a concise map with likely edit locations and the safest next steps.`
+    },
+    {
+      slug: '/growth-copy-lab',
+      name: 'growth-copy-lab',
+      description: 'Write concise launch copy, feature messaging, CTAs, and product page sections.',
+      category: 'Marketing',
+      installs: 129,
+      pixels: [3,4,5,11,12,13,19,20,21,27,28,29,35,36,37,45,46,47,53],
+      content: `---
+name: growth-copy-lab
+description: Write concise launch copy, feature messaging, CTAs, and product page sections.
+---
+
+Use this skill when the user needs product copy that is clear, useful, and conversion-aware.
+
+Anchor copy in the product's actual job-to-be-done. Avoid inflated claims. Create variants for headlines, subcopy, CTA labels, release notes, and short social posts.
+
+Return the strongest recommendation first, followed by alternates.`
+    },
+    {
+      slug: '/qa-pathfinder',
+      name: 'qa-pathfinder',
+      description: 'Create focused manual and automated test paths for risky app changes.',
+      category: 'Testing',
+      installs: 175,
+      pixels: [0,1,2,8,16,17,18,24,32,33,34,40,48,49,50,56,57,58],
+      content: `---
+name: qa-pathfinder
+description: Create focused manual and automated test paths for risky app changes.
+---
+
+Use this skill when a feature needs practical verification without bloated test plans.
+
+Identify the highest-risk flows, regression surfaces, browser/device considerations, auth states, empty states, and failure modes. Recommend the smallest useful set of manual checks and automated tests.
+
+Return a checklist grouped by priority.`
+    },
+    {
+      slug: '/support-triage-agent',
+      name: 'support-triage-agent',
+      description: 'Classify user feedback, extract root issues, and draft calm support responses.',
+      category: 'Support',
+      installs: 143,
+      pixels: [6,7,8,14,20,21,22,28,34,35,36,42,48,49,50,54,55,56],
+      content: `---
+name: support-triage-agent
+description: Classify user feedback, extract root issues, and draft calm support responses.
+---
+
+Use this skill when reviewing support messages, bug reports, or feature requests.
+
+Separate symptoms from likely causes. Classify urgency, product area, user intent, and needed follow-up. Draft a concise response that acknowledges the issue without overpromising.
+
+Return triage metadata, next action, and the customer-facing reply.`
+    },
+    {
+      slug: '/launch-readiness',
+      name: 'launch-readiness',
+      description: 'Run a final launch checklist across UX, auth, billing, SEO, analytics, and reliability.',
+      category: 'Launch',
+      installs: 232,
+      pixels: [10,11,12,18,19,20,26,27,28,29,30,36,37,38,44,45,46,52],
+      content: `---
+name: launch-readiness
+description: Run a final launch checklist across UX, auth, billing, SEO, analytics, and reliability.
+---
+
+Use this skill before shipping a product, feature, or public launch.
+
+Check onboarding, empty states, broken links, auth boundaries, payment flows, metadata, analytics events, error handling, mobile behavior, and rollback readiness.
+
+Return blockers first, then nice-to-have polish.`
+    },
+    {
+      slug: '/agent-memory-editor',
+      name: 'agent-memory-editor',
+      description: 'Convert repeated user preferences and workflows into clean reusable agent memory.',
+      category: 'Agents',
+      installs: 119,
+      pixels: [5,6,13,14,21,22,28,29,30,35,36,37,43,44,50,51,52,53],
+      content: `---
+name: agent-memory-editor
+description: Convert repeated user preferences and workflows into clean reusable agent memory.
+---
+
+Use this skill when the user wants durable preferences, project context, or reusable working rules captured.
+
+Distill only stable, useful information. Avoid saving one-off facts, secrets, or guesses. Write memory as short operational guidance an agent can follow later.
+
+Return proposed memory entries and ask for confirmation before saving.`
+    },
+  ];
+  const filteredAgentSkills = agentSkills.filter((skill) => {
+    const q = skillSearch.trim().toLowerCase();
+    if (!q) return true;
+    return [skill.name, skill.slug, skill.description, skill.category].some((value) => value.toLowerCase().includes(q));
+  });
   const renderDiscoveryTopBar = () => (
     <div className="fixed left-1/2 top-5 z-[70] -translate-x-1/2">
       <div className="flex items-center gap-1 rounded-full border border-white/5 bg-[#171717]/95 p-1 shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-xl">
@@ -658,6 +857,86 @@ export default function Home() {
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">{subtitle}</p>
       </div>
     </section>
+  );
+
+  const renderSkillPixelVisual = (skill: AgentSkill, size = 'md') => {
+    const cell = size === 'lg' ? 'h-3 w-3' : 'h-1.5 w-1.5';
+    return (
+      <div className={`${size === 'lg' ? 'h-20 w-20' : 'h-14 w-14'} shrink-0 rounded-full bg-[#d8d8d8] p-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.18)]`}>
+        <div className="grid grid-cols-8 gap-0.5">
+          {Array.from({ length: 64 }).map((_, index) => (
+            <span
+              key={`${skill.slug}-${index}`}
+              className={`${cell} ${skill.pixels.includes(index) ? 'bg-[#111111]' : index % 3 === 0 ? 'bg-[#8f8f8f]' : 'bg-[#f2f2f2]'}`}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const copySkill = (skill: AgentSkill) => {
+    navigator.clipboard.writeText(skill.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+
+  const downloadSkill = (skill: AgentSkill) => {
+    const blob = new Blob([skill.content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${skill.name}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const renderSkillsCatalog = () => (
+    <div className="relative z-10 flex min-h-[120vh] w-full shrink-0 flex-col items-center px-6 pt-24 text-center">
+      {renderDiscoveryTopBar()}
+      {renderMovingHero(
+        'Skills for repeatable agent work',
+        'Browse ready-to-use agent skills for design, shipping, QA, support, prompts, and codebase work.',
+        skillsTickerItems,
+      )}
+
+      <div className="sticky bottom-6 z-30 mt-2 flex w-full justify-center">
+        <div className="flex w-full max-w-md items-center gap-3 rounded-full bg-[#242424]/95 px-5 py-3 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+          <Search size={17} className="shrink-0 text-zinc-500" />
+          <input
+            value={skillSearch}
+            onChange={(e) => setSkillSearch(e.target.value)}
+            placeholder="Search skills"
+            className="w-full bg-transparent text-sm font-medium text-zinc-100 outline-none placeholder:text-zinc-500"
+          />
+        </div>
+      </div>
+
+      <div className="mt-10 grid w-full max-w-7xl grid-cols-2 gap-x-12 gap-y-2 pb-32 text-left">
+        {filteredAgentSkills.map((skill, index) => (
+          <motion.button
+            key={skill.slug}
+            type="button"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.035 }}
+            onClick={() => setSelectedSkillCard(skill)}
+            className="group flex min-w-0 items-center gap-5 rounded-[24px] px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
+          >
+            {renderSkillPixelVisual(skill)}
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-[17px] font-bold text-zinc-100">{skill.slug}</h3>
+              <p className="mt-1 truncate text-[15px] leading-relaxed text-zinc-500">{skill.description}</p>
+            </div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1b1b1b] text-zinc-400 transition-colors group-hover:bg-[#2a2a2a] group-hover:text-white">
+              <Plus size={19} />
+            </div>
+          </motion.button>
+        ))}
+      </div>
+    </div>
   );
 
   const generatePrompt = async (text: string, image: string | null = null) => {
@@ -1764,14 +2043,7 @@ export default function Home() {
           )}
         </div>
       ) : view === 'skills' ? (
-        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 flex-col items-center px-6 pt-24 text-center">
-          {renderDiscoveryTopBar()}
-          {renderMovingHero(
-            'Skills for repeatable agent work',
-            'A focused space for reusable workflows, specialized agents, and skill recipes is coming soon.',
-            skillsTickerItems,
-          )}
-        </div>
+        renderSkillsCatalog()
       ) : view === 'recents' ? (
         // RECENTS VIEW
         <div className="max-w-4xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
@@ -2493,6 +2765,63 @@ export default function Home() {
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {selectedSkillCard && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-8 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 16 }}
+              transition={{ duration: 0.2 }}
+              className="relative flex max-h-[88vh] w-full max-w-6xl flex-col overflow-hidden rounded-[32px] bg-[#1b1c1d] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.55)]"
+            >
+              <button
+                onClick={() => setSelectedSkillCard(null)}
+                className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-[#2a2b2c] text-zinc-300 transition-colors hover:bg-[#343536] hover:text-white"
+                aria-label="Close skill"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="px-2 pt-4 text-left">
+                <h2 className="text-xl font-bold text-white">{selectedSkillCard.slug}</h2>
+              </div>
+
+              <div className="mx-auto mt-8 flex max-w-4xl flex-col items-center text-center">
+                {renderSkillPixelVisual(selectedSkillCard, 'lg')}
+                <h3 className="mt-6 text-2xl font-bold text-white">{selectedSkillCard.slug}</h3>
+                <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-zinc-400">{selectedSkillCard.description}</p>
+                <div className="mt-4 flex items-center gap-3 text-sm font-semibold text-zinc-500">
+                  <span>{selectedSkillCard.installs} installs</span>
+                  <span>-</span>
+                  <span>{selectedSkillCard.category}</span>
+                </div>
+              </div>
+
+              <div className="mt-10 min-h-0 flex-1 overflow-y-auto rounded-[26px] bg-[#141617] p-7 text-left [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <pre className="whitespace-pre-wrap font-sans text-[16px] font-medium leading-relaxed text-zinc-300">{selectedSkillCard.content}</pre>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between">
+                <button
+                  onClick={() => copySkill(selectedSkillCard)}
+                  className="flex items-center gap-2 rounded-full bg-[#2a2b2c] px-5 py-3 text-sm font-bold text-zinc-200 transition-colors hover:bg-[#343536]"
+                >
+                  <Copy size={16} />
+                  {copied ? 'Copied' : 'Copy skill'}
+                </button>
+                <button
+                  onClick={() => downloadSkill(selectedSkillCard)}
+                  className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
+                >
+                  <Download size={16} />
+                  Download
+                </button>
               </div>
             </motion.div>
           </div>
