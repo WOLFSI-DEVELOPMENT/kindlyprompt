@@ -124,7 +124,7 @@ export default function Home() {
   const [result, setResult] = useState('');
   const [streamedResult, setStreamedResult] = useState('');
   const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
-  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'discover' | 'skills' | 'event'>('home');
+  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'preview' | 'library' | 'discover' | 'skills' | 'event'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
@@ -2466,6 +2466,14 @@ Return proposed memory entries and ask for confirmation before saving.`
             <div className="flex items-center gap-4">
               <button
                  disabled={isGenerating}
+                 onClick={() => setView('preview')}
+                 className="text-zinc-400 hover:text-zinc-200 text-[15px] font-medium flex items-center gap-2 transition-colors disabled:opacity-50 border border-transparent hover:bg-[#141414] px-3 py-1.5 rounded-full"
+               >
+                 <ArrowUpRight size={16} />
+                 Expand
+               </button>
+              <button
+                 disabled={isGenerating}
                  onClick={() => {
                    setView('edit');
                    setChatHistory([]);
@@ -2692,6 +2700,62 @@ Return proposed memory entries and ask for confirmation before saving.`
                 </button>
              </div>
           </motion.div>
+        </div>
+      ) : view === 'preview' ? (
+        <div className="min-h-screen bg-[#080808] px-6 py-8">
+          <div className="sticky top-0 z-40 mx-auto mb-8 flex max-w-5xl items-center justify-between border-b border-white/5 bg-[#080808]/90 pb-5 pt-2 backdrop-blur-xl">
+            <button
+              onClick={() => setView('result')}
+              className="flex items-center gap-2 rounded-full bg-[#151515] px-4 py-2 text-sm font-semibold text-zinc-300 transition-colors hover:bg-[#202020] hover:text-white"
+            >
+              <X size={16} />
+              Close
+            </button>
+            <div className="text-center">
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-600">Preview</div>
+              <h1 className="mt-1 text-lg font-semibold tracking-tight text-zinc-100">{currentResult?.title || 'Generated Prompt'}</h1>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(result);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex items-center gap-2 rounded-full bg-[#151515] px-4 py-2 text-sm font-semibold text-zinc-300 transition-colors hover:bg-[#202020] hover:text-white"
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+
+          <motion.article
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mx-auto max-w-4xl rounded-[28px] bg-[#101010] px-12 py-14 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+          >
+            <div className="mb-10 border-b border-white/6 pb-8">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1d1d1d] text-zinc-300">
+                <MessageSquare size={20} />
+              </div>
+              <h2 className="text-4xl font-semibold tracking-tight text-white">{currentResult?.title || 'Generated Prompt'}</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">
+                Read-only formatted prompt preview.
+              </p>
+            </div>
+
+            <div className="prose prose-invert prose-zinc max-w-none
+              prose-headings:scroll-mt-24 prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-zinc-100
+              prose-h1:text-3xl prose-h2:mt-10 prose-h2:border-b prose-h2:border-white/6 prose-h2:pb-3 prose-h2:text-2xl prose-h3:text-xl
+              prose-p:text-[16px] prose-p:leading-8 prose-p:text-zinc-300
+              prose-strong:text-white prose-strong:font-semibold
+              prose-ul:my-6 prose-ol:my-6 prose-li:my-2 prose-li:text-zinc-300 marker:prose-li:text-zinc-500
+              prose-blockquote:rounded-2xl prose-blockquote:border-l-0 prose-blockquote:bg-white/[0.04] prose-blockquote:px-5 prose-blockquote:py-3 prose-blockquote:text-zinc-300
+              prose-code:rounded-md prose-code:bg-white/8 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-zinc-100 prose-code:before:content-none prose-code:after:content-none
+              prose-pre:rounded-2xl prose-pre:border prose-pre:border-white/10 prose-pre:bg-[#0b0b0b] prose-pre:p-5">
+              <ReactMarkdown>{result}</ReactMarkdown>
+            </div>
+          </motion.article>
         </div>
       ) : (
         // EDIT VIEW (Full Page Preview + Floating Pill)
