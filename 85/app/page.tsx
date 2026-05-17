@@ -121,6 +121,7 @@ export default function Home() {
   const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent'>('ultra-fast');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
@@ -832,19 +833,25 @@ export default function Home() {
           >
             {isSidebarExpanded ? (
               <div className="mx-2 rounded-[22px] bg-[#171717] p-1">
-                <a href="/" className="flex h-11 items-center gap-3 rounded-full bg-[#2a2a2a] px-3 transition-colors hover:bg-[#303030]">
-                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="h-5 w-5 shrink-0 object-contain opacity-80" />
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-zinc-100">Kindly Prompt</span>
-                  <ChevronDown size={14} className="shrink-0 text-zinc-500" />
-                </a>
                 <button
                   type="button"
-                  className="mt-1 flex h-9 w-full cursor-default items-center gap-3 rounded-full px-3 text-left opacity-55"
-                  aria-disabled="true"
+                  onClick={() => setIsAppSwitcherOpen((value) => !value)}
+                  className="flex h-11 w-full items-center gap-3 rounded-full bg-[#2a2a2a] px-3 text-left transition-colors hover:bg-[#303030]"
                 >
-                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="" className="h-5 w-5 shrink-0 object-contain grayscale" />
-                  <span className="truncate text-sm font-bold text-zinc-400">Kindly Agent</span>
+                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="h-5 w-5 shrink-0 object-contain opacity-80" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-zinc-100">Kindly Prompt</span>
+                  <ChevronDown size={14} className={`shrink-0 text-zinc-500 transition-transform ${isAppSwitcherOpen ? 'rotate-180' : ''}`} />
                 </button>
+                {isAppSwitcherOpen && (
+                  <button
+                    type="button"
+                    className="mt-1 flex h-9 w-full cursor-default items-center gap-3 rounded-full px-3 text-left opacity-55"
+                    aria-disabled="true"
+                  >
+                    <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="" className="h-5 w-5 shrink-0 object-contain grayscale" />
+                    <span className="truncate text-sm font-bold text-zinc-400">Kindly Agent</span>
+                  </button>
+                )}
               </div>
             ) : (
               <a href="/" className="mx-auto flex-shrink-0 transition-opacity hover:opacity-80">
@@ -883,8 +890,13 @@ export default function Home() {
               </div>
           </motion.aside>
           <button
-            onClick={() => setIsSidebarExpanded((value) => !value)}
-            className={`fixed top-3 z-[60] flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#1f1f1f] text-zinc-400 shadow-lg transition-all hover:bg-[#2a2a2a] hover:text-white ${isSidebarExpanded ? 'left-[232px]' : 'left-[56px]'}`}
+            onClick={() => {
+              setIsSidebarExpanded((value) => {
+                if (value) setIsAppSwitcherOpen(false);
+                return !value;
+              });
+            }}
+            className={`fixed top-3 z-[60] flex h-9 w-9 items-center justify-center text-zinc-500 transition-all hover:text-white ${isSidebarExpanded ? 'left-[232px]' : 'left-[56px]'}`}
             title={isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
           >
             {isSidebarExpanded ? <SidebarLeft size={17} /> : <SidebarRight size={17} />}
