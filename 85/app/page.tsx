@@ -1347,6 +1347,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={{ left: 0.6, right: 0.6 }}
+                  animate={{ x: [0, -12, 0, 12, 0] }}
                   onDragEnd={(e, info) => {
                     if (info.offset.x < -60 || info.velocity.x < -400) {
                       setShowApiKeyInput(true);
@@ -1356,7 +1357,10 @@ Return proposed memory entries and ask for confirmation before saving.`
                   }}
                   whileTap={{ scale: 0.98, cursor: 'grabbing' }}
                   className="bg-[#2a2a2a] text-zinc-300 text-sm font-medium px-1.5 py-1.5 pr-6 rounded-full flex items-center gap-3 cursor-grab relative z-10 touch-pan-y shadow-[0_0_15px_rgba(0,0,0,0.5)]"
-                  transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+                  transition={{
+                    x: { duration: 1.8, repeat: Infinity, repeatDelay: 7, ease: 'easeInOut' },
+                    scale: { type: "spring", bounce: 0.3, duration: 0.6 }
+                  }}
                 >
                   <div className="w-8 h-8 rounded-full bg-[#1c1c1c] overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-inner">
                     {user.image ? (
