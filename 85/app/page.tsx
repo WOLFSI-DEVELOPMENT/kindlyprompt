@@ -574,18 +574,18 @@ export default function Home() {
     items: string[],
   ) => (
     <section className="relative w-full max-w-5xl overflow-hidden rounded-none border-y border-white/5 bg-[#0f0f0f] px-6 py-20 text-center">
-      <div className="pointer-events-none absolute inset-0 opacity-45">
+      <div className="pointer-events-none absolute inset-0 opacity-35">
         {[0, 1, 2].map((row) => (
           <motion.div
             key={row}
             animate={{ x: row % 2 === 0 ? ['0%', '-50%'] : ['-50%', '0%'] }}
             transition={{ duration: 28 + row * 4, repeat: Infinity, ease: 'linear' }}
-            className={`absolute left-0 flex w-max items-center gap-3 ${row === 0 ? 'top-4' : row === 1 ? 'top-20' : 'bottom-6'}`}
+            className={`absolute left-0 flex w-max items-center gap-6 ${row === 0 ? 'top-5' : row === 1 ? 'top-20' : 'bottom-7'}`}
           >
             {[...items, ...items].map((item, index) => (
               <span
                 key={`${row}-${item}-${index}`}
-                className="rounded-full border border-white/6 bg-white/[0.035] px-4 py-2 text-sm font-medium text-zinc-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                className="whitespace-nowrap text-sm font-medium text-zinc-500/80"
               >
                 {item}
               </span>
@@ -593,6 +593,8 @@ export default function Home() {
           </motion.div>
         ))}
       </div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-32 bg-gradient-to-r from-[#0f0f0f] via-[#0f0f0f]/85 to-transparent backdrop-blur-[2px]" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-32 bg-gradient-to-l from-[#0f0f0f] via-[#0f0f0f]/85 to-transparent backdrop-blur-[2px]" />
       <div className="relative z-10 mx-auto max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight text-white">{title}</h1>
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">{subtitle}</p>
