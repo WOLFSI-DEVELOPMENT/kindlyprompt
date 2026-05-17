@@ -7,6 +7,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import type { IconSvgElement } from '@hugeicons/react';
 import {
   Add01Icon,
+  AlignLeftIcon,
   ArrowDown01Icon,
   ArrowRight01Icon,
   ArrowUpRight01Icon,
@@ -61,6 +62,7 @@ const ArrowUpRight = createHugeIcon(ArrowUpRight01Icon);
 const Download = createHugeIcon(Download01Icon);
 const Sparkles = createHugeIcon(SparklesIcon);
 const Plus = createHugeIcon(Add01Icon);
+const AlignLeft = createHugeIcon(AlignLeftIcon);
 const History = createHugeIcon(Folder02Icon);
 const Edit3 = createHugeIcon(Edit02Icon);
 const MessageSquare = createHugeIcon(Message01Icon);
@@ -832,26 +834,32 @@ export default function Home() {
             className="fixed top-0 bottom-0 left-0 z-50 bg-[#1f1f1f] flex flex-col pt-3 pb-6 gap-6 overflow-hidden"
           >
             {isSidebarExpanded ? (
-              <div className="mx-2 rounded-[22px] bg-[#171717] p-1">
+              <div className="mx-2 flex flex-col gap-[2px]">
                 <button
                   type="button"
                   onClick={() => setIsAppSwitcherOpen((value) => !value)}
-                  className="flex h-11 w-full items-center gap-3 rounded-full bg-[#2a2a2a] px-3 text-left transition-colors hover:bg-[#303030]"
+                  className={`flex h-14 w-full items-center justify-between px-4 text-left transition-all duration-300 ease-out ${
+                    isAppSwitcherOpen
+                      ? 'rounded-t-[28px] rounded-b-[10px] bg-[#262626]'
+                      : 'rounded-full bg-[#1f1f1f] hover:bg-[#262626]'
+                  }`}
                 >
-                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="h-5 w-5 shrink-0 object-contain opacity-80" />
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-zinc-100">Kindly Prompt</span>
-                  <ChevronDown size={14} className={`shrink-0 text-zinc-500 transition-transform ${isAppSwitcherOpen ? 'rotate-180' : ''}`} />
+                  <div className="flex min-w-0 items-center gap-3">
+                    <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="h-6 w-6 shrink-0 object-contain opacity-90" />
+                    <span className="min-w-0 truncate text-sm font-bold text-zinc-100">Kindly Prompt</span>
+                  </div>
+                  <ChevronDown size={14} className={`shrink-0 text-zinc-500 transition-transform duration-300 ${isAppSwitcherOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {isAppSwitcherOpen && (
+                <div className={`origin-top overflow-hidden transition-all duration-300 ease-out ${isAppSwitcherOpen ? 'max-h-[64px] scale-y-100 opacity-100' : 'max-h-0 scale-y-95 opacity-0'}`}>
                   <button
                     type="button"
-                    className="mt-1 flex h-9 w-full cursor-default items-center gap-3 rounded-full px-3 text-left opacity-55"
+                    className="flex h-12 w-full cursor-default items-center gap-3 rounded-t-[10px] rounded-b-[28px] bg-[#151515] px-4 text-left text-zinc-500 transition-colors hover:bg-[#1e1e1e]"
                     aria-disabled="true"
                   >
-                    <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="" className="h-5 w-5 shrink-0 object-contain grayscale" />
-                    <span className="truncate text-sm font-bold text-zinc-400">Kindly Agent</span>
+                    <AlignLeft size={18} className="shrink-0 text-zinc-500" />
+                    <span className="truncate text-sm font-semibold">Kindly Agent</span>
                   </button>
-                )}
+                </div>
               </div>
             ) : (
               <a href="/" className="mx-auto flex-shrink-0 transition-opacity hover:opacity-80">
@@ -939,7 +947,10 @@ export default function Home() {
         )}
       </AnimatePresence>
       
-      <main className="flex-1 relative overflow-y-auto h-full flex flex-col pt-16 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <main
+        className="flex-1 relative overflow-y-auto h-full flex flex-col pt-16 transition-[margin-left] duration-200 ease-out [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        style={{ marginLeft: view !== 'edit' ? (isSidebarExpanded ? 220 : 48) : 0 }}
+      >
 
       {view === 'home' ? (
         // HOME VIEW
