@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, X, ArrowRight, Check } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowRight01Icon, Cancel01Icon, SparklesIcon, Tick01Icon } from '@hugeicons/core-free-icons';
+
+type IconProps = { size?: number | string; className?: string; strokeWidth?: number };
+const Sparkles = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={SparklesIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const X = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Cancel01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const ArrowRight = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={ArrowRight01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Check = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Tick01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
 
 const SuccessAnimation = () => {
   return (

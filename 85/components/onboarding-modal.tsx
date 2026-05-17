@@ -2,8 +2,37 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ArrowRight, ImageIcon, History, UploadCloud, Mic, ShieldCheck, Download, MicIcon, Link as LinkIcon, MessageSquare, Paintbrush, Zap } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  ArrowRight01Icon,
+  Cancel01Icon,
+  CloudUploadIcon,
+  Download01Icon,
+  FlashIcon,
+  Image01Icon,
+  Link01Icon,
+  Message01Icon,
+  Mic01Icon,
+  PaintBrush01Icon,
+  Shield01Icon,
+  TransactionHistoryIcon,
+} from '@hugeicons/core-free-icons';
 import confetti from 'canvas-confetti';
+
+type IconProps = { size?: number | string; className?: string; strokeWidth?: number };
+const X = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Cancel01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const ArrowRight = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={ArrowRight01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const ImageIcon = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Image01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const History = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={TransactionHistoryIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const UploadCloud = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={CloudUploadIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Mic = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Mic01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const ShieldCheck = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Shield01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Download = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Download01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const MicIcon = Mic;
+const LinkIcon = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Link01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const MessageSquare = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Message01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Paintbrush = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={PaintBrush01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Zap = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={FlashIcon} size={size} className={className} strokeWidth={strokeWidth} />;
 
 const StepOne = () => {
   const text = "Describe your app...";

@@ -2,40 +2,80 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { ArrowUp, Square } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import type { IconSvgElement } from '@hugeicons/react';
 import {
-  Copy,
-  RefreshCw,
-  X,
-  ArrowUp,
-  Check,
-  ArrowRight,
-  ArrowUpRight,
-  Download,
-  Sparkles,
-  Plus,
-  History,
-  Library,
-  ExternalLink,
-  Edit3,
-  Wrench,
-  Save,
-  MessageSquare,
-  Eye,
-  Mic,
-  Square,
-  ChevronDown,
-  Image as ImageIcon,
-  Link,
-  Paintbrush,
-  Zap,
-  Search,
-  FileText,
-  BookOpen,
-  Code2,
-  GitBranch,
-  Bot
-} from 'lucide-react';
+  Add01Icon,
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  ArrowUpRight01Icon,
+  BookOpen01Icon,
+  CodeIcon,
+  Copy01Icon,
+  Download01Icon,
+  Edit02Icon,
+  EyeIcon,
+  File01Icon,
+  FlashIcon,
+  GitBranchIcon,
+  Image01Icon,
+  Link01Icon,
+  MarketAnalysisIcon,
+  Message01Icon,
+  Mic01Icon,
+  PaintBrush01Icon,
+  RefreshIcon,
+  Search01Icon,
+  SparklesIcon,
+  Store01Icon,
+  Tick01Icon,
+  TransactionHistoryIcon,
+  Cancel01Icon,
+} from '@hugeicons/core-free-icons';
 import ReactMarkdown from 'react-markdown';
+
+type IconProps = {
+  size?: number | string;
+  className?: string;
+  strokeWidth?: number;
+  fill?: string;
+};
+
+const createHugeIcon = (icon: IconSvgElement) => {
+  const HugeIcon = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => (
+    <HugeiconsIcon icon={icon} size={size} className={className} strokeWidth={strokeWidth} />
+  );
+  HugeIcon.displayName = 'HugeIcon';
+  return HugeIcon;
+};
+
+const Copy = createHugeIcon(Copy01Icon);
+const RefreshCw = createHugeIcon(RefreshIcon);
+const X = createHugeIcon(Cancel01Icon);
+const Check = createHugeIcon(Tick01Icon);
+const ArrowRight = createHugeIcon(ArrowRight01Icon);
+const ArrowUpRight = createHugeIcon(ArrowUpRight01Icon);
+const Download = createHugeIcon(Download01Icon);
+const Sparkles = createHugeIcon(SparklesIcon);
+const Plus = createHugeIcon(Add01Icon);
+const History = createHugeIcon(TransactionHistoryIcon);
+const Edit3 = createHugeIcon(Edit02Icon);
+const MessageSquare = createHugeIcon(Message01Icon);
+const Eye = createHugeIcon(EyeIcon);
+const Mic = createHugeIcon(Mic01Icon);
+const ChevronDown = createHugeIcon(ArrowDown01Icon);
+const ImageIcon = createHugeIcon(Image01Icon);
+const Link = createHugeIcon(Link01Icon);
+const Paintbrush = createHugeIcon(PaintBrush01Icon);
+const Zap = createHugeIcon(FlashIcon);
+const Search = createHugeIcon(Search01Icon);
+const FileText = createHugeIcon(File01Icon);
+const BookOpen = createHugeIcon(BookOpen01Icon);
+const Code2 = createHugeIcon(CodeIcon);
+const GitBranch = createHugeIcon(GitBranchIcon);
+const Store = createHugeIcon(Store01Icon);
+const Market = createHugeIcon(MarketAnalysisIcon);
 
 function timeAgo(dateString?: string) {
   if (!dateString) return 'recently';
@@ -68,13 +108,13 @@ export default function Home() {
   const [result, setResult] = useState('');
   const [streamedResult, setStreamedResult] = useState('');
   const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
-  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'event'>('home');
+  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'marketplace' | 'event'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
-  const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent' | 'agent-max'>('ultra-fast');
+  const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent'>('ultra-fast');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
@@ -376,9 +416,6 @@ export default function Home() {
   const [isEditingRaw, setIsEditingRaw] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [aiGreeting, setAiGreeting] = useState<string | null>(null);
-  const [agentMaxPreviewOpen, setAgentMaxPreviewOpen] = useState(false);
-  const [agentMaxExportOpen, setAgentMaxExportOpen] = useState(false);
-
   const refinePrompt = useCallback(async (instruction: string, isVoice = false) => {
     if (!instruction.trim()) return;
     
@@ -498,9 +535,8 @@ export default function Home() {
       if (modelType !== 'ultra-fast') {
         setAgentLogs(prev => [
           ...prev,
-          { id: 'skill', text: modelType === 'agent-max' ? 'Using skill: advanced file and document generation' : 'Using Super Agent mode', type: 'code' },
+          { id: 'skill', text: 'Using Super Agent mode', type: 'code' },
           { id: 'research', text: 'Researching best approaches...', type: 'search' },
-          ...(modelType === 'agent-max' ? [{ id: 'webpages', text: 'Reading webpages and project context as needed', type: 'read' as const }] : [])
         ]);
       }
 
@@ -797,6 +833,14 @@ export default function Home() {
                 >
                   <GitBranch size={20} strokeWidth={1.5} className={`transition-colors ${view === 'library' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setView('marketplace')}
+                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
+                  title="Community Marketplace"
+                >
+                  <Store size={20} strokeWidth={1.5} className={`transition-colors ${view === 'marketplace' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
+                </motion.button>
               </div>
           </div>
         )}
@@ -945,7 +989,7 @@ export default function Home() {
                         onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
                         className={`flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${isModelDropdownOpen ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}
                       >
-                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : modelType === 'super-agent' ? 'Super Agent' : 'Agent Max'}</span>
+                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : 'Super Agent'}</span>
                         <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
                       </div>
                       
@@ -973,13 +1017,6 @@ export default function Home() {
                                 >
                                   <span>Super Agent</span>
                                   <Zap size={12} className={modelType === 'super-agent' ? 'text-white' : 'text-zinc-500'} />
-                                </button>
-                                <button
-                                  onClick={() => { setModelType('agent-max'); setIsModelDropdownOpen(false); }}
-                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center justify-between ${modelType === 'agent-max' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
-                                >
-                                  <span>Agent Max</span>
-                                  <Bot size={12} className={modelType === 'agent-max' ? 'text-white' : 'text-zinc-500'} />
                                 </button>
                               </div>
                             </motion.div>
@@ -1383,6 +1420,72 @@ export default function Home() {
             ))}
           </div>
         </div>
+      ) : view === 'marketplace' ? (
+        <div className="max-w-6xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
+          <div className="flex flex-col gap-3 mb-10">
+            <div className="flex items-center gap-3 text-zinc-400">
+              <Store size={18} />
+              <span className="text-xs font-bold tracking-[0.24em] uppercase">Community Marketplace</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-white">Discover and publish prompts</h1>
+            <p className="text-zinc-500 text-sm max-w-2xl">
+              A community space for sharing prompt systems, design briefs, skills, and reusable agent workflows is coming soon.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6">
+            <section className="rounded-[28px] border border-white/10 bg-[#111111] p-7 md:p-9 overflow-hidden relative">
+              <div className="absolute right-8 top-8 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300">
+                Coming soon
+              </div>
+              <div className="h-14 w-14 rounded-2xl bg-white text-black flex items-center justify-center mb-10">
+                <Market size={28} strokeWidth={1.6} />
+              </div>
+              <h2 className="text-2xl font-semibold tracking-tight text-white max-w-xl">Publish your best prompts and find what the community is building.</h2>
+              <p className="mt-4 text-sm leading-relaxed text-zinc-500 max-w-2xl">
+                Marketplace profiles, prompt collections, remixable templates, ratings, saves, and publishing tools will arrive here when the community launch is ready.
+              </p>
+              <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  ['Discover', 'Browse curated prompts by category.'],
+                  ['Publish', 'Share prompts and reusable systems.'],
+                  ['Remix', 'Adapt community ideas into your own workflow.'],
+                ].map(([title, body]) => (
+                  <div key={title} className="rounded-2xl bg-[#1b1b1b] border border-white/5 p-4">
+                    <h3 className="text-sm font-bold text-zinc-100">{title}</h3>
+                    <p className="mt-2 text-xs leading-relaxed text-zinc-500">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-[28px] border border-white/10 bg-[#151515] p-6 md:p-7">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Launch preview</h2>
+                  <p className="mt-1 text-xs text-zinc-500">Prompt cards will appear here.</p>
+                </div>
+                <div className="h-9 w-9 rounded-full bg-[#242424] text-zinc-300 flex items-center justify-center">
+                  <Sparkles size={17} />
+                </div>
+              </div>
+              <div className="space-y-3">
+                {['Agent launch plan', 'SaaS dashboard brief', 'Skill authoring kit'].map((title, index) => (
+                  <div key={title} className="rounded-2xl bg-[#101010] border border-white/5 p-4 flex items-center justify-between gap-4 opacity-70">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-zinc-600" />
+                        <h3 className="text-sm font-semibold text-zinc-200">{title}</h3>
+                      </div>
+                      <div className="mt-3 h-2 w-44 max-w-full rounded-full bg-zinc-800" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Soon</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
       ) : view === 'recents' ? (
         // RECENTS VIEW
         <div className="max-w-4xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
@@ -1537,222 +1640,6 @@ export default function Home() {
               </div>
             )}
           </div>
-        </div>
-      ) : view === 'result' && modelType === 'agent-max' ? (
-        <div className="grid min-h-screen w-full grid-cols-1 bg-[#0d0909] lg:grid-cols-[minmax(320px,36vw)_1fr]">
-          <section className="order-2 flex min-h-screen min-w-0 flex-col bg-[#0d0909] lg:order-2">
-            <div className="flex-1 overflow-y-auto px-6 pb-12 pt-16 sm:px-10 lg:px-14">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h2 className="flex items-center gap-2 text-xl font-bold text-white">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">
-                      <Bot size={17} />
-                    </span>
-                    Agent Max
-                  </h2>
-                  <p className="text-sm text-zinc-500">Research, files, docs, prompts, skills, and edits in one agent workspace.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigator.clipboard.writeText(result)}
-                    className="rounded-full bg-[#1c1c1c] px-3 py-2 text-sm text-zinc-300 hover:bg-[#242424]"
-                  >
-                    <Copy size={15} />
-                  </button>
-                  <div className="relative">
-                    <button
-                      onClick={() => setAgentMaxExportOpen(!agentMaxExportOpen)}
-                    className="rounded-full bg-white/15 px-5 py-1.5 text-xs font-medium lowercase text-zinc-200 transition-colors hover:bg-white/20"
-                  >
-                      export
-                    </button>
-                    {agentMaxExportOpen && (
-                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl bg-[#181818] p-2 shadow-2xl">
-                        {[
-                          ['Lovable', lovableUrl, 'https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png'],
-                          ['Claude', claudeUrl, 'https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/dark/claude-color.png'],
-                          ['Claude Code', claudeCodeUrl, 'https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/dark/claudecode-color.png'],
-                          ['Codex', '', 'https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/dark/codex.png'],
-                          ['Antigravity', '', 'https://antigravity.google/assets/image/brand/antigravity-icon__full-color.png'],
-                        ].map(([label, href, icon]) => href ? (
-                          <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-300 hover:bg-[#242424]">
-                            <img src={icon} alt="" className="h-4 w-4 object-contain" /> {label}
-                          </a>
-                        ) : (
-                          <button key={label} onClick={() => navigator.clipboard.writeText(result)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-zinc-300 hover:bg-[#242424]">
-                            <img src={icon} alt="" className="h-4 w-4 object-contain" /> Copy for {label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {isGenerating ? (
-                <div className="space-y-5">
-                  <p className="text-xl font-semibold leading-relaxed text-zinc-100">
-                    I’ll start by researching the request, reading relevant sources, then generate polished files and explain what changed.
-                  </p>
-                  <div className="space-y-3">
-                    {agentLogs.map((log) => (
-                      <motion.div key={log.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-3 text-sm">
-                        {log.type === 'search' ? <Search size={16} className="mt-0.5 text-cyan-300" /> : log.type === 'read' ? <BookOpen size={16} className="mt-0.5 text-zinc-400" /> : <Zap size={16} className="mt-0.5 text-zinc-400" />}
-                        <span className={log.type === 'search' ? 'font-semibold text-cyan-200' : 'text-zinc-400'}>{log.text}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="prose prose-invert max-w-none prose-headings:text-white prose-p:text-zinc-300 prose-li:text-zinc-300 prose-pre:bg-[#181818] prose-pre:rounded-2xl">
-                  <ReactMarkdown>{result}</ReactMarkdown>
-                </div>
-              )}
-
-              {!isGenerating && result && (
-                <button
-                  onClick={() => setAgentMaxPreviewOpen(!agentMaxPreviewOpen)}
-                  className="hidden"
-                >
-                  <div>
-                    <div className="font-bold text-white">{agentMaxPreviewOpen ? 'Close split chat' : 'Open split chat'}</div>
-                    <div className="mt-1 text-sm text-zinc-500">{agentMaxPreviewOpen ? 'Return to the centered floating composer.' : 'Keep the document on the left and chat with Agent Max on the right.'}</div>
-                  </div>
-                  <ArrowRight size={18} className="text-zinc-500" />
-                </button>
-              )}
-            </div>
-          </section>
-
-          <AnimatePresence>
-            {true && (
-              <motion.aside
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 40 }}
-                className="order-1 flex h-screen min-w-0 flex-col overflow-hidden border-r border-white/10 bg-[#111111] lg:order-1"
-              >
-                <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">
-                      <Bot size={17} />
-                    </span>
-                    <div>
-                      <span className="text-sm font-bold text-zinc-200">Agent Max</span>
-                      <p className="mt-1 text-xs text-zinc-600">Chat workspace</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setView('home')} className="rounded-full px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200">New</button>
-                </div>
-                <div className="flex-1 space-y-3 overflow-y-auto px-5 pb-36 pt-5">
-                  {chatHistory.length === 0 && !isGenerating && (
-                    <div className="rounded-[22px] bg-[#101010] p-5 text-sm leading-relaxed text-zinc-500">
-                      Tell Agent Max what to change, add, research, or generate next. Your document stays live on the left.
-                    </div>
-                  )}
-                  {agentLogs.length > 0 && (
-                    <div className="space-y-2 rounded-[22px] bg-[#101010] p-4">
-                      {agentLogs.map((log) => (
-                        <div key={log.id} className="flex items-start gap-3 text-xs">
-                          {log.type === 'search' ? <Search size={14} className="mt-0.5 text-cyan-300" /> : log.type === 'read' ? <BookOpen size={14} className="mt-0.5 text-zinc-500" /> : <Zap size={14} className="mt-0.5 text-zinc-500" />}
-                          <span className={log.type === 'search' ? 'font-semibold text-cyan-200' : 'text-zinc-500'}>{log.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {chatHistory.map((message, index) => (
-                    <motion.div
-                      key={`${message.role}-${index}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`max-w-[88%] rounded-[22px] px-4 py-3 text-sm leading-relaxed ${
-                        message.role === 'user'
-                          ? 'ml-auto bg-white text-black'
-                          : 'mr-auto bg-[#202020] text-zinc-300'
-                      }`}
-                    >
-                      {message.text}
-                    </motion.div>
-                  ))}
-                </div>
-                <div className="bg-gradient-to-t from-[#111111] via-[#111111] to-transparent p-2 pt-10">
-                  <div className="flex min-h-[74px] items-end gap-2 rounded-[14px] border border-white/10 bg-[#1b1b1b] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
-                    <button
-                      onClick={() => setChatHistory([])}
-                      title="Clear thread"
-                      className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
-                    >
-                      <Plus size={16} />
-                    </button>
-                    <textarea
-                      value={refineInput}
-                      onChange={(e) => setRefineInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          refinePrompt(refineInput);
-                        }
-                      }}
-                      rows={1}
-                      placeholder="Message Agent Max..."
-                      className="max-h-28 min-h-14 flex-1 resize-none bg-transparent px-1 py-2 text-[14px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
-                    />
-                    <button
-                      onClick={() => refinePrompt(refineInput)}
-                      disabled={!refineInput.trim() || isGenerating}
-                      className={`mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${
-                        isGenerating
-                          ? 'bg-zinc-700 text-zinc-300'
-                          : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
-                      }`}
-                    >
-                      {isGenerating ? <Square size={14} fill="currentColor" /> : <ArrowUp size={17} />}
-                    </button>
-                  </div>
-                </div>
-              </motion.aside>
-            )}
-          </AnimatePresence>
-
-          {false && (
-            <div className="fixed bottom-6 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 px-4">
-              <div className="rounded-[32px] border border-white/10 bg-[#0a0a0a]/90 p-2 backdrop-blur-2xl shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
-                <div className="flex items-end gap-2 rounded-[26px] bg-[#141414] px-3 py-2">
-                  <button
-                    onClick={() => setChatHistory([])}
-                    title="Clear thread"
-                    className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
-                  >
-                    <Plus size={18} />
-                  </button>
-                  <textarea
-                    value={refineInput}
-                    onChange={(e) => setRefineInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        refinePrompt(refineInput);
-                      }
-                    }}
-                    rows={1}
-                    placeholder="Ask Agent Max to edit, research, add files, rewrite, or keep going..."
-                    className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2.5 text-[15px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600"
-                  />
-                  <button
-                    onClick={() => refinePrompt(refineInput)}
-                    disabled={!refineInput.trim() || isGenerating}
-                    className={`mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
-                      isGenerating
-                        ? 'bg-zinc-700 text-zinc-300'
-                        : 'bg-white text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40'
-                    }`}
-                  >
-                    {isGenerating ? <Square size={15} fill="currentColor" /> : <ArrowUp size={18} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       ) : view === 'result' ? (
         // RESULT VIEW
@@ -2408,6 +2295,16 @@ export default function Home() {
                         <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Ctrl</kbd>
                         <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">L</kbd>
                       </div>
+                    </div>
+                    <div
+                      onClick={() => { setView('marketplace'); setShowShortcutsMenu(false); }}
+                      className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Store size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">Marketplace</span>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Soon</span>
                     </div>
                      <div className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer">
                       <div className="flex items-center gap-3">

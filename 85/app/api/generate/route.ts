@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { SKILL_CREATOR_GUIDELINES } from '@/lib/skill-guidelines';
 
-type ModelType = 'ultra-fast' | 'super-agent' | 'agent-max';
+type ModelType = 'ultra-fast' | 'super-agent';
 type SelectedTool = 'prompt' | 'design' | 'skill' | 'spec';
 
 function generationInstructions(selectedTool: SelectedTool, modelType: ModelType) {
@@ -66,19 +66,6 @@ Requirements for the generated SPEC.md:
 5. Make every section implementation-ready for an AI agent or developer to act on.
 6. Output ONLY the markdown text.`;
     promptDescription = 'The unified SPEC.md file content ready to be copy-pasted.';
-  }
-
-  if (modelType === 'agent-max') {
-    systemInstruction = `You are Agent Max, an advanced autonomous creation agent for Kindly Prompt.
-You can generate prompts, DESIGN.md files, SKILL.md files, implementation plans, docs, scripts, specs, checklists, and other useful file-format content.
-
-Behavior:
-1. First research and reason like a coding agent: identify what the user is asking for, what files/docs/skills would matter, and what web sources or current context should be checked.
-2. Use available tools for web search, URL context, and code execution when helpful.
-3. Produce a polished final artifact in markdown. If multiple files are appropriate, separate them with clear headings like "File: DESIGN.md".
-4. After the artifact, add a short "What I did" section explaining the generated files, key choices, and suggested next steps.
-5. Keep output flat, formatted, and practical. Do not wrap the response in chat bubbles.`;
-    promptDescription = 'A complete Agent Max artifact with files, docs, prompts, skills, or other requested formats plus a concise explanation of what was created.';
   }
 
   return { systemInstruction, promptDescription };

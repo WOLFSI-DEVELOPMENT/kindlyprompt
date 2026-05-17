@@ -1,6 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Cancel01Icon, SparklesIcon } from '@hugeicons/core-free-icons';
 import { useEffect, useState } from 'react';
+
+type IconProps = { size?: number | string; className?: string; strokeWidth?: number };
+const Sparkles = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={SparklesIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const X = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Cancel01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
 
 export function UpgradeModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [checkoutUrl, setCheckoutUrl] = useState('https://kindlyprompt.lemonsqueezy.com/checkout/buy/cee279de-65e5-4f0d-9035-c6aa4358e26b');

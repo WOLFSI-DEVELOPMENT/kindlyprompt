@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Mail } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Cancel01Icon, Mail01Icon } from '@hugeicons/core-free-icons';
+
+type IconProps = { size?: number | string; className?: string; strokeWidth?: number };
+const X = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Cancel01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Mail = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Mail01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
 
 const AuthAnimation = () => {
   return (

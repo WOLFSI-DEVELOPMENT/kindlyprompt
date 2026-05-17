@@ -1,6 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Sparkles, Terminal } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Cancel01Icon, SparklesIcon, TerminalIcon } from '@hugeicons/core-free-icons';
+
+type IconProps = { size?: number | string; className?: string; strokeWidth?: number };
+const X = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Cancel01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Sparkles = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={SparklesIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Terminal = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={TerminalIcon} size={size} className={className} strokeWidth={strokeWidth} />;
 
 const SuperAgentAnimation = () => {
   const [step, setStep] = React.useState(0);

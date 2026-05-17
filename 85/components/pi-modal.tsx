@@ -2,7 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Clipboard, UploadCloud, FileText, FileArchive, ArrowRight, Check, X } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  ArrowRight01Icon,
+  Cancel01Icon,
+  ClipboardIcon,
+  CloudUploadIcon,
+  File01Icon,
+  FileZipIcon,
+  SparklesIcon,
+  Tick01Icon,
+} from '@hugeicons/core-free-icons';
+
+type IconProps = { size?: number | string; className?: string; strokeWidth?: number };
+const Sparkles = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={SparklesIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Clipboard = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={ClipboardIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const UploadCloud = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={CloudUploadIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const FileText = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={File01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const FileArchive = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={FileZipIcon} size={size} className={className} strokeWidth={strokeWidth} />;
+const ArrowRight = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={ArrowRight01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const Check = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Tick01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
+const X = ({ size = 24, className, strokeWidth = 1.5 }: IconProps) => <HugeiconsIcon icon={Cancel01Icon} size={size} className={className} strokeWidth={strokeWidth} />;
 
 const IntroAnimation = () => {
   return (
