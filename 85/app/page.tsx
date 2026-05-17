@@ -12,6 +12,7 @@ import {
   ArrowRight01Icon,
   ArrowUpRight01Icon,
   AiChemistry02Icon,
+  AiContentGenerator01Icon,
   BookOpen01Icon,
   ClipboardIcon,
   CodeIcon,
@@ -67,6 +68,7 @@ const AlignLeft = createHugeIcon(AlignLeftIcon);
 const History = createHugeIcon(Folder02Icon);
 const Edit3 = createHugeIcon(Edit02Icon);
 const MessageSquare = createHugeIcon(Message01Icon);
+const PromptIcon = createHugeIcon(AiContentGenerator01Icon);
 const Eye = createHugeIcon(EyeIcon);
 const Mic = createHugeIcon(Mic01Icon);
 const ChevronDown = createHugeIcon(ArrowDown01Icon);
@@ -1832,7 +1834,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                           onClick={() => setSelectedTool('prompt')} 
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
                         >
-                           <MessageSquare size={14} /> Prompt
+                           <PromptIcon size={14} /> Prompt
                         </button>
                         <button 
                           onClick={() => setSelectedTool('design')} 
