@@ -2209,7 +2209,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 transition={{ delay: idx * 0.05 }}
                 className="bg-[#151515] rounded-[22px] p-2.5 flex flex-col gap-4 transition-colors hover:bg-[#191919] group"
               >
-                <div className="h-44 rounded-[18px] bg-[#2a2a2c] p-5 flex flex-col justify-between overflow-hidden">
+                <div className="h-32 rounded-[18px] bg-[#2a2a2c] p-5 flex flex-col justify-between overflow-hidden">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-zinc-500/60" />
                     <div className="h-2 w-2 rounded-full bg-zinc-500/40" />
@@ -2225,10 +2225,6 @@ Return proposed memory entries and ask for confirmation before saving.`
                 <div className="flex flex-col gap-2 px-2">
                   <h3 className="text-zinc-100 font-bold text-lg">{item.title}</h3>
                   <p className="text-zinc-500 text-sm leading-relaxed line-clamp-2">{item.description}</p>
-                  <div className="mt-1 flex flex-col gap-2">
-                    <div className="h-3 w-4/5 rounded-full bg-[#2a2a2c]" />
-                    <div className="h-3 w-1/2 rounded-full bg-[#2a2a2c]" />
-                  </div>
                 </div>
                 
                 <div className="flex-1" />
