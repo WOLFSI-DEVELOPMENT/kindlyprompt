@@ -529,6 +529,76 @@ export default function Home() {
     { label: 'Skills', view: 'skills' as const, icon: Clipboard },
     { label: 'Library', view: 'library' as const, icon: FolderLibrary },
   ];
+  const discoverTickerItems = [
+    'LaunchFlow app',
+    'Prompt: AI habit coach',
+    'Skill: repo migration reviewer',
+    'Article: better agent handoffs',
+    'CanvasKit app',
+    'Prompt: dark SaaS dashboard',
+    'Skill: support inbox triage',
+    'Article: prompt systems that scale',
+  ];
+  const skillsTickerItems = [
+    'Skill: code review copilot',
+    'Skill: Vercel deploy fixer',
+    'Skill: design-system auditor',
+    'Skill: GitHub PR closer',
+    'Skill: spreadsheet analyst',
+    'Skill: iOS simulator debugger',
+    'Skill: launch checklist agent',
+    'Skill: support request sorter',
+  ];
+  const renderDiscoveryTopBar = () => (
+    <div className="fixed left-1/2 top-5 z-[70] -translate-x-1/2">
+      <div className="flex items-center gap-1 rounded-full border border-white/5 bg-[#171717]/95 p-1 shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+        {discoveryTabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.view}
+              onClick={() => setView(tab.view)}
+              className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${view === tab.view ? 'bg-[#2b2b2b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]' : 'text-zinc-400 hover:text-zinc-100'}`}
+            >
+              <Icon size={15} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+  const renderMovingHero = (
+    title: string,
+    subtitle: string,
+    items: string[],
+  ) => (
+    <section className="relative w-full max-w-5xl overflow-hidden rounded-none border-y border-white/5 bg-[#0f0f0f] px-6 py-20 text-center">
+      <div className="pointer-events-none absolute inset-0 opacity-45">
+        {[0, 1, 2].map((row) => (
+          <motion.div
+            key={row}
+            animate={{ x: row % 2 === 0 ? ['0%', '-50%'] : ['-50%', '0%'] }}
+            transition={{ duration: 28 + row * 4, repeat: Infinity, ease: 'linear' }}
+            className={`absolute left-0 flex w-max items-center gap-3 ${row === 0 ? 'top-4' : row === 1 ? 'top-20' : 'bottom-6'}`}
+          >
+            {[...items, ...items].map((item, index) => (
+              <span
+                key={`${row}-${item}-${index}`}
+                className="rounded-full border border-white/6 bg-white/[0.035] px-4 py-2 text-sm font-medium text-zinc-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+              >
+                {item}
+              </span>
+            ))}
+          </motion.div>
+        ))}
+      </div>
+      <div className="relative z-10 mx-auto max-w-2xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-white">{title}</h1>
+        <p className="mt-4 text-sm leading-relaxed text-zinc-400">{subtitle}</p>
+      </div>
+    </section>
+  );
 
   const generatePrompt = async (text: string, image: string | null = null) => {
     if (!text.trim() && !image) return;
@@ -1421,6 +1491,7 @@ export default function Home() {
       ) : view === 'library' ? (
         // LIBRARY VIEW
         <div className="max-w-6xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
+          {renderDiscoveryTopBar()}
           <div className="flex flex-col gap-2 mb-12">
             <h1 className="text-3xl font-medium tracking-tight">Prompt Library</h1>
             <p className="text-zinc-500 text-sm">Curated collection of high-performance prompts for vibe coding and UI design.</p>
@@ -1571,60 +1642,22 @@ export default function Home() {
           </div>
         </div>
       ) : view === 'discover' ? (
-        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 items-center justify-center px-6 text-center">
-          <div className="fixed left-1/2 top-5 z-[70] -translate-x-1/2">
-            <div className="flex items-center gap-1 rounded-full border border-white/5 bg-[#171717]/95 p-1 shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-              {discoveryTabs.map((tab) => (
-                (() => {
-                  const Icon = tab.icon;
-                  return (
-                <button
-                  key={tab.view}
-                  onClick={() => setView(tab.view)}
-                  className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${view === tab.view ? 'bg-[#2b2b2b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]' : 'text-zinc-400 hover:text-zinc-100'}`}
-                >
-                  <Icon size={15} />
-                  {tab.label}
-                </button>
-                  );
-                })()
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="mb-4 flex items-center justify-center text-zinc-500">
-              <Discover size={22} />
-            </div>
-            <h1 className="text-3xl font-medium tracking-tight text-white">Coming soon</h1>
-          </div>
+        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 flex-col items-center px-6 pt-24 text-center">
+          {renderDiscoveryTopBar()}
+          {renderMovingHero(
+            'Discover what builders are making',
+            'Explore a coming feed of apps, prompts, skills, and practical articles shaped for faster AI building.',
+            discoverTickerItems,
+          )}
         </div>
       ) : view === 'skills' ? (
-        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 items-center justify-center px-6 text-center">
-          <div className="fixed left-1/2 top-5 z-[70] -translate-x-1/2">
-            <div className="flex items-center gap-1 rounded-full border border-white/5 bg-[#171717]/95 p-1 shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-              {discoveryTabs.map((tab) => (
-                (() => {
-                  const Icon = tab.icon;
-                  return (
-                <button
-                  key={tab.view}
-                  onClick={() => setView(tab.view)}
-                  className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${view === tab.view ? 'bg-[#2b2b2b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]' : 'text-zinc-400 hover:text-zinc-100'}`}
-                >
-                  <Icon size={15} />
-                  {tab.label}
-                </button>
-                  );
-                })()
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="mb-4 flex items-center justify-center text-zinc-500">
-              <Clipboard size={22} />
-            </div>
-            <h1 className="text-3xl font-medium tracking-tight text-white">Coming soon</h1>
-          </div>
+        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 flex-col items-center px-6 pt-24 text-center">
+          {renderDiscoveryTopBar()}
+          {renderMovingHero(
+            'Skills for repeatable agent work',
+            'A focused space for reusable workflows, specialized agents, and skill recipes is coming soon.',
+            skillsTickerItems,
+          )}
         </div>
       ) : view === 'recents' ? (
         // RECENTS VIEW
