@@ -13,6 +13,7 @@ import {
   BookOpen01Icon,
   CodeIcon,
   Copy01Icon,
+  DiscoverCircleIcon,
   Download01Icon,
   Edit02Icon,
   EyeIcon,
@@ -21,14 +22,12 @@ import {
   GitBranchIcon,
   Image01Icon,
   Link01Icon,
-  MarketAnalysisIcon,
   Message01Icon,
   Mic01Icon,
   PaintBrush01Icon,
   RefreshIcon,
   Search01Icon,
   SparklesIcon,
-  Store01Icon,
   Tick01Icon,
   TransactionHistoryIcon,
   Cancel01Icon,
@@ -74,8 +73,7 @@ const FileText = createHugeIcon(File01Icon);
 const BookOpen = createHugeIcon(BookOpen01Icon);
 const Code2 = createHugeIcon(CodeIcon);
 const GitBranch = createHugeIcon(GitBranchIcon);
-const Store = createHugeIcon(Store01Icon);
-const Market = createHugeIcon(MarketAnalysisIcon);
+const Discover = createHugeIcon(DiscoverCircleIcon);
 
 function timeAgo(dateString?: string) {
   if (!dateString) return 'recently';
@@ -108,7 +106,7 @@ export default function Home() {
   const [result, setResult] = useState('');
   const [streamedResult, setStreamedResult] = useState('');
   const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
-  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'marketplace' | 'event'>('home');
+  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'discover' | 'event'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
@@ -835,11 +833,11 @@ export default function Home() {
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setView('marketplace')}
+                  onClick={() => setView('discover')}
                   className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
-                  title="Community Marketplace"
+                  title="Discover"
                 >
-                  <Store size={20} strokeWidth={1.5} className={`transition-colors ${view === 'marketplace' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
+                  <Discover size={20} strokeWidth={1.5} className={`transition-colors ${view === 'discover' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 </motion.button>
               </div>
           </div>
@@ -1193,6 +1191,51 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          <div className="mt-4 w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                {
+                  href: 'https://findly.tools/kindly-prompt?utm_source=kindly-prompt',
+                  src: 'https://findly.tools/badges/findly-tools-badge-light.svg',
+                  alt: 'Featured on Findly.tools',
+                  width: 175,
+                  height: 55,
+                },
+                {
+                  href: 'https://www.producthunt.com/products/kindly-prompt/reviews/new?utm_source=badge-product_review&utm_medium=badge&utm_source=badge-kindly-prompt',
+                  src: 'https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=1225437&theme=dark',
+                  alt: 'Kindly Prompt - Turn simple ideas into highly detailed AI coding prompts | Product Hunt',
+                  width: 250,
+                  height: 54,
+                },
+                {
+                  href: 'https://startupfa.me/s/kindly-prompt?utm_source=kindlyprompt.vercel.app',
+                  src: 'https://startupfa.me/badges/featured/default.webp',
+                  alt: 'Kindly Prompt - Featured on Startup Fame',
+                  width: 171,
+                  height: 54,
+                },
+                {
+                  href: 'https://fazier.com/launches/kindlyprompt.vercel.app',
+                  src: 'https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=dark',
+                  alt: 'Fazier badge',
+                  width: 120,
+                  height: 54,
+                },
+              ].map((badge) => (
+                <a
+                  key={badge.href}
+                  href={badge.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-[62px] shrink-0 items-center justify-center rounded-2xl bg-[#151515] px-3 transition-colors hover:bg-[#1d1d1d]"
+                >
+                  <img src={badge.src} alt={badge.alt} width={badge.width} height={badge.height} className="max-h-[55px] object-contain" />
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       ) : view === 'event' ? (
         <div className="max-w-5xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
@@ -1420,70 +1463,13 @@ export default function Home() {
             ))}
           </div>
         </div>
-      ) : view === 'marketplace' ? (
-        <div className="max-w-6xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
-          <div className="flex flex-col gap-3 mb-10">
-            <div className="flex items-center gap-3 text-zinc-400">
-              <Store size={18} />
-              <span className="text-xs font-bold tracking-[0.24em] uppercase">Community Marketplace</span>
+      ) : view === 'discover' ? (
+        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 items-center justify-center px-6 text-center">
+          <div>
+            <div className="mb-4 flex items-center justify-center text-zinc-500">
+              <Discover size={22} />
             </div>
-            <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-white">Discover and publish prompts</h1>
-            <p className="text-zinc-500 text-sm max-w-2xl">
-              A community space for sharing prompt systems, design briefs, skills, and reusable agent workflows is coming soon.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6">
-            <section className="rounded-[28px] border border-white/10 bg-[#111111] p-7 md:p-9 overflow-hidden relative">
-              <div className="absolute right-8 top-8 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300">
-                Coming soon
-              </div>
-              <div className="h-14 w-14 rounded-2xl bg-white text-black flex items-center justify-center mb-10">
-                <Market size={28} strokeWidth={1.6} />
-              </div>
-              <h2 className="text-2xl font-semibold tracking-tight text-white max-w-xl">Publish your best prompts and find what the community is building.</h2>
-              <p className="mt-4 text-sm leading-relaxed text-zinc-500 max-w-2xl">
-                Marketplace profiles, prompt collections, remixable templates, ratings, saves, and publishing tools will arrive here when the community launch is ready.
-              </p>
-              <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  ['Discover', 'Browse curated prompts by category.'],
-                  ['Publish', 'Share prompts and reusable systems.'],
-                  ['Remix', 'Adapt community ideas into your own workflow.'],
-                ].map(([title, body]) => (
-                  <div key={title} className="rounded-2xl bg-[#1b1b1b] border border-white/5 p-4">
-                    <h3 className="text-sm font-bold text-zinc-100">{title}</h3>
-                    <p className="mt-2 text-xs leading-relaxed text-zinc-500">{body}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded-[28px] border border-white/10 bg-[#151515] p-6 md:p-7">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Launch preview</h2>
-                  <p className="mt-1 text-xs text-zinc-500">Prompt cards will appear here.</p>
-                </div>
-                <div className="h-9 w-9 rounded-full bg-[#242424] text-zinc-300 flex items-center justify-center">
-                  <Sparkles size={17} />
-                </div>
-              </div>
-              <div className="space-y-3">
-                {['Agent launch plan', 'SaaS dashboard brief', 'Skill authoring kit'].map((title, index) => (
-                  <div key={title} className="rounded-2xl bg-[#101010] border border-white/5 p-4 flex items-center justify-between gap-4 opacity-70">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-zinc-600" />
-                        <h3 className="text-sm font-semibold text-zinc-200">{title}</h3>
-                      </div>
-                      <div className="mt-3 h-2 w-44 max-w-full rounded-full bg-zinc-800" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Soon</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <h1 className="text-3xl font-medium tracking-tight text-white">Coming soon</h1>
           </div>
         </div>
       ) : view === 'recents' ? (
@@ -2297,12 +2283,12 @@ export default function Home() {
                       </div>
                     </div>
                     <div
-                      onClick={() => { setView('marketplace'); setShowShortcutsMenu(false); }}
+                      onClick={() => { setView('discover'); setShowShortcutsMenu(false); }}
                       className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
-                        <Store size={16} className="text-zinc-500" />
-                        <span className="text-sm font-medium">Marketplace</span>
+                        <Discover size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">Discover</span>
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Soon</span>
                     </div>
