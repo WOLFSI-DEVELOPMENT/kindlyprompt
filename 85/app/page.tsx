@@ -609,6 +609,7 @@ export default function Home() {
       name: 'Researcher',
       description: 'Supported Grounding with Google Search for current context.',
       color: '#efe2c8',
+      image: 'https://i.ibb.co/NdQ7fcTw/Kawaii-blob-character-with-docum-202605171327-modified.png',
       hat: true,
       lashes: false,
       status: 'Grounding with Google Search completed',
@@ -618,6 +619,7 @@ export default function Home() {
       name: 'Validator',
       description: 'Validates the idea before generation starts.',
       color: '#f3dccd',
+      image: 'https://i.ibb.co/qFPQ48YJ/Kawaii-blob-character-with-check-202605171327-modified.png',
       hat: false,
       lashes: true,
       status: 'Idea validation completed',
@@ -627,6 +629,7 @@ export default function Home() {
       name: 'Designer',
       description: 'Inspects provided designs and analyzes visual direction.',
       color: '#ead8b6',
+      image: 'https://i.ibb.co/xqBpN9pg/Kawaii-blob-character-with-beret-202605171327-1-modified.png',
       hat: false,
       lashes: true,
       status: 'Design analysis completed',
@@ -636,6 +639,7 @@ export default function Home() {
       name: 'Engineer',
       description: 'Writes backend instructions and merges agent findings.',
       color: '#f4e9d2',
+      image: 'https://i.ibb.co/vvJdcKmC/Blob-character-with-headset-and-202605171327-modified.png',
       hat: true,
       lashes: false,
       status: 'Backend instructions completed',
@@ -645,6 +649,7 @@ export default function Home() {
       name: 'Composer',
       description: 'Combines all agent work into one final prompt.',
       color: '#e6d2bd',
+      image: 'https://i.ibb.co/CSH6NMB/Kawaii-blob-character-with-beret-202605171327-modified.png',
       hat: false,
       lashes: false,
       status: 'Final prompt assembly completed',
@@ -991,28 +996,12 @@ Return proposed memory entries and ask for confirmation before saving.`
   const renderAgentFace = (agent: typeof superAgents[number], index: number, compact = false) => (
     <div className="group relative flex flex-col items-center">
       <motion.div
-        initial={{ y: 8, opacity: 0 }}
-        animate={{ y: compact ? 0 : Math.abs(index - 2) * 16, opacity: 1 }}
+        initial={{ y: 6, opacity: 0, scale: 0.96 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ delay: index * 0.05, duration: 0.28 }}
-        className={`${compact ? 'h-11 w-11' : 'h-16 w-16'} relative rounded-full shadow-[inset_0_-8px_12px_rgba(0,0,0,0.14),0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-white/30`}
-        style={{ backgroundColor: agent.color }}
+        className={`${compact ? 'h-11 w-11' : 'h-16 w-16'} relative overflow-hidden rounded-full bg-[#f1f1ef] shadow-[0_10px_28px_rgba(0,0,0,0.28)] ring-2 ring-black/10`}
       >
-        {agent.hat && (
-          <>
-            <div className="absolute -top-2 left-1/2 h-3 w-8 -translate-x-1/2 rounded-t-lg bg-[#2a2927]" />
-            <div className="absolute top-1 left-1/2 h-1.5 w-11 -translate-x-1/2 rounded-full bg-[#2a2927]" />
-          </>
-        )}
-        <div className="absolute left-[28%] top-[38%] h-2.5 w-1.5 rounded-full bg-[#151515]" />
-        <div className="absolute right-[28%] top-[38%] h-2.5 w-1.5 rounded-full bg-[#151515]" />
-        {agent.lashes && (
-          <>
-            <div className="absolute left-[21%] top-[34%] h-0.5 w-2 rotate-[-25deg] rounded-full bg-[#151515]" />
-            <div className="absolute right-[21%] top-[34%] h-0.5 w-2 rotate-[25deg] rounded-full bg-[#151515]" />
-          </>
-        )}
-        <div className="absolute left-1/2 top-[62%] h-1 w-5 -translate-x-1/2 rounded-full bg-[#151515]/80" />
-        <div className="absolute inset-x-3 top-2 h-2 rounded-full bg-white/35 blur-[1px]" />
+        <img src={agent.image} alt="" className="h-full w-full object-cover" />
       </motion.div>
       {!compact && (
         <div className="pointer-events-none absolute top-full z-20 mt-3 w-52 rounded-2xl bg-[#1b1b1b] px-4 py-3 text-center opacity-0 shadow-2xl transition-opacity group-hover:opacity-100">
@@ -1587,9 +1576,9 @@ Return proposed memory entries and ask for confirmation before saving.`
         <div className="max-w-4xl mx-auto w-full px-4 pt-[15vh] pb-32 flex flex-col items-center">
           <div className="mb-8 flex flex-col items-center justify-center gap-5">
             {modelType === 'super-agent' ? (
-              <div className="flex h-24 items-start justify-center gap-3">
+              <div className="flex h-20 items-center justify-center -space-x-2">
                 {superAgents.map((agent, index) => (
-                  <div key={agent.id} className={index === 0 || index === 4 ? 'pt-8' : index === 1 || index === 3 ? 'pt-3' : ''}>
+                  <div key={agent.id} className="transition-transform hover:z-10 hover:-translate-y-1">
                     {renderAgentFace(agent, index)}
                   </div>
                 ))}
