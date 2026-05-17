@@ -229,6 +229,15 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
+      const notificationView = urlParams.get('view');
+      if (notificationView === 'event') {
+        setTimeout(() => setView('event'), 0);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+      if (notificationView === 'result') {
+        setTimeout(() => setView('result'), 0);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
       if (urlParams.get('success') === 'true') {
         const timeout = setTimeout(() => {
           setIsPlus(true);
@@ -594,6 +603,11 @@ export default function Home() {
   const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(result)}`;
   const claudeCodeUrl = `claude-cli://open?prompt=${encodeURIComponent(result)}`;
   const conductorUrl = `conductor://prompt=${encodeURIComponent(result)}`;
+  const weeklyEvent = {
+    id: 'chrome-extension-discover-skills-super-agent-2026-05',
+    title: 'New weekly event',
+    body: 'New Chrome extension, new way to discover and get skills, new super agent.',
+  };
   const discoveryTabs = [
     { label: 'Discover', view: 'discover' as const, icon: Discover },
     { label: 'Skills', view: 'skills' as const, icon: Clipboard },
@@ -939,12 +953,67 @@ Return proposed memory entries and ask for confirmation before saving.`
     </div>
   );
 
+  const isDesktopWeb = () => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(min-width: 768px)').matches && !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  };
+
+  const ensureNotificationPermission = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window) || !isDesktopWeb()) return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  };
+
+  const showDesktopNotification = useCallback(async (title: string, options: NotificationOptions = {}) => {
+    if (typeof window === 'undefined' || !('Notification' in window) || !isDesktopWeb()) return;
+    if (Notification.permission !== 'granted') return;
+
+    const payload = {
+      badge: '/notification-icon.svg',
+      icon: '/notification-icon.svg',
+      ...options,
+    };
+
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        registration.showNotification(title, payload);
+        return;
+      }
+    }
+
+    new Notification(title, payload);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !isDesktopWeb()) return;
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('Notification service worker registration failed', error);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isDesktopWeb() || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    const seenWeeklyEventId = localStorage.getItem('kindly_prompt_seen_weekly_event_id');
+    if (seenWeeklyEventId === weeklyEvent.id) return;
+    localStorage.setItem('kindly_prompt_seen_weekly_event_id', weeklyEvent.id);
+    showDesktopNotification(weeklyEvent.title, {
+      body: weeklyEvent.body,
+      tag: `weekly-event-${weeklyEvent.id}`,
+      data: { view: 'event' },
+    });
+  }, [showDesktopNotification, weeklyEvent.id, weeklyEvent.body, weeklyEvent.title]);
+
   const generatePrompt = async (text: string, image: string | null = null) => {
     if (!text.trim() && !image) return;
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
+    ensureNotificationPermission();
     setIsGenerating(true);
     setView('result');
     try {
@@ -1030,8 +1099,18 @@ Return proposed memory entries and ask for confirmation before saving.`
         setCurrentResult(newItem);
         setRecents(prev => [newItem, ...prev]);
         setResult(newItem.prompt);
+        showDesktopNotification('Your prompt is ready', {
+          body: `${newItem.title} has finished generating.`,
+          tag: `prompt-generated-${Date.now()}`,
+          data: { view: 'result' },
+        });
       } catch (err) {
         setResult(responseText);
+        showDesktopNotification('Your prompt is ready', {
+          body: 'Your generated prompt has finished.',
+          tag: `prompt-generated-${Date.now()}`,
+          data: { view: 'result' },
+        });
       }
     } catch (e) {
       console.error(e);
@@ -1698,7 +1777,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                     <span className="rounded-md bg-cyan-300 px-2 py-0.5 text-[11px] font-black text-[#101314]">SOON</span>
                   </div>
                   <p className="max-w-[260px] text-[15px] leading-snug text-zinc-400">
-                    New Chrome extension, new way to discover and get skills, new super agent.
+                    {weeklyEvent.body}
                   </p>
                 </div>
                 <button onClick={() => setView('event')} className="mt-5 flex w-fit items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#111315] transition-colors hover:bg-zinc-200">
