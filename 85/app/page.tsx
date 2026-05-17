@@ -130,7 +130,7 @@ export default function Home() {
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
-  const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent'>('ultra-fast');
+  const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent' | 'lite'>('ultra-fast');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
@@ -603,6 +603,7 @@ export default function Home() {
   const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(result)}`;
   const claudeCodeUrl = `claude-cli://open?prompt=${encodeURIComponent(result)}`;
   const conductorUrl = `conductor://prompt=${encodeURIComponent(result)}`;
+  const modelLabel = modelType === 'ultra-fast' ? 'Ultra Fast' : modelType === 'super-agent' ? 'Super Agents' : 'Lite';
   const superAgents = [
     {
       id: 'researcher',
@@ -1155,7 +1156,7 @@ Return proposed memory entries and ask for confirmation before saving.`
 
       setStreamedResult('');
       setAgentLogs([{ id: 'start', text: 'Initializing...', type: 'info' }]);
-      if (modelType !== 'ultra-fast') {
+      if (modelType === 'super-agent') {
         setAgentLogs([{ id: 'start', text: 'Super Agents starting...', type: 'info' }]);
         superAgents.forEach((agent, index) => {
           setTimeout(() => {
@@ -1733,7 +1734,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                         onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
                         className={`flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${isModelDropdownOpen ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}
                       >
-                        <span className="font-semibold text-white text-[13px]">{modelType === 'ultra-fast' ? 'Ultra Fast' : 'Super Agents'}</span>
+                        <span className="font-semibold text-white text-[13px]">{modelLabel}</span>
                         <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
                       </div>
                       
@@ -1754,6 +1755,12 @@ Return proposed memory entries and ask for confirmation before saving.`
                                   className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors ${modelType === 'ultra-fast' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
                                 >
                                   Ultra Fast
+                                </button>
+                                <button
+                                  onClick={() => { setModelType('lite'); setIsModelDropdownOpen(false); }}
+                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors ${modelType === 'lite' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
+                                >
+                                  Lite
                                 </button>
                                 <button
                                   onClick={() => { setModelType('super-agent'); setIsModelDropdownOpen(false); }}

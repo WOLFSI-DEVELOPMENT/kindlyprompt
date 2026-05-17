@@ -3,8 +3,13 @@ import { NextResponse } from 'next/server';
 
 import { SKILL_CREATOR_GUIDELINES } from '@/lib/skill-guidelines';
 
-type ModelType = 'ultra-fast' | 'super-agent';
+type ModelType = 'ultra-fast' | 'super-agent' | 'lite';
 type SelectedTool = 'prompt' | 'design' | 'skill' | 'spec';
+
+function modelNameFor(modelType: ModelType) {
+  if (modelType === 'lite') return 'gemma-4-31b-it';
+  return 'gemini-3.1-flash-lite';
+}
 
 function generationInstructions(selectedTool: SelectedTool, modelType: ModelType) {
   let systemInstruction = '';
@@ -90,15 +95,13 @@ export async function POST(req: Request) {
 
   if (body.action === 'refine') {
     const response = await ai.models.generateContent({
-      model: body.isVoice ? 'gemini-3.1-flash-live-preview' : (modelType !== 'ultra-fast' ? 'gemini-3-flash-preview' : 'gemini-3.1-flash-lite'),
+      model: body.isVoice ? 'gemini-3.1-flash-live-preview' : modelNameFor(modelType),
       contents: [
         { role: 'user', parts: [{ text: `Here is the current prompt I am generating:\n\n${body.result}\n\nPlease update it according to this instruction: ${body.instruction}\n\nProvide the updated full prompt string. Do not include markdown \`\`\` blocks around your answer.` }] },
       ],
       config: body.isVoice ? {
         responseModalities: ['AUDIO' as any],
-      } : {
-        tools: modelType !== 'ultra-fast' ? [{ googleSearch: {} }, { urlContext: {} }, { codeExecution: {} }] : undefined,
-      },
+      } : undefined,
     });
 
     return NextResponse.json({ text: response.text || '' });
@@ -107,10 +110,9 @@ export async function POST(req: Request) {
   const selectedTool = (body.selectedTool || 'prompt') as SelectedTool;
   const { systemInstruction, promptDescription } = generationInstructions(selectedTool, modelType);
   const response = await ai.models.generateContent({
-    model: modelType !== 'ultra-fast' ? 'gemini-3-flash-preview' : 'gemini-3.1-flash-lite',
+    model: modelNameFor(modelType),
     contents: body.contents,
     config: {
-      tools: modelType !== 'ultra-fast' ? [{ googleSearch: {} }, { urlContext: {} }, { codeExecution: {} }] : undefined,
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
