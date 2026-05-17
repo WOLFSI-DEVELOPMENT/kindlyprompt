@@ -1193,7 +1193,11 @@ export default function Home() {
           </div>
 
           <div className="mt-4 w-full max-w-2xl overflow-hidden">
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <motion.div
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+              className="flex w-max items-center gap-5 pb-2"
+            >
               {[
                 {
                   href: 'https://findly.tools/kindly-prompt?utm_source=kindly-prompt',
@@ -1223,18 +1227,46 @@ export default function Home() {
                   width: 120,
                   height: 54,
                 },
-              ].map((badge) => (
+                {
+                  href: 'https://findly.tools/kindly-prompt?utm_source=kindly-prompt',
+                  src: 'https://findly.tools/badges/findly-tools-badge-light.svg',
+                  alt: 'Featured on Findly.tools',
+                  width: 175,
+                  height: 55,
+                },
+                {
+                  href: 'https://www.producthunt.com/products/kindly-prompt/reviews/new?utm_source=badge-product_review&utm_medium=badge&utm_source=badge-kindly-prompt',
+                  src: 'https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=1225437&theme=dark',
+                  alt: 'Kindly Prompt - Turn simple ideas into highly detailed AI coding prompts | Product Hunt',
+                  width: 250,
+                  height: 54,
+                },
+                {
+                  href: 'https://startupfa.me/s/kindly-prompt?utm_source=kindlyprompt.vercel.app',
+                  src: 'https://startupfa.me/badges/featured/default.webp',
+                  alt: 'Kindly Prompt - Featured on Startup Fame',
+                  width: 171,
+                  height: 54,
+                },
+                {
+                  href: 'https://fazier.com/launches/kindlyprompt.vercel.app',
+                  src: 'https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=dark',
+                  alt: 'Fazier badge',
+                  width: 120,
+                  height: 54,
+                },
+              ].map((badge, index) => (
                 <a
-                  key={badge.href}
+                  key={`${badge.href}-${index}`}
                   href={badge.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-[62px] shrink-0 items-center justify-center rounded-2xl bg-[#151515] px-3 transition-colors hover:bg-[#1d1d1d]"
+                  className="flex h-[58px] shrink-0 items-center justify-center"
                 >
                   <img src={badge.src} alt={badge.alt} width={badge.width} height={badge.height} className="max-h-[55px] object-contain" />
                 </a>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       ) : view === 'event' ? (
