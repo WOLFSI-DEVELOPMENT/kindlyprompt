@@ -1076,6 +1076,9 @@ export default function Home() {
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'spec' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
                         >
                            <FileText size={14} /> SPEC.md
+                           <span className="rounded-md bg-[#10292e] px-1.5 py-0.5 text-[10px] font-black leading-none text-cyan-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_0_rgba(0,0,0,0.35)]">
+                             New
+                           </span>
                         </button>
                       </div>
 
