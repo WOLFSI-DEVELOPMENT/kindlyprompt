@@ -24,6 +24,7 @@ import {
   Folder02Icon,
   FolderLibraryIcon,
   Image01Icon,
+  LabsIcon,
   Link01Icon,
   Message01Icon,
   Mic01Icon,
@@ -70,6 +71,7 @@ const Eye = createHugeIcon(EyeIcon);
 const Mic = createHugeIcon(Mic01Icon);
 const ChevronDown = createHugeIcon(ArrowDown01Icon);
 const ImageIcon = createHugeIcon(Image01Icon);
+const Labs = createHugeIcon(LabsIcon);
 const Link = createHugeIcon(Link01Icon);
 const Paintbrush = createHugeIcon(PaintBrush01Icon);
 const Zap = createHugeIcon(FlashIcon);
@@ -124,7 +126,7 @@ export default function Home() {
   const [result, setResult] = useState('');
   const [streamedResult, setStreamedResult] = useState('');
   const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
-  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'preview' | 'library' | 'discover' | 'skills' | 'event'>('home');
+  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'preview' | 'library' | 'discover' | 'skills' | 'labs' | 'event'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
@@ -665,6 +667,7 @@ export default function Home() {
     { label: 'Discover', view: 'discover' as const, icon: Discover },
     { label: 'Skills', view: 'skills' as const, icon: Clipboard },
     { label: 'Library', view: 'library' as const, icon: FolderLibrary },
+    { label: 'Labs', view: 'labs' as const, icon: Labs },
   ];
   const discoverTickerItems = [
     'LaunchFlow app',
@@ -685,6 +688,16 @@ export default function Home() {
     'Skill: iOS simulator debugger',
     'Skill: launch checklist agent',
     'Skill: support request sorter',
+  ];
+  const labsTickerItems = [
+    'Experiment: prompt scoring',
+    'Lab: agent memory',
+    'Prototype: voice flows',
+    'Test: design critique',
+    'Sandbox: prompt variants',
+    'Preview: chrome extension',
+    'Experiment: skill publishing',
+    'Lab: workflow recipes',
   ];
   const agentSkills: AgentSkill[] = [
     {
@@ -1496,6 +1509,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                   { label: 'Library', view: 'library' as const, icon: FolderLibrary, active: view === 'library' },
                   { label: 'Discover', view: 'discover' as const, icon: Discover, active: view === 'discover' },
                   { label: 'Skills', view: 'skills' as const, icon: Clipboard, active: view === 'skills' },
+                  { label: 'Labs', view: 'labs' as const, icon: Labs, active: view === 'labs' },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -1568,7 +1582,7 @@ Return proposed memory entries and ask for confirmation before saving.`
       </AnimatePresence>
       
       <main
-        className="flex-1 relative overflow-y-auto h-full flex flex-col pt-16 transition-[margin-left] duration-200 ease-out [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className={`flex-1 relative overflow-y-auto h-full flex flex-col transition-[margin-left] duration-200 ease-out [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${view === 'preview' ? 'pt-0' : 'pt-16'}`}
         style={{ marginLeft: view !== 'edit' ? (isSidebarExpanded ? 220 : 48) : 0 }}
       >
 
@@ -2271,6 +2285,15 @@ Return proposed memory entries and ask for confirmation before saving.`
         </div>
       ) : view === 'skills' ? (
         renderSkillsCatalog()
+      ) : view === 'labs' ? (
+        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 flex-col items-center px-6 pt-24 text-center">
+          {renderDiscoveryTopBar()}
+          {renderMovingHero(
+            'Labs coming soon',
+            'Experimental prompt tools, agent workflows, and early features are being shaped here.',
+            labsTickerItems,
+          )}
+        </div>
       ) : view === 'recents' ? (
         // RECENTS VIEW
         <div className="max-w-4xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
@@ -2702,8 +2725,8 @@ Return proposed memory entries and ask for confirmation before saving.`
           </motion.div>
         </div>
       ) : view === 'preview' ? (
-        <div className="min-h-screen bg-[#080808] px-6 py-8">
-          <div className="sticky top-0 z-40 mx-auto mb-8 flex max-w-5xl items-center justify-between border-b border-white/5 bg-[#080808]/90 pb-5 pt-2 backdrop-blur-xl">
+        <div className="min-h-screen bg-[#080808] px-6 py-3">
+          <div className="sticky top-0 z-40 mx-auto mb-4 flex max-w-5xl items-center justify-between border-b border-white/5 bg-[#080808]/90 pb-4 pt-1 backdrop-blur-xl">
             <button
               onClick={() => setView('result')}
               className="flex items-center gap-2 rounded-full bg-[#151515] px-4 py-2 text-sm font-semibold text-zinc-300 transition-colors hover:bg-[#202020] hover:text-white"
@@ -2732,9 +2755,9 @@ Return proposed memory entries and ask for confirmation before saving.`
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
-            className="mx-auto max-w-4xl rounded-[28px] bg-[#101010] px-12 py-14 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+            className="mx-auto max-w-4xl rounded-[28px] bg-[#101010] px-12 py-10 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
           >
-            <div className="mb-10 border-b border-white/6 pb-8">
+            <div className="mb-8 border-b border-white/6 pb-7">
               <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1d1d1d] text-zinc-300">
                 <MessageSquare size={20} />
               </div>
