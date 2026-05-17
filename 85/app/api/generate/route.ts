@@ -7,7 +7,6 @@ type ModelType = 'ultra-fast' | 'super-agent' | 'lite';
 type SelectedTool = 'prompt' | 'design' | 'skill' | 'spec';
 
 function modelNameFor(modelType: ModelType) {
-  if (modelType === 'lite') return 'gemma-4-31b-it';
   return 'gemini-3.1-flash-lite';
 }
 
