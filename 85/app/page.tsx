@@ -11,6 +11,7 @@ import {
   ArrowDown01Icon,
   ArrowRight01Icon,
   ArrowUpRight01Icon,
+  AiChemistry02Icon,
   BookOpen01Icon,
   ClipboardIcon,
   CodeIcon,
@@ -24,7 +25,6 @@ import {
   Folder02Icon,
   FolderLibraryIcon,
   Image01Icon,
-  LabsIcon,
   Link01Icon,
   Message01Icon,
   Mic01Icon,
@@ -71,7 +71,7 @@ const Eye = createHugeIcon(EyeIcon);
 const Mic = createHugeIcon(Mic01Icon);
 const ChevronDown = createHugeIcon(ArrowDown01Icon);
 const ImageIcon = createHugeIcon(Image01Icon);
-const Labs = createHugeIcon(LabsIcon);
+const Labs = createHugeIcon(AiChemistry02Icon);
 const Link = createHugeIcon(Link01Icon);
 const Paintbrush = createHugeIcon(PaintBrush01Icon);
 const Zap = createHugeIcon(FlashIcon);
