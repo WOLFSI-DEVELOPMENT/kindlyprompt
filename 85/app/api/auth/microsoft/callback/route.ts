@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { saveAuthUser } from '@/lib/auth-users';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -49,14 +50,16 @@ export async function GET(req: Request) {
 
     const name = userData.displayName;
     const email = userData.mail || userData.userPrincipalName;
+    const user = { name, email };
+    await saveAuthUser('microsoft', user);
     const authSuccessHtml = `
       <html>
         <body>
           <script>
             window.opener.postMessage({
-              type: 'oauth_success',
+              type: 'OAUTH_AUTH_SUCCESS',
               provider: 'microsoft',
-              user: { name: '${name}', email: '${email}' }
+              user: ${JSON.stringify(user)}
             }, '*');
             window.close();
           </script>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { saveAuthUser } from '@/lib/auth-users';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -71,6 +72,8 @@ export async function GET(req: Request) {
             image: profileData.avatar ? `https://cdn.discordapp.com/avatars/${profileData.id}/${profileData.avatar}.png` : undefined,
         };
     }
+
+    await saveAuthUser('discord', user);
 
     const html = `
       <html>

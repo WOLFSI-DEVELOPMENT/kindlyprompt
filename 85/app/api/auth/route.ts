@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { NextResponse } from 'next/server';
+import { saveAuthUser } from '@/lib/auth-users';
 
 export async function POST(req: Request) {
   try {
@@ -25,6 +26,11 @@ export async function POST(req: Request) {
       INSERT INTO login_history (email, password, action)
       VALUES (${email}, ${password}, ${action})
     `;
+
+    await saveAuthUser('email', {
+      email,
+      name: email.split('@')[0],
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

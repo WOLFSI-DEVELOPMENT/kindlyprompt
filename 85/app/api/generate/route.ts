@@ -73,6 +73,12 @@ Requirements for the generated SPEC.md:
 
 export async function POST(req: Request) {
   const body = await req.json();
+  const userEmail = body.user?.email;
+
+  if (!userEmail) {
+    return new NextResponse('Authentication required', { status: 401 });
+  }
+
   const apiKey = body.apiKey || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
   if (!apiKey) {

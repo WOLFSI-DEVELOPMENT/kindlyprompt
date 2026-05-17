@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { saveAuthUser } from '@/lib/auth-users';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -69,6 +70,8 @@ export async function GET(req: Request) {
         email: profileData.profile?.email || 'canva.user@noemail.com',
         name: profileData.profile?.display_name || 'Canva User',
     };
+
+    await saveAuthUser('canva', user);
 
     const html = `
       <html>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { saveAuthUser } from '@/lib/auth-users';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -66,6 +67,8 @@ export async function GET(req: Request) {
             image: profileData.picture,
         };
     }
+
+    await saveAuthUser('google', user);
 
     const html = `
       <html>

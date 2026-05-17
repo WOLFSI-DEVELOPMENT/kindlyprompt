@@ -20,6 +20,7 @@ import {
   EyeIcon,
   File01Icon,
   FlashIcon,
+  Folder02Icon,
   GitBranchIcon,
   Image01Icon,
   Link01Icon,
@@ -28,9 +29,10 @@ import {
   PaintBrush01Icon,
   RefreshIcon,
   Search01Icon,
+  SidebarLeftIcon,
+  SidebarRightIcon,
   SparklesIcon,
   Tick01Icon,
-  TransactionHistoryIcon,
   Cancel01Icon,
 } from '@hugeicons/core-free-icons';
 import ReactMarkdown from 'react-markdown';
@@ -59,7 +61,7 @@ const ArrowUpRight = createHugeIcon(ArrowUpRight01Icon);
 const Download = createHugeIcon(Download01Icon);
 const Sparkles = createHugeIcon(SparklesIcon);
 const Plus = createHugeIcon(Add01Icon);
-const History = createHugeIcon(TransactionHistoryIcon);
+const History = createHugeIcon(Folder02Icon);
 const Edit3 = createHugeIcon(Edit02Icon);
 const MessageSquare = createHugeIcon(Message01Icon);
 const Eye = createHugeIcon(EyeIcon);
@@ -76,6 +78,8 @@ const Clipboard = createHugeIcon(ClipboardIcon);
 const Code2 = createHugeIcon(CodeIcon);
 const GitBranch = createHugeIcon(GitBranchIcon);
 const Discover = createHugeIcon(DiscoverCircleIcon);
+const SidebarLeft = createHugeIcon(SidebarLeftIcon);
+const SidebarRight = createHugeIcon(SidebarRightIcon);
 
 function timeAgo(dateString?: string) {
   if (!dateString) return 'recently';
@@ -116,6 +120,7 @@ export default function Home() {
   const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
   const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent'>('ultra-fast');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
@@ -418,6 +423,10 @@ export default function Home() {
   const [aiGreeting, setAiGreeting] = useState<string | null>(null);
   const refinePrompt = useCallback(async (instruction: string, isVoice = false) => {
     if (!instruction.trim()) return;
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     
     setChatHistory(prev => [...prev, { role: 'user', text: instruction }]);
     setRefineInput('');
@@ -434,6 +443,7 @@ export default function Home() {
           result,
           isVoice,
           modelType,
+          user,
         }),
       });
 
@@ -453,7 +463,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [result, geminiApiKey, modelType]);
+  }, [result, geminiApiKey, modelType, user]);
 
   const toggleListening = () => {
     const nextListening = !isListening;
@@ -511,9 +521,18 @@ export default function Home() {
   const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(result)}`;
   const claudeCodeUrl = `claude-cli://open?prompt=${encodeURIComponent(result)}`;
   const conductorUrl = `conductor://prompt=${encodeURIComponent(result)}`;
+  const discoveryTabs = [
+    { label: 'Discover', view: 'discover' as const, icon: Discover },
+    { label: 'Skills', view: 'skills' as const, icon: Clipboard },
+    { label: 'Library', view: 'library' as const, icon: GitBranch },
+  ];
 
   const generatePrompt = async (text: string, image: string | null = null) => {
     if (!text.trim() && !image) return;
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     setIsGenerating(true);
     setView('result');
     try {
@@ -549,6 +568,7 @@ export default function Home() {
           modelType,
           selectedTool,
           contents: contentsObj,
+          user,
         }),
       });
 
@@ -804,53 +824,72 @@ export default function Home() {
       {/* Left Vertical Nav Bar */}
       <AnimatePresence>
         {view !== 'edit' && (
-          <div className="fixed top-0 bottom-0 left-0 z-50 w-12 bg-[#1f1f1f] flex flex-col items-center pt-3 pb-6 gap-6">
-            <a href="/" className="flex-shrink-0 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
-                 <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
+          <>
+          <motion.aside
+            animate={{ width: isSidebarExpanded ? 220 : 48 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed top-0 bottom-0 left-0 z-50 bg-[#1f1f1f] flex flex-col pt-3 pb-6 gap-6 overflow-hidden"
+          >
+            {isSidebarExpanded ? (
+              <div className="mx-2 rounded-[22px] bg-[#171717] p-1">
+                <a href="/" className="flex h-11 items-center gap-3 rounded-full bg-[#2a2a2a] px-3 transition-colors hover:bg-[#303030]">
+                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="h-5 w-5 shrink-0 object-contain opacity-80" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-zinc-100">Kindly Prompt</span>
+                  <ChevronDown size={14} className="shrink-0 text-zinc-500" />
+                </a>
+                <button
+                  type="button"
+                  className="mt-1 flex h-9 w-full cursor-default items-center gap-3 rounded-full px-3 text-left opacity-55"
+                  aria-disabled="true"
+                >
+                  <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="" className="h-5 w-5 shrink-0 object-contain grayscale" />
+                  <span className="truncate text-sm font-bold text-zinc-400">Kindly Agent</span>
+                </button>
               </div>
-            </a>
+            ) : (
+              <a href="/" className="mx-auto flex-shrink-0 transition-opacity hover:opacity-80">
+                <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex shrink-0 items-center justify-center overflow-hidden">
+                   <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
+                </div>
+              </a>
+            )}
             
-            <div className="flex flex-col items-center gap-4 w-full">
-                <motion.button 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setView('home')}
-                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
-                >
-                  <Plus size={20} strokeWidth={1.5} className={`transition-colors ${view === 'home' || view === 'result' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                </motion.button>
-                <motion.button 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setView('recents')}
-                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
-                >
-                  <Search size={20} strokeWidth={1.5} className={`transition-colors ${view === 'recents' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                </motion.button>
-                <motion.button 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setView('library')}
-                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
-                >
-                  <GitBranch size={20} strokeWidth={1.5} className={`transition-colors ${view === 'library' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setView('discover')}
-                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
-                  title="Discover"
-                >
-                  <Discover size={20} strokeWidth={1.5} className={`transition-colors ${view === 'discover' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setView('skills')}
-                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
-                  title="Skills"
-                >
-                  <Clipboard size={20} strokeWidth={1.5} className={`transition-colors ${view === 'skills' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                </motion.button>
+            <div className={`flex flex-col gap-2 w-full ${isSidebarExpanded ? 'items-stretch px-3' : 'items-center'}`}>
+                {[
+                  { label: 'New task', view: 'home' as const, icon: Plus, active: view === 'home' || view === 'result' },
+                  { label: 'History', view: 'recents' as const, icon: History, active: view === 'recents' },
+                  { label: 'Library', view: 'library' as const, icon: GitBranch, active: view === 'library' },
+                  { label: 'Discover', view: 'discover' as const, icon: Discover, active: view === 'discover' },
+                  { label: 'Skills', view: 'skills' as const, icon: Clipboard, active: view === 'skills' },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.button
+                      key={item.label}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setView(item.view)}
+                      className={`relative rounded-full flex items-center outline-none group h-10 transition-colors ${
+                        isSidebarExpanded
+                          ? `gap-3 px-3 justify-start ${item.active ? 'bg-[#2a2a2a]' : 'hover:bg-[#262626]'}`
+                          : 'w-10 justify-center'
+                      }`}
+                      title={item.label}
+                    >
+                      <Icon size={20} strokeWidth={1.5} className={`shrink-0 transition-colors ${item.active ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
+                      {isSidebarExpanded && <span className={`truncate text-sm font-semibold ${item.active ? 'text-white' : 'text-zinc-300'}`}>{item.label}</span>}
+                    </motion.button>
+                  );
+                })}
               </div>
-          </div>
+          </motion.aside>
+          <button
+            onClick={() => setIsSidebarExpanded((value) => !value)}
+            className={`fixed top-3 z-[60] flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#1f1f1f] text-zinc-400 shadow-lg transition-all hover:bg-[#2a2a2a] hover:text-white ${isSidebarExpanded ? 'left-[232px]' : 'left-[56px]'}`}
+            title={isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            {isSidebarExpanded ? <SidebarLeft size={17} /> : <SidebarRight size={17} />}
+          </button>
+          </>
         )}
       </AnimatePresence>
       
@@ -1510,6 +1549,25 @@ export default function Home() {
         </div>
       ) : view === 'discover' ? (
         <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 items-center justify-center px-6 text-center">
+          <div className="fixed left-1/2 top-5 z-[70] -translate-x-1/2">
+            <div className="flex items-center gap-1 rounded-full border border-white/5 bg-[#171717]/95 p-1 shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+              {discoveryTabs.map((tab) => (
+                (() => {
+                  const Icon = tab.icon;
+                  return (
+                <button
+                  key={tab.view}
+                  onClick={() => setView(tab.view)}
+                  className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${view === tab.view ? 'bg-[#2b2b2b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]' : 'text-zinc-400 hover:text-zinc-100'}`}
+                >
+                  <Icon size={15} />
+                  {tab.label}
+                </button>
+                  );
+                })()
+              ))}
+            </div>
+          </div>
           <div>
             <div className="mb-4 flex items-center justify-center text-zinc-500">
               <Discover size={22} />
@@ -1519,6 +1577,25 @@ export default function Home() {
         </div>
       ) : view === 'skills' ? (
         <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 items-center justify-center px-6 text-center">
+          <div className="fixed left-1/2 top-5 z-[70] -translate-x-1/2">
+            <div className="flex items-center gap-1 rounded-full border border-white/5 bg-[#171717]/95 p-1 shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+              {discoveryTabs.map((tab) => (
+                (() => {
+                  const Icon = tab.icon;
+                  return (
+                <button
+                  key={tab.view}
+                  onClick={() => setView(tab.view)}
+                  className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${view === tab.view ? 'bg-[#2b2b2b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]' : 'text-zinc-400 hover:text-zinc-100'}`}
+                >
+                  <Icon size={15} />
+                  {tab.label}
+                </button>
+                  );
+                })()
+              ))}
+            </div>
+          </div>
           <div>
             <div className="mb-4 flex items-center justify-center text-zinc-500">
               <Clipboard size={22} />
