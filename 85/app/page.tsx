@@ -285,6 +285,9 @@ export default function Home() {
   const [imageRef, setImageRef] = useState<string | null>(null);
   const [attachedText, setAttachedText] = useState<{name: string, content: string} | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+  const [isComposerListening, setIsComposerListening] = useState(false);
+  const composerRecognitionRef = useRef<any>(null);
+  const composerTranscriptRef = useRef('');
 
   const handleImageUpload = (file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -294,6 +297,61 @@ export default function Home() {
     };
     reader.readAsDataURL(file);
   };
+
+  const attachFigmaLink = () => {
+    const figmaLink = window.prompt('Paste your Figma link');
+    if (!figmaLink?.trim()) return;
+    setInput((prev) => {
+      const prefix = prev.trim() ? `${prev.trim()}\n\n` : '';
+      return `${prefix}Turn this Figma file into a detailed AI coding prompt: ${figmaLink.trim()}`;
+    });
+    setIsAddMenuOpen(false);
+  };
+
+  const toggleComposerListening = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setInput((prev) => `${prev}${prev ? '\n' : ''}Voice input is not supported in this browser.`);
+      return;
+    }
+
+    if (isComposerListening) {
+      composerRecognitionRef.current?.stop();
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    composerTranscriptRef.current = input;
+
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      let finalText = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += transcript;
+        else interim += transcript;
+      }
+      if (finalText) {
+        composerTranscriptRef.current = `${composerTranscriptRef.current}${composerTranscriptRef.current ? ' ' : ''}${finalText.trim()}`;
+      }
+      setInput(`${composerTranscriptRef.current}${interim ? `${composerTranscriptRef.current ? ' ' : ''}${interim}` : ''}`);
+    };
+    recognition.onend = () => setIsComposerListening(false);
+    recognition.onerror = () => setIsComposerListening(false);
+    composerRecognitionRef.current = recognition;
+    setIsComposerListening(true);
+    recognition.start();
+  };
+
+  useEffect(() => {
+    return () => {
+      composerRecognitionRef.current?.stop?.();
+    };
+  }, []);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -573,8 +631,8 @@ export default function Home() {
     subtitle: string,
     items: string[],
   ) => (
-    <section className="relative w-full max-w-5xl overflow-hidden rounded-none border-y border-white/5 bg-[#0f0f0f] px-6 py-20 text-center">
-      <div className="pointer-events-none absolute inset-0 opacity-35">
+    <section className="relative w-full overflow-hidden px-6 py-20 text-center">
+      <div className="pointer-events-none absolute inset-0 opacity-30">
         {[0, 1, 2].map((row) => (
           <motion.div
             key={row}
@@ -593,8 +651,8 @@ export default function Home() {
           </motion.div>
         ))}
       </div>
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-32 bg-gradient-to-r from-[#0f0f0f] via-[#0f0f0f]/85 to-transparent backdrop-blur-[2px]" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-32 bg-gradient-to-l from-[#0f0f0f] via-[#0f0f0f]/85 to-transparent backdrop-blur-[2px]" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-40 bg-gradient-to-r from-[#070707] via-[#070707]/85 to-transparent backdrop-blur-[3px]" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-40 bg-gradient-to-l from-[#070707] via-[#070707]/85 to-transparent backdrop-blur-[3px]" />
       <div className="relative z-10 mx-auto max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight text-white">{title}</h1>
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">{subtitle}</p>
@@ -1121,10 +1179,55 @@ export default function Home() {
                 {/* Action Bar */}
                 <div className="flex items-center justify-between mt-1">
                   <div className="flex items-center gap-3">
-                    <input type="file" accept="image/*" id="input-upload" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleImageUpload(e.target.files[0]) }} />
-                    <label htmlFor="input-upload" className="w-8 h-8 rounded-full bg-[#2a2a2a] hover:bg-[#383838] flex items-center justify-center text-zinc-300 transition-colors cursor-pointer shrink-0">
-                      <Plus size={16} />
-                    </label>
+                    <input type="file" accept="image/*" id="input-upload" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleImageUpload(e.target.files[0]); setIsAddMenuOpen(false); }} />
+                    <input type="file" accept="image/*" id="wireframe-upload" className="hidden" onChange={(e) => { 
+                      if(e.target.files?.[0]) {
+                        handleImageUpload(e.target.files[0]);
+                        setInput((prev) => prev.trim() ? prev : 'Turn this wireframe image into a detailed AI coding prompt.');
+                      }
+                      setIsAddMenuOpen(false);
+                    }} />
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 transition-colors cursor-pointer shrink-0 ${isAddMenuOpen ? 'bg-[#383838]' : 'bg-[#2a2a2a] hover:bg-[#383838]'}`}
+                        aria-label="Add source"
+                      >
+                        <Plus size={16} />
+                      </button>
+                      <AnimatePresence>
+                        {isAddMenuOpen && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsAddMenuOpen(false)} />
+                            <motion.div
+                              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute bottom-full left-0 z-50 mb-2 w-56 rounded-2xl border border-white/10 bg-[#121212] p-1.5 shadow-2xl"
+                            >
+                              <label htmlFor="input-upload" className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
+                                <ImageIcon size={16} className="text-zinc-500" />
+                                Upload image
+                              </label>
+                              <label htmlFor="wireframe-upload" className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
+                                <Paintbrush size={16} className="text-zinc-500" />
+                                Upload wireframe image
+                              </label>
+                              <button
+                                type="button"
+                                onClick={attachFigmaLink}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
+                              >
+                                <Link size={16} className="text-zinc-500" />
+                                Figma link
+                              </button>
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
+                    </div>
 
                     <div className="relative">
                       <div 
@@ -1168,7 +1271,15 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={toggleComposerListening}
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 ${isComposerListening ? 'bg-blue-500/15 text-blue-300' : 'bg-[#2a2a2a] text-zinc-300 hover:bg-[#383838]'}`}
+                      aria-label={isComposerListening ? 'Stop voice input' : 'Start voice input'}
+                    >
+                      <Mic size={17} className={isComposerListening ? 'animate-pulse' : ''} />
+                    </button>
                     <button
                       onClick={() => {
                         if(input.trim() || imageRef || attachedText) {
@@ -1308,7 +1419,7 @@ export default function Home() {
                     <span className="rounded-md bg-cyan-300 px-2 py-0.5 text-[11px] font-black text-[#101314]">SOON</span>
                   </div>
                   <p className="max-w-[260px] text-[15px] leading-snug text-zinc-400">
-                    Wireframe to prompt, Figma to prompt, and voice to prompt workflows.
+                    New Chrome extension, new way to discover and get skills, new super agent.
                   </p>
                 </div>
                 <button onClick={() => setView('event')} className="mt-5 flex w-fit items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#111315] transition-colors hover:bg-zinc-200">
@@ -1318,9 +1429,9 @@ export default function Home() {
               </div>
               <div className="relative z-10 flex flex-1 items-center justify-end gap-3 overflow-hidden pr-6">
                 {[
-                  { label: 'Wireframe', icon: <MessageSquare size={22} /> },
-                  { label: 'Figma', icon: <Paintbrush size={22} /> },
-                  { label: 'Voice', icon: <Mic size={22} /> }
+                  { label: 'Chrome Extension', icon: <Code2 size={22} /> },
+                  { label: 'Discover Skills', icon: <Discover size={22} /> },
+                  { label: 'Super Agent', icon: <Zap size={22} /> }
                 ].map((item, idx) => (
                   <motion.div
                     key={item.label}
