@@ -11,6 +11,7 @@ import {
   ArrowRight01Icon,
   ArrowUpRight01Icon,
   BookOpen01Icon,
+  ClipboardIcon,
   CodeIcon,
   Copy01Icon,
   DiscoverCircleIcon,
@@ -71,6 +72,7 @@ const Zap = createHugeIcon(FlashIcon);
 const Search = createHugeIcon(Search01Icon);
 const FileText = createHugeIcon(File01Icon);
 const BookOpen = createHugeIcon(BookOpen01Icon);
+const Clipboard = createHugeIcon(ClipboardIcon);
 const Code2 = createHugeIcon(CodeIcon);
 const GitBranch = createHugeIcon(GitBranchIcon);
 const Discover = createHugeIcon(DiscoverCircleIcon);
@@ -106,7 +108,7 @@ export default function Home() {
   const [result, setResult] = useState('');
   const [streamedResult, setStreamedResult] = useState('');
   const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
-  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'discover' | 'event'>('home');
+  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'library' | 'discover' | 'skills' | 'event'>('home');
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
@@ -839,6 +841,14 @@ export default function Home() {
                 >
                   <Discover size={20} strokeWidth={1.5} className={`transition-colors ${view === 'discover' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setView('skills')}
+                  className="relative p-2 rounded-full flex items-center justify-center outline-none group w-10 h-10"
+                  title="Skills"
+                >
+                  <Clipboard size={20} strokeWidth={1.5} className={`transition-colors ${view === 'skills' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
+                </motion.button>
               </div>
           </div>
         )}
@@ -1503,6 +1513,15 @@ export default function Home() {
           <div>
             <div className="mb-4 flex items-center justify-center text-zinc-500">
               <Discover size={22} />
+            </div>
+            <h1 className="text-3xl font-medium tracking-tight text-white">Coming soon</h1>
+          </div>
+        </div>
+      ) : view === 'skills' ? (
+        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 items-center justify-center px-6 text-center">
+          <div>
+            <div className="mb-4 flex items-center justify-center text-zinc-500">
+              <Clipboard size={22} />
             </div>
             <h1 className="text-3xl font-medium tracking-tight text-white">Coming soon</h1>
           </div>
@@ -2324,6 +2343,16 @@ export default function Home() {
                       <div className="flex items-center gap-3">
                         <Discover size={16} className="text-zinc-500" />
                         <span className="text-sm font-medium">Discover</span>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Soon</span>
+                    </div>
+                    <div
+                      onClick={() => { setView('skills'); setShowShortcutsMenu(false); }}
+                      className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Clipboard size={16} className="text-zinc-500" />
+                        <span className="text-sm font-medium">Skills</span>
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Soon</span>
                     </div>
