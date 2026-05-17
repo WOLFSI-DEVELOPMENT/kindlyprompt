@@ -140,6 +140,7 @@ export default function Home() {
   const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
   const [recentsFilter, setRecentsFilter] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
   const [searchQuery, setSearchQuery] = useState('');
+  const [librarySearch, setLibrarySearch] = useState('');
   const [skillSearch, setSkillSearch] = useState('');
   const [selectedSkillCard, setSelectedSkillCard] = useState<AgentSkill | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -680,6 +681,16 @@ export default function Home() {
     'Prompt: dark SaaS dashboard',
     'Skill: support inbox triage',
     'Article: prompt systems that scale',
+  ];
+  const libraryTickerItems = [
+    'Prompt: Vibe UI Architect',
+    'Prompt: Dark Minimal SaaS',
+    'Prompt: Editorial Portfolio',
+    'Prompt: Bento Technical Grid',
+    'Prompt: Cyber Brutalist UI',
+    'Prompt: Retro Terminal',
+    'Prompt: Glassmorphism 2.0',
+    'Prompt: Neubrutalism Layout',
   ];
   const skillsTickerItems = [
     'Skill: code review copilot',
@@ -2125,14 +2136,26 @@ Return proposed memory entries and ask for confirmation before saving.`
         </div>
       ) : view === 'library' ? (
         // LIBRARY VIEW
-        <div className="max-w-6xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
+        <div className="w-full relative z-10 shrink-0 px-6 pt-24 pb-16 min-h-[80vh]">
           {renderDiscoveryTopBar()}
-          <div className="flex flex-col gap-2 mb-12">
-            <h1 className="text-3xl font-medium tracking-tight">Prompt Library</h1>
-            <p className="text-zinc-500 text-sm">Curated collection of high-performance prompts for vibe coding and UI design.</p>
+          <div className="mx-auto max-w-6xl">
+            {renderMovingHero(
+              'Prompt Library',
+              'Curated high-performance prompts for vibe coding, UI design, dashboards, portfolios, and launch-ready interfaces.',
+              libraryTickerItems,
+            )}
+            <div className="relative z-20 mx-auto -mt-4 mb-12 flex w-full max-w-md items-center gap-3 rounded-full bg-[#242424]/95 px-5 py-3 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+              <Search size={17} className="shrink-0 text-zinc-500" />
+              <input
+                value={librarySearch}
+                onChange={(e) => setLibrarySearch(e.target.value)}
+                placeholder="Search prompts"
+                className="w-full bg-transparent text-sm font-medium text-zinc-100 outline-none placeholder:text-zinc-500"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
                 title: "Vibe UI Architect",
@@ -2174,7 +2197,11 @@ Return proposed memory entries and ask for confirmation before saving.`
                 description: "Bold colors, heavy strokes, and non-traditional spacing.",
                 prompt: "Create a landing page layout for a modern fintech app. Vibe: Neubrutalism. Color palette: Pastel Yellow, Vivid Orange, and Deep Navy. Hard black borders (3px). No border-radius. Use large, heavy typography (Inter Black). Shadows should be solid and offset, not blurred."
               }
-            ].map((item, idx) => (
+            ].filter((item) => {
+              const query = librarySearch.trim().toLowerCase();
+              if (!query) return true;
+              return [item.title, item.description, item.prompt].some((value) => value.toLowerCase().includes(query));
+            }).map((item, idx) => (
               <motion.div 
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
