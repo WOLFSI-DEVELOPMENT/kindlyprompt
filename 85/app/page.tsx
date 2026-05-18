@@ -222,6 +222,7 @@ export default function Home() {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
   const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent' | 'lite'>('ultra-fast');
+  const [agentModelType, setAgentModelType] = useState<'ultra-fast' | 'super-agent' | 'lite' | 'fast'>('fast');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
@@ -851,7 +852,7 @@ export default function Home() {
         body: JSON.stringify({
           action: 'agent-video',
           apiKey: geminiApiKey,
-          modelType,
+          modelType: agentModelType,
           prompt: `${agentCategory.toUpperCase()} VIDEO BRIEF\nAspect ratio: ${agentAspect}\n${promptText}`,
           currentHtml: mode === 'revision' ? agentVideoHtml : '',
           user,
@@ -973,6 +974,7 @@ export default function Home() {
   const labChatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(labExportText)}`;
   const labClaudeUrl = `https://claude.ai/new?q=${encodeURIComponent(labExportText)}`;
   const modelLabel = modelType === 'ultra-fast' ? 'Ultra Fast' : modelType === 'super-agent' ? 'Super Agents' : 'Lite';
+  const agentModelLabel = agentModelType === 'fast' ? 'Fast' : agentModelType === 'ultra-fast' ? 'Ultra Fast' : agentModelType === 'super-agent' ? 'Super Agents' : 'Lite';
   const superAgents = [
     {
       id: 'researcher',
@@ -2453,7 +2455,7 @@ Return proposed memory entries and ask for confirmation before saving.`
             onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
             className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold text-zinc-200 transition-colors hover:bg-[#262626]"
           >
-            {modelLabel}
+            {agentModelLabel}
             <ChevronDown size={13} className="text-zinc-500" />
           </button>
           <AnimatePresence>
@@ -2467,16 +2469,18 @@ Return proposed memory entries and ask for confirmation before saving.`
                   className="absolute bottom-full left-0 z-50 mb-2 w-48 rounded-2xl border border-white/10 bg-[#121212] p-1.5 shadow-2xl"
                 >
                   {[
+                    ['fast', 'Fast'],
                     ['ultra-fast', 'Ultra Fast'],
                     ['lite', 'Lite'],
                     ['super-agent', 'Super Agents'],
                   ].map(([value, label]) => (
                     <button
                       key={value}
-                      onClick={() => { setModelType(value as typeof modelType); setIsModelDropdownOpen(false); }}
-                      className={`w-full rounded-full px-3 py-2 text-left text-[13px] font-medium ${modelType === value ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:bg-[#1c1c1c] hover:text-zinc-200'}`}
+                      onClick={() => { setAgentModelType(value as typeof agentModelType); setIsModelDropdownOpen(false); }}
+                      className={`w-full rounded-full px-3 py-2 text-left text-[13px] font-medium ${agentModelType === value ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:bg-[#1c1c1c] hover:text-zinc-200'}`}
                     >
-                      {label}
+                      <span>{label}</span>
+                      {value === 'fast' && <span className="ml-2 rounded-md bg-[#303030] px-1.5 py-0.5 text-[10px] text-zinc-300">Gemini 3</span>}
                     </button>
                   ))}
                 </motion.div>
