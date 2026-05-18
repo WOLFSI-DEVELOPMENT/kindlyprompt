@@ -952,6 +952,107 @@ Return proposed memory entries and ask for confirmation before saving.`
     </section>
   );
 
+  const skeletonPill = 'animate-pulse rounded-full bg-zinc-800/80';
+  const skeletonBlock = 'animate-pulse rounded-[24px] bg-zinc-800/70';
+  const discoverCategories = ['Featured', 'Lifestyle', 'Productivity'];
+
+  const renderDiscoverSkeleton = () => (
+    <div className="w-full max-w-7xl space-y-14 pb-20 text-left">
+      <section className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Apps</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Built with Kindly Prompt</h2>
+          </div>
+          <div className="flex rounded-full bg-[#1d1d1d] p-1">
+            {discoverCategories.map((category, index) => (
+              <button
+                key={category}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${index === 0 ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-x-12 gap-y-3 md:grid-cols-2">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div key={`app-${index}`} className="flex items-center gap-4 rounded-[28px] px-1 py-4 transition-colors hover:bg-white/[0.025]">
+              <div className={`${skeletonBlock} h-14 w-14 shrink-0 rounded-full`} />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className={`${skeletonPill} h-4 w-32`} />
+                <div className={`${skeletonPill} h-3 w-52 max-w-full`} />
+              </div>
+              <ArrowRight size={18} className="shrink-0 text-zinc-700" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Community</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Trending builds</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <article key={`product-${index}`} className="flex items-start gap-4 rounded-[26px] bg-[#141414] p-4">
+              <div className={`${skeletonBlock} h-16 w-16 shrink-0 rounded-[20px]`} />
+              <div className="min-w-0 flex-1 space-y-3 pt-1">
+                <div className={`${skeletonPill} h-4 w-36`} />
+                <div className={`${skeletonPill} h-3 w-full`} />
+                <div className={`${skeletonPill} h-3 w-2/3`} />
+              </div>
+              <button className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#202020] text-zinc-500">
+                <ArrowUp size={15} />
+                <span className="mt-0.5 h-2.5 w-4 animate-pulse rounded-full bg-zinc-700" />
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Prompts</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Prompt cards</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <article key={`prompt-${index}`} className="rounded-[28px] bg-[#141414] p-4">
+              <div className={`${skeletonBlock} h-28 w-full rounded-[22px]`} />
+              <div className="mt-5 space-y-3">
+                <div className={`${skeletonPill} h-4 w-3/4`} />
+                <div className={`${skeletonPill} h-3 w-full`} />
+                <div className={`${skeletonPill} h-3 w-2/3`} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Articles</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Guides and stories</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <article key={`article-${index}`} className="rounded-[28px] bg-[#141414] p-5">
+              <div className={`${skeletonPill} h-3 w-24`} />
+              <div className="mt-5 space-y-3">
+                <div className={`${skeletonPill} h-5 w-3/4`} />
+                <div className={`${skeletonPill} h-3 w-full`} />
+                <div className={`${skeletonPill} h-3 w-5/6`} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+
   const renderSkillPixelVisual = (skill: AgentSkill, size = 'md') => {
     const large = size === 'lg';
     const iconType = agentSkills.findIndex((item) => item.slug === skill.slug) % 5;
@@ -2307,6 +2408,7 @@ Return proposed memory entries and ask for confirmation before saving.`
             'Explore a coming feed of apps, prompts, skills, and practical articles shaped for faster AI building.',
             discoverTickerItems,
           )}
+          {renderDiscoverSkeleton()}
         </div>
       ) : view === 'skills' ? (
         renderSkillsCatalog()
