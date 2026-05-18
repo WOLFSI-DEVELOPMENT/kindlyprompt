@@ -2195,6 +2195,15 @@ Return proposed memory entries and ask for confirmation before saving.`
         style={{ marginLeft: view !== 'edit' ? (isSidebarExpanded ? 220 : 48) : 0 }}
       >
 
+      <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={view}
+        initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        className="flex min-h-full w-full flex-col"
+      >
       {view === 'home' ? (
         // HOME VIEW
         <div className="max-w-4xl mx-auto w-full px-4 pt-[15vh] pb-32 flex flex-col items-center">
@@ -3663,6 +3672,8 @@ Return proposed memory entries and ask for confirmation before saving.`
           </div>
         </div>
       )}
+      </motion.div>
+      </AnimatePresence>
       
       {view === 'home' && (
         <footer className="w-full py-4 mt-auto px-6 border-t border-white/5 flex flex-col items-center justify-center text-zinc-500 text-sm gap-3 shrink-0 relative z-20 bg-[#070707]">
