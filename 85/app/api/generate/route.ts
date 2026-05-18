@@ -125,6 +125,7 @@ export async function POST(req: Request) {
         },
       ],
       config: {
+        tools: [{ googleSearch: {} }],
         systemInstruction: 'You are a concise creative director for AI-generated product launch videos. Return only the optimized brief text.',
       },
     });

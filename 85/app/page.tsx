@@ -904,6 +904,14 @@ export default function Home() {
     ]);
   };
 
+  const resetAgentProject = () => {
+    setAgentView('home');
+    setAgentInput('');
+    setAgentOptimizedPrompt('');
+    setAgentVideoHtml('');
+    setAgentChatMessages([]);
+  };
+
   const buildAgentPreviewHtml = (html: string) => {
     if (!html) return '';
     const ratio = agentAspect === '16:9' ? '16 / 9' : '9 / 16';
@@ -2609,12 +2617,7 @@ Return proposed memory entries and ask for confirmation before saving.`
               <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-500">Review generated product launch videos, reopen their preview, and export the HTML again.</p>
             </div>
             <button
-              onClick={() => {
-                setAgentView('home');
-                setAgentInput('');
-                setAgentOptimizedPrompt('');
-                setAgentVideoHtml('');
-              }}
+              onClick={resetAgentProject}
               className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
             >
               New video
@@ -2651,7 +2654,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         </section>
       ) : (
       <>
-      <section className="flex w-[430px] shrink-0 flex-col border-r border-white/5 bg-[#121212] px-5 py-5">
+      <section className="flex h-screen w-[430px] shrink-0 flex-col overflow-hidden border-r border-white/5 bg-[#121212] px-5 py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#272727] text-zinc-300">
@@ -2660,16 +2663,11 @@ Return proposed memory entries and ask for confirmation before saving.`
             <div className="flex items-center gap-2 text-sm font-bold">
               <button onClick={() => setAgentView('recent')} className="text-zinc-500 transition-colors hover:text-zinc-300">Projects</button>
               <span className="text-zinc-600">/</span>
-              <button onClick={() => setAgentView('home')} className="text-white">New Project</button>
+              <button onClick={resetAgentProject} className="text-white">New Project</button>
             </div>
           </div>
           <button
-            onClick={() => {
-              setAgentView('home');
-              setAgentInput('');
-              setAgentOptimizedPrompt('');
-              setAgentVideoHtml('');
-            }}
+            onClick={resetAgentProject}
             className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-[#202020] hover:text-white"
             aria-label="New agent video project"
           >
@@ -2691,7 +2689,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 <p className="mt-2 text-sm leading-6 text-zinc-500">Ask for changes and Kindly Agent will revise the HTML video.</p>
               </div>
 
-              <div className="mt-6 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div className="mt-6 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {agentChatMessages.map((message) => (
                   <div
                     key={message.id}
