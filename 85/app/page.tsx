@@ -2429,6 +2429,70 @@ Return proposed memory entries and ask for confirmation before saving.`
     </div>
   );
 
+  const renderSidebarProfileCard = () => (
+    <div className={`w-full ${isSidebarExpanded ? 'px-3' : 'flex justify-center px-0'}`}>
+      {user ? (
+        showApiKeyInput ? (
+          <div className={`rounded-2xl bg-[#151515] p-2 ${isSidebarExpanded ? 'w-full' : 'w-10'}`}>
+            {isSidebarExpanded ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="password"
+                  placeholder="Gemini API Key"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  className="min-w-0 flex-1 bg-transparent text-xs text-zinc-200 outline-none placeholder:text-zinc-600"
+                  autoFocus
+                />
+                <button onClick={() => setShowApiKeyInput(false)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-white">
+                  <Check size={13} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setShowApiKeyInput(false)} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2a2a2a] text-white">
+                <Check size={13} />
+              </button>
+            )}
+          </div>
+        ) : (
+          <motion.div
+            drag={isSidebarExpanded ? 'x' : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0.55, right: 0.55 }}
+            onDragEnd={(e, info) => {
+              if (info.offset.x < -50 || info.velocity.x < -360) {
+                setShowApiKeyInput(true);
+              } else if (info.offset.x > 50 || info.velocity.x > 360) {
+                setUser(null);
+              }
+            }}
+            className={`relative overflow-hidden rounded-full bg-[#151515] ${isSidebarExpanded ? 'w-full cursor-grab p-1' : 'h-10 w-10'}`}
+          >
+            {isSidebarExpanded && (
+              <>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-[10px] font-black tracking-wider text-red-500">LOGOUT</div>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-[10px] font-black tracking-wider text-blue-500">API</div>
+              </>
+            )}
+            <div className={`relative z-10 flex items-center gap-2 rounded-full bg-[#262626] ${isSidebarExpanded ? 'px-1.5 py-1.5 pr-3' : 'h-10 w-10 justify-center'}`}>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1c1c1c] text-xs font-bold text-white">
+                {user.image ? <img src={user.image} alt={user.name} className="h-full w-full object-cover" /> : user.name.charAt(0).toUpperCase()}
+              </div>
+              {isSidebarExpanded && <span className="min-w-0 truncate text-xs font-bold text-zinc-100">{user.name}</span>}
+            </div>
+          </motion.div>
+        )
+      ) : (
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+          className={`${isSidebarExpanded ? 'w-full px-3' : 'w-10'} flex h-10 items-center justify-center rounded-full bg-[#262626] text-xs font-bold text-zinc-300 transition-colors hover:bg-[#303030] hover:text-white`}
+        >
+          {isSidebarExpanded ? 'Sign in' : <AlignLeft size={16} />}
+        </button>
+      )}
+    </div>
+  );
+
   const renderAgentDashboard = () => (
     <div className="flex min-h-screen w-full bg-[#070707]">
       {agentView === 'home' ? (
@@ -2465,6 +2529,55 @@ Return proposed memory entries and ask for confirmation before saving.`
             ))}
           </div>
         </section>
+      ) : agentView === 'recent' ? (
+        <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-8 py-14">
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-zinc-600">Kindly Agent</p>
+              <h1 className="mt-3 text-4xl font-medium tracking-tight text-white">Recent videos</h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-500">Review generated product launch videos, reopen their preview, and export the HTML again.</p>
+            </div>
+            <button
+              onClick={() => {
+                setAgentView('home');
+                setAgentInput('');
+                setAgentOptimizedPrompt('');
+                setAgentVideoHtml('');
+              }}
+              className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
+            >
+              New video
+            </button>
+          </div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {agentProjects.length === 0 ? (
+              <div className="col-span-full rounded-[28px] bg-[#141414] p-8 text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#202020] text-zinc-500">
+                  <Eye size={24} />
+                </div>
+                <h2 className="mt-5 text-xl font-semibold text-white">No recent videos yet</h2>
+                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-zinc-500">Generate your first launch video and it will appear here automatically.</p>
+              </div>
+            ) : agentProjects.map((project) => (
+              <button
+                key={project.id}
+                onClick={() => openAgentProject(project)}
+                className="group rounded-[28px] bg-[#141414] p-4 text-left transition-colors hover:bg-[#1b1b1b]"
+              >
+                <div className="flex aspect-video items-center justify-center overflow-hidden rounded-[22px] bg-black">
+                  <iframe title={`${project.title} preview`} srcDoc={project.html} className="h-full w-full scale-[0.42] border-0 bg-black pointer-events-none" sandbox="allow-scripts" />
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <h3 className="truncate text-base font-bold text-zinc-100">{project.title}</h3>
+                  <span className="shrink-0 rounded-full bg-[#262626] px-2 py-1 text-[11px] font-bold text-zinc-500">{project.aspect}</span>
+                </div>
+                <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">{project.optimizedPrompt || project.prompt}</p>
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-700 group-hover:text-zinc-500">{timeAgo(project.date)}</p>
+              </button>
+            ))}
+          </div>
+        </section>
       ) : (
       <>
       <section className="flex w-[430px] shrink-0 flex-col border-r border-white/5 bg-[#121212] px-5 py-5">
@@ -2494,37 +2607,6 @@ Return proposed memory entries and ask for confirmation before saving.`
         </div>
 
         <AnimatePresence mode="wait">
-          {agentView === 'recent' ? (
-            <motion.div
-              key="agent-recent"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.16 }}
-              className="mt-8 flex min-h-0 flex-1 flex-col"
-            >
-              <h2 className="text-2xl font-semibold tracking-tight text-white">Recent videos</h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-500">HTML launch videos generated by Kindly Agent.</p>
-              <div className="mt-6 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                {agentProjects.length === 0 ? (
-                  <div className="rounded-[24px] bg-[#191919] p-5 text-sm text-zinc-500">No videos yet. Start a new product launch video from Home.</div>
-                ) : agentProjects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() => openAgentProject(project)}
-                    className="w-full rounded-[24px] bg-[#191919] p-4 text-left transition-colors hover:bg-[#222222]"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="truncate text-sm font-bold text-zinc-100">{project.title}</h3>
-                      <span className="shrink-0 rounded-full bg-[#2a2a2a] px-2 py-1 text-[11px] font-bold text-zinc-400">{project.aspect}</span>
-                    </div>
-                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500">{project.optimizedPrompt || project.prompt}</p>
-                    <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-700">{timeAgo(project.date)}</p>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          ) : (
             <motion.div
               key="agent-home"
               initial={{ opacity: 0, y: 8 }}
@@ -2566,7 +2648,6 @@ Return proposed memory entries and ask for confirmation before saving.`
                 {renderAgentComposer(true)}
               </div>
             </motion.div>
-          )}
         </AnimatePresence>
       </section>
 
@@ -2690,7 +2771,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         )}
       </AnimatePresence>
 
-      {view === 'home' && (
+      {activeApp === 'prompt' && view === 'home' && (
         <div className="absolute top-6 right-6 z-50">
           <AnimatePresence mode="wait">
             {user ? (
@@ -2929,19 +3010,40 @@ Return proposed memory entries and ask for confirmation before saving.`
                   );
                 })}
               </div>
+              {activeApp === 'agent' && (
+                <>
+                  <div className={`mt-auto flex w-full ${isSidebarExpanded ? 'justify-end px-3' : 'justify-center'}`}>
+                    <button
+                      onClick={() => {
+                        setIsSidebarExpanded((value) => {
+                          if (value) setIsAppSwitcherOpen(false);
+                          return !value;
+                        });
+                      }}
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-[#262626] hover:text-white"
+                      title={isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+                    >
+                      {isSidebarExpanded ? <SidebarLeft size={17} /> : <SidebarRight size={17} />}
+                    </button>
+                  </div>
+                  {renderSidebarProfileCard()}
+                </>
+              )}
           </motion.aside>
-          <button
-            onClick={() => {
-              setIsSidebarExpanded((value) => {
-                if (value) setIsAppSwitcherOpen(false);
-                return !value;
-              });
-            }}
-            className={`fixed top-3 z-[60] flex h-9 w-9 items-center justify-center text-zinc-500 transition-all hover:text-white ${isSidebarExpanded ? 'left-[232px]' : 'left-[56px]'}`}
-            title={isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            {isSidebarExpanded ? <SidebarLeft size={17} /> : <SidebarRight size={17} />}
-          </button>
+          {activeApp !== 'agent' && (
+            <button
+              onClick={() => {
+                setIsSidebarExpanded((value) => {
+                  if (value) setIsAppSwitcherOpen(false);
+                  return !value;
+                });
+              }}
+              className={`fixed top-3 z-[60] flex h-9 w-9 items-center justify-center text-zinc-500 transition-all hover:text-white ${isSidebarExpanded ? 'left-[232px]' : 'left-[56px]'}`}
+              title={isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+            >
+              {isSidebarExpanded ? <SidebarLeft size={17} /> : <SidebarRight size={17} />}
+            </button>
+          )}
           </>
         )}
       </AnimatePresence>
