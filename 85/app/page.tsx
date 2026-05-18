@@ -1003,9 +1003,84 @@ Return proposed memory entries and ask for confirmation before saving.`
   const skeletonPill = 'animate-pulse rounded-full bg-zinc-800/80';
   const skeletonBlock = 'animate-pulse rounded-[24px] bg-zinc-800/70';
   const discoverCategories = ['Featured', 'Lifestyle', 'Productivity'];
+  const sponsoredAds = [
+    {
+      name: 'Rork',
+      href: 'https://rork.com/?ref=emanuel',
+      image: 'https://i.ibb.co/JFzwNFrr/Chat-GPT-Image-May-17-2026-07-34-38-PM.png',
+    },
+    {
+      name: 'Bolt',
+      href: 'https://bolt.new/?rid=q36fpq',
+      image: 'https://i.ibb.co/TxCb9BLC/Sq-Cz-Enh-Ofka-DUo-Nmzv-HHCs-E0u-Cs.avif',
+    },
+    {
+      name: 'Base44',
+      href: 'https://app.base44.com/register?ref=GD83V6ALUBLLG6IT',
+      image: 'https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6952bf67e5e2ef612d8ac6e8_og_case-study-base44.jpg',
+    },
+    {
+      name: 'Zoer',
+      href: 'https://zoer.ai/invite/xllas',
+      image: 'https://pbs.twimg.com/amplify_video_thumb/2039722113876230144/img/WbosjnIprdSWpjOh.jpg',
+    },
+    {
+      name: 'Replit',
+      href: 'https://replit.com/signup?referral=survivalcreativ',
+      image: 'https://mma.prnewswire.com/media/2725892/Replit_Logo.jpg?p=facebook',
+    },
+    {
+      name: 'YouWare',
+      href: 'https://www.youware.com/invite/QZDNMRWH30',
+      image: 'https://mma.prnewswire.com/media/2822819/YouWare_Logo.jpg?p=facebook',
+    },
+    {
+      name: 'Framer',
+      href: 'https://framer.com/projects/?utm_medium=affiliate&via=emanuel-martinez-mmgbs&dub_id=qzTlzNsYaymXR8UH',
+      image: 'https://framerusercontent.com/images/IiZlSzvq3V2XnJDzh4ZiNdiHcA.png?width=824&height=339',
+    },
+    {
+      name: 'v0',
+      href: 'https://v0.app/ref/1BJDE0',
+      image: 'https://blog.systemi.co.jp/v0-private-beta/cover.png',
+    },
+  ];
 
   const renderDiscoverSkeleton = () => (
     <div className="w-full max-w-7xl space-y-14 pb-20 text-left">
+      <section className="space-y-5">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Sponsored</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Tools builders are trying</h2>
+        </div>
+        <div className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-28 bg-gradient-to-r from-[#070707] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-28 bg-gradient-to-l from-[#070707] to-transparent" />
+          <motion.div
+            animate={{ x: ['0%', '-50%'] }}
+            transition={{ duration: 34, repeat: Infinity, ease: 'linear' }}
+            className="flex w-max gap-4 py-1"
+          >
+            {[...sponsoredAds, ...sponsoredAds].map((ad, index) => (
+              <a
+                key={`${ad.name}-${index}`}
+                href={ad.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex h-[100px] w-[260px] shrink-0 items-center justify-center overflow-hidden rounded-[28px] bg-[#151515] transition-transform hover:-translate-y-0.5"
+                aria-label={`Open ${ad.name}`}
+              >
+                <img
+                  src={ad.image}
+                  alt={ad.name}
+                  className="h-full w-full object-cover opacity-85 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0"
+                />
+              </a>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       <section className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -1093,6 +1168,27 @@ Return proposed memory entries and ask for confirmation before saving.`
                 <div className={`${skeletonPill} h-5 w-3/4`} />
                 <div className={`${skeletonPill} h-3 w-full`} />
                 <div className={`${skeletonPill} h-3 w-5/6`} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Hackathons</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Upcoming build challenges</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <article key={`hackathon-${index}`} className="rounded-[30px] bg-[#141414] p-5">
+              <div className={`${skeletonBlock} h-36 w-full rounded-[24px]`} />
+              <div className="mt-5 flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1 space-y-3">
+                  <div className={`${skeletonPill} h-4 w-40 max-w-full`} />
+                  <div className={`${skeletonPill} h-3 w-28`} />
+                </div>
+                <div className={`${skeletonPill} h-10 w-20 shrink-0`} />
               </div>
             </article>
           ))}
