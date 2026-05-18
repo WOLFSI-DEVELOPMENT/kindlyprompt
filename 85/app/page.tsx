@@ -2115,10 +2115,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 {[
                   { label: 'New task', view: 'home' as const, icon: Plus, active: view === 'home' || view === 'result' },
                   { label: 'History', view: 'recents' as const, icon: History, active: view === 'recents' },
-                  { label: 'Library', view: 'library' as const, icon: FolderLibrary, active: view === 'library' },
                   { label: 'Discover', view: 'discover' as const, icon: Discover, active: view === 'discover' },
-                  { label: 'Skills', view: 'skills' as const, icon: Clipboard, active: view === 'skills' },
-                  { label: 'Labs', view: 'labs' as const, icon: Labs, active: view === 'labs' },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
