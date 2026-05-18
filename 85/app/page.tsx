@@ -2682,37 +2682,39 @@ Return proposed memory entries and ask for confirmation before saving.`
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.16 }}
-              className="flex flex-1 flex-col"
+              className="flex min-h-0 flex-1 flex-col"
             >
-              <div className="mt-6">
+              <div className="mt-6 shrink-0">
                 <h1 className="text-2xl font-semibold tracking-tight text-white">Chat edit</h1>
                 <p className="mt-2 text-sm leading-6 text-zinc-500">Ask for changes and Kindly Agent will revise the HTML video.</p>
               </div>
 
-              <div className="mt-6 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                {agentChatMessages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`rounded-[22px] px-4 py-3 text-sm leading-6 ${message.role === 'user' ? 'ml-8 bg-[#252525] text-zinc-100' : 'mr-8 bg-[#171717] text-zinc-400'}`}
-                  >
-                    {message.text}
-                  </div>
-                ))}
-                {isAgentGenerating && (
-                  <div className="mr-8 flex w-fit items-center gap-1 rounded-[22px] bg-[#171717] px-4 py-3">
-                    {[0, 1, 2].map((index) => (
-                      <motion.span
-                        key={index}
-                        animate={{ opacity: [0.25, 1, 0.25], y: [0, -3, 0] }}
-                        transition={{ duration: 0.9, repeat: Infinity, delay: index * 0.15 }}
-                        className="h-2 w-2 rounded-full bg-zinc-500"
-                      />
-                    ))}
-                  </div>
-                )}
+              <div className="relative mt-5 min-h-0 flex-1">
+                <div className="absolute inset-0 space-y-3 overflow-y-auto overscroll-contain pb-6 pr-1 [scrollbar-width:thin] [scrollbar-color:#3a3a3a_transparent]">
+                  {agentChatMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`rounded-[22px] px-4 py-3 text-sm leading-6 ${message.role === 'user' ? 'ml-8 bg-[#252525] text-zinc-100' : 'mr-8 bg-[#171717] text-zinc-400'}`}
+                    >
+                      {message.text}
+                    </div>
+                  ))}
+                  {isAgentGenerating && (
+                    <div className="mr-8 flex w-fit items-center gap-1 rounded-[22px] bg-[#171717] px-4 py-3">
+                      {[0, 1, 2].map((index) => (
+                        <motion.span
+                          key={index}
+                          animate={{ opacity: [0.25, 1, 0.25], y: [0, -3, 0] }}
+                          transition={{ duration: 0.9, repeat: Infinity, delay: index * 0.15 }}
+                          className="h-2 w-2 rounded-full bg-zinc-500"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="mt-4">
+              <div className="sticky bottom-0 z-10 shrink-0 bg-[#121212] pt-4">
                 {renderAgentComposer(true, 'revision')}
               </div>
             </motion.div>
