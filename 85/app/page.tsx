@@ -769,12 +769,28 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
-  const aiStudioUrl = `https://aistudio.google.com/apps#prompt=${encodeURIComponent(result)}`;
-  const lovableUrl = `https://lovable.dev/?autosubmit=true#prompt=${encodeURIComponent(result)}`;
-  const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(result)}`;
-  const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(result)}`;
-  const claudeCodeUrl = `claude-cli://open?prompt=${encodeURIComponent(result)}`;
-  const conductorUrl = `conductor://prompt=${encodeURIComponent(result)}`;
+  const extractPromptText = (text: string) => {
+    if (!text) return '';
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed?.prompt) return String(parsed.prompt);
+    } catch {
+      // Streaming responses may be partial JSON until generation finishes.
+    }
+    const match = text.match(/"prompt"\s*:\s*"([^]+?)(?:",?|$)/);
+    if (match) {
+      return match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    }
+    return text;
+  };
+
+  const visiblePromptText = result || currentResult?.prompt || extractPromptText(streamedResult);
+  const aiStudioUrl = `https://aistudio.google.com/apps#prompt=${encodeURIComponent(visiblePromptText)}`;
+  const lovableUrl = `https://lovable.dev/?autosubmit=true#prompt=${encodeURIComponent(visiblePromptText)}`;
+  const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(visiblePromptText)}`;
+  const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(visiblePromptText)}`;
+  const claudeCodeUrl = `claude-cli://open?prompt=${encodeURIComponent(visiblePromptText)}`;
+  const conductorUrl = `conductor://prompt=${encodeURIComponent(visiblePromptText)}`;
   const labExportText = labOutput || labInput;
   const labAiStudioUrl = `https://aistudio.google.com/apps#prompt=${encodeURIComponent(labExportText)}`;
   const labLovableUrl = `https://lovable.dev/?autosubmit=true#prompt=${encodeURIComponent(labExportText)}`;
@@ -1786,7 +1802,10 @@ Return proposed memory entries and ask for confirmation before saving.`
     }
     ensureNotificationPermission();
     setIsGenerating(true);
-    setView('result');
+    setViewState('result');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', viewRoutes.result);
+    }
     try {
       let contentsObj: any = text;
       if (image) {
@@ -1874,6 +1893,10 @@ Return proposed memory entries and ask for confirmation before saving.`
         setCurrentResult(newItem);
         setRecents(prev => [newItem, ...prev]);
         setResult(newItem.prompt);
+        setStreamedResult(newItem.prompt);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('kindly_prompt_active_result', JSON.stringify(newItem));
+        }
         showDesktopNotification('Your prompt is ready', {
           body: `${newItem.title} has finished generating.`,
           tag: `prompt-generated-${newItem.date}`,
@@ -1881,6 +1904,16 @@ Return proposed memory entries and ask for confirmation before saving.`
         });
       } catch (err) {
         setResult(responseText);
+        setStreamedResult(responseText);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('kindly_prompt_active_result', JSON.stringify({
+            title: 'Generated Prompt',
+            prompt: responseText,
+            svg: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`,
+            type: selectedTool,
+            date: new Date().toISOString(),
+          }));
+        }
         showDesktopNotification('Your prompt is ready', {
           body: 'Your generated prompt has finished.',
           tag: 'prompt-generated-latest',
@@ -1890,6 +1923,7 @@ Return proposed memory entries and ask for confirmation before saving.`
     } catch (e) {
       console.error(e);
       setResult('An error occurred while generating your prompt.');
+      setStreamedResult('An error occurred while generating your prompt.');
     } finally {
       setIsGenerating(false);
     }
@@ -3535,7 +3569,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                <button
                  disabled={isGenerating}
                  onClick={() => {
-                   navigator.clipboard.writeText(result);
+                   navigator.clipboard.writeText(visiblePromptText);
                    setCopied(true);
                    setTimeout(() => setCopied(false), 2000);
                  }}
@@ -3580,12 +3614,22 @@ Return proposed memory entries and ask for confirmation before saving.`
                          );
                        })}
                      </div>
-                   ) : agentLogs.length === 0 ? (
+                   ) : !streamedResult ? (
                      <div className="flex flex-col gap-3 animate-pulse">
                        <div className="h-4 bg-zinc-800/50 rounded w-3/4"></div>
                        <div className="h-4 bg-zinc-800/50 rounded w-full"></div>
                        <div className="h-4 bg-zinc-800/50 rounded w-5/6"></div>
                        <div className="h-4 bg-zinc-800/50 rounded w-1/2 mt-4"></div>
+                       {agentLogs.length > 0 && (
+                         <div className="mt-4 flex flex-col gap-2 font-sans">
+                           {agentLogs.map((log) => (
+                             <div key={log.id} className="flex items-center gap-2 text-xs text-zinc-600">
+                               <RefreshCw size={12} className="animate-spin" />
+                               {log.text}
+                             </div>
+                           ))}
+                         </div>
+                       )}
                      </div>
                    ) : (
                      <div className="flex flex-col gap-3 font-sans pb-4">
@@ -3616,17 +3660,19 @@ Return proposed memory entries and ask for confirmation before saving.`
                    )}
                    {streamedResult && (
                      <div className="mt-4 pt-4 border-t border-white/5 opacity-80 text-zinc-400">
-                       <ReactMarkdown>{
-                         (() => {
-                           const m = streamedResult.match(/"prompt"\s*:\s*"([^]+?)(?:",?|$)/);
-                           return m ? m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\') : 'Writing...';
-                         })()
-                       }</ReactMarkdown>
+                       <ReactMarkdown>{extractPromptText(streamedResult) || 'Writing...'}</ReactMarkdown>
                      </div>
                    )}
                  </div>
               ) : (
-                result
+                visiblePromptText || (
+                  <div className="flex flex-col gap-3 animate-pulse">
+                    <div className="h-4 bg-zinc-800/50 rounded w-3/4"></div>
+                    <div className="h-4 bg-zinc-800/50 rounded w-full"></div>
+                    <div className="h-4 bg-zinc-800/50 rounded w-5/6"></div>
+                    <div className="h-4 bg-zinc-800/50 rounded w-1/2 mt-4"></div>
+                  </div>
+                )
               )}
               {/* Extra padding at bottom to ensure content isn't completely hidden by gradient blur */}
               <div className="h-12 w-full"></div>
