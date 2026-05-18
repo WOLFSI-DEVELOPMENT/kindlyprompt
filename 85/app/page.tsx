@@ -2337,10 +2337,21 @@ Return proposed memory entries and ask for confirmation before saving.`
                 className="min-h-[410px] rounded-[34px] bg-[#171717] p-7"
               >
                 <div className="relative flex h-52 items-center justify-center overflow-hidden rounded-[28px] bg-[#222222]">
-                  <div className={`absolute rounded-full bg-[#2f2f2f] ${index % 4 === 0 ? 'left-8 top-8 h-28 w-28' : index % 4 === 1 ? 'right-6 top-6 h-36 w-36' : index % 4 === 2 ? 'left-10 bottom-8 h-32 w-32' : 'right-10 bottom-5 h-24 w-24'}`} />
-                  <div className={`absolute bg-[#363636] ${index % 3 === 0 ? 'h-28 w-44 rounded-[32px]' : index % 3 === 1 ? 'h-36 w-36 rotate-45 rounded-[28px]' : 'h-24 w-52 rounded-full'}`} />
-                  <div className="absolute inset-x-8 top-8 h-8 rounded-full bg-[#2a2a2a]" />
-                  <div className="absolute bottom-8 left-1/2 h-16 w-44 -translate-x-1/2 rounded-[22px] bg-[#121212]/90 px-5 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+                  <svg viewBox="0 0 320 208" className="absolute inset-0 h-full w-full" aria-hidden="true">
+                    <defs>
+                      <linearGradient id={`labShape-${index}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3a3a3a" />
+                        <stop offset="100%" stopColor="#262626" />
+                      </linearGradient>
+                    </defs>
+                    <rect x="24" y="18" width="272" height="172" rx="30" fill="#272727" />
+                    {index % 4 === 0 && <path d="M70 122 C70 92 112 72 136 46 C154 27 178 27 196 47 C221 76 262 93 262 124 C262 160 221 178 166 178 C111 178 70 158 70 122Z" fill={`url(#labShape-${index})`} />}
+                    {index % 4 === 1 && <path d="M66 125 C66 80 102 48 159 48 C218 48 254 80 254 125 C254 159 217 178 160 178 C103 178 66 159 66 125Z" fill={`url(#labShape-${index})`} />}
+                    {index % 4 === 2 && <rect x="90" y="54" width="140" height="124" rx="24" fill={`url(#labShape-${index})`} />}
+                    {index % 4 === 3 && <path d="M82 62 H238 C254 62 267 75 267 91 V130 C267 154 247 174 223 174 H97 C73 174 53 154 53 130 V91 C53 75 66 62 82 62Z" fill={`url(#labShape-${index})`} />}
+                    <rect x="64" y="48" width="192" height="38" rx="19" fill="#303030" />
+                  </svg>
+                  <div className="absolute bottom-8 left-1/2 h-16 w-44 -translate-x-1/2 rounded-[22px] bg-[#121212]/92 px-5 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
                     <div className="mb-2 flex gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-zinc-500" />
                       <span className="h-2 w-2 rounded-full bg-zinc-600" />
