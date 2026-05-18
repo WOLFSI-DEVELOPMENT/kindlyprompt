@@ -114,7 +114,7 @@ export async function POST(req: Request) {
     }
 
     const isRevision = Boolean(body.currentHtml);
-    const optimizeResponse = await ai.models.generateContent({
+    const optimizeRequest = {
       model: modelNameFor(modelType),
       contents: [
         {
@@ -125,10 +125,23 @@ export async function POST(req: Request) {
         },
       ],
       config: {
-        tools: [{ googleSearch: {} }],
         systemInstruction: 'You are a concise creative director for AI-generated product launch videos. Return only the optimized brief text.',
       },
-    });
+    };
+
+    let optimizeResponse;
+    try {
+      optimizeResponse = await ai.models.generateContent({
+        ...optimizeRequest,
+        config: {
+          ...optimizeRequest.config,
+          tools: [{ googleSearch: {} }],
+        },
+      });
+    } catch (groundingError) {
+      console.warn('Agent video search grounding failed; retrying without grounding.', groundingError);
+      optimizeResponse = await ai.models.generateContent(optimizeRequest);
+    }
 
     const optimizedPrompt = optimizeResponse.text?.trim() || rawPrompt;
     const videoResponse = await ai.models.generateContent({
