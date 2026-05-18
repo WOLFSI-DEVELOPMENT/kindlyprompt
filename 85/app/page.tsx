@@ -116,7 +116,7 @@ const Discover = createHugeIcon(DiscoverCircleIcon);
 const SidebarLeft = createHugeIcon(SidebarLeftIcon);
 const SidebarRight = createHugeIcon(SidebarRightIcon);
 const APP_ICON_URL = 'https://i.ibb.co/jZjGy5fK/Chat-GPT-Image-May-17-2026-07-27-59-PM-1.png';
-const V1_INTRO_IMAGE_URL = 'https://i.ibb.co/tTV5zm2G/kindly-prompt-for-everyone-text-202605172015.jpg';
+const V1_INTRO_IMAGE_URL = 'https://i.ibb.co/0yVZLjnM/Square-with-white-sparkle-icons-202605180737.jpg';
 
 function timeAgo(dateString?: string) {
   if (!dateString) return 'recently';
@@ -1080,22 +1080,22 @@ Return proposed memory entries and ask for confirmation before saving.`
     {
       title: "Vibe UI Architect",
       description: "Spacing, typography, and distinctive aesthetics while banning generic defaults.",
-      prompt: "Act as a Lead Product Designer. Generate a React component with Tailwind. Focus on spacing, typography, and architectural honesty."
+      prompt: "Act as a Lead Product Designer. Generate a React component with Tailwind. Focus on spacing (rhythmic padding), typography (Inter/Space Grotesk), and architectural honesty. BAN: generic shadows, default blue/purple gradients, and cookie-cutter card layouts. Use CSS variables for a monochromatic technical theme."
     },
     {
       title: "Dark Minimal SaaS",
       description: "High-contrast dashboard with data density and elegant borders.",
-      prompt: "Generate a dashboard for a cloud infrastructure tool. Theme: Ultra Dark Minimal. Background: #050505. Borders: 1px border-white/5."
+      prompt: "Generate a dashboard for a cloud infrastructure tool. Theme: Ultra Dark Minimal. Background: #050505. Borders: 1px border-white/5. Spacing: Compact. Use JetBrains Mono for all data points. Highlight important actions with a single emerald accent color."
     },
     {
       title: "Editorial Portfolio",
       description: "Text-heavy design focusing on readability and classic typography pairings.",
-      prompt: "Design a landing page for a creative agency. Vibe: Editorial, Swiss Modern. Use strong typography and measured white space."
+      prompt: "Design a landing page for a creative agency. Vibe: Editorial, Swiss Modern. Typography: Playfair Display for headings, Inter for body. Maximize white space. Use large, high-quality image placeholders with dark overlays. All text must be left-aligned and mathematically spaced."
     },
     {
       title: "Bento Technical Grid",
       description: "A functional grid layout for complex metrics or featured sets.",
-      prompt: "Create a Bento Grid layout for a developer tools landing page. Focus on responsive fluidity and subtle hover states."
+      prompt: "Create a Bento Grid layout for a developer tools landing page. Each card should have a subtle glow on hover. Use 128-bit UID strings for ID attributes. Focus on responsive fluidity. Grid should collapse to a single column on mobile. Color palette: Zinc-900, Zinc-400, Zinc-100."
     },
   ];
   const discoverArticles: DiscoverArticle[] = [
@@ -1376,6 +1376,9 @@ Return proposed memory entries and ask for confirmation before saving.`
               <div className="mt-5">
                 <h3 className="text-base font-bold text-white">{item.title}</h3>
                 <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-500">{item.description}</p>
+                <div className="mt-4 rounded-[18px] bg-[#1d1d1d] p-4">
+                  <p className="line-clamp-4 text-xs font-medium leading-relaxed text-zinc-400">{item.prompt}</p>
+                </div>
                 <button
                   onClick={() => {
                     setResult(item.prompt);
