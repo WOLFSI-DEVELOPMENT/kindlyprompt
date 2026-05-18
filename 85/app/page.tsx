@@ -2518,6 +2518,13 @@ Return proposed memory entries and ask for confirmation before saving.`
                   height: 54,
                 },
                 {
+                  href: 'https://dailypings.com/p/kindly-prompt',
+                  src: 'https://dailypings.com/badge.svg',
+                  alt: 'Featured on DailyPings',
+                  width: 179,
+                  height: 32,
+                },
+                {
                   href: 'https://findly.tools/kindly-prompt?utm_source=kindly-prompt',
                   src: 'https://findly.tools/badges/findly-tools-badge-light.svg',
                   alt: 'Featured on Findly.tools',
@@ -2544,6 +2551,13 @@ Return proposed memory entries and ask for confirmation before saving.`
                   alt: 'Fazier badge',
                   width: 120,
                   height: 54,
+                },
+                {
+                  href: 'https://dailypings.com/p/kindly-prompt',
+                  src: 'https://dailypings.com/badge.svg',
+                  alt: 'Featured on DailyPings',
+                  width: 179,
+                  height: 32,
                 },
               ].map((badge, index) => (
                 <a
