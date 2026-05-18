@@ -106,6 +106,60 @@ export async function POST(req: Request) {
     return NextResponse.json({ text: response.text || '' });
   }
 
+  if (body.action === 'agent-video') {
+    const rawPrompt = String(body.prompt || '').trim();
+    if (!rawPrompt) {
+      return new NextResponse('Missing video prompt', { status: 400 });
+    }
+
+    const optimizeResponse = await ai.models.generateContent({
+      model: modelNameFor(modelType),
+      contents: [
+        {
+          role: 'user',
+          parts: [{
+            text: `Optimize this product launch video request before generation. Make it specific, cinematic, and implementation-ready while preserving the user's intent. Keep it under 160 words.\n\nUser request:\n${rawPrompt}`,
+          }],
+        },
+      ],
+      config: {
+        systemInstruction: 'You are a concise creative director for AI-generated product launch videos. Return only the optimized brief text.',
+      },
+    });
+
+    const optimizedPrompt = optimizeResponse.text?.trim() || rawPrompt;
+    const videoResponse = await ai.models.generateContent({
+      model: modelNameFor(modelType),
+      contents: [
+        {
+          role: 'user',
+          parts: [{
+            text: `Create a single self-contained HTML file for a beautiful product launch video based on this optimized brief:\n\n${optimizedPrompt}\n\nOutput requirements:\n- Exactly 6 scenes, 5 seconds per scene, total 30 seconds.\n- Use HTML, CSS, and vanilla JavaScript only. No external libraries.\n- Include a visible stage, scene timing, progress dots, and polished motion.\n- The visual style should be premium, dark, modern, and product-launch ready.\n- The code should be ready to paste into an .html file and run in a browser.\n- Include comments naming Scene 1 through Scene 6.\n- Do not wrap the HTML in markdown code fences.`,
+          }],
+        },
+      ],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING, description: 'A short product video project title.' },
+            optimizedPrompt: { type: Type.STRING, description: 'The optimized product launch video prompt used for generation.' },
+            html: { type: Type.STRING, description: 'The complete self-contained HTML video file.' },
+          },
+          required: ['title', 'optimizedPrompt', 'html'],
+        },
+        systemInstruction: 'You are an expert motion designer and frontend engineer generating high-quality animated product launch videos as self-contained HTML.',
+      },
+    });
+
+    return NextResponse.json({
+      text: videoResponse.text || '',
+      optimizedPrompt,
+      candidates: videoResponse.candidates || [],
+    });
+  }
+
   const selectedTool = (body.selectedTool || 'prompt') as SelectedTool;
   const { systemInstruction, promptDescription } = generationInstructions(selectedTool, modelType);
   const response = await ai.models.generateContent({
