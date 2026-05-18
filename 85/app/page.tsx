@@ -3007,7 +3007,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         </div>
       )}
       
-      {view !== 'edit' && (
+      {view === 'home' && (
         <footer className="w-full py-4 mt-auto px-6 border-t border-white/5 flex flex-col items-center justify-center text-zinc-500 text-sm gap-3 shrink-0 relative z-20 bg-[#070707]">
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center">
             <div>&copy; {new Date().getFullYear()} Kindly Prompt.</div>
