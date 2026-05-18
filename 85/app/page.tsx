@@ -192,7 +192,7 @@ export default function Home() {
   const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
   const [view, setViewState] = useState<ViewName>(routeView);
   const [activeApp, setActiveApp] = useState<'prompt' | 'agent'>('prompt');
-  const [agentView, setAgentView] = useState<'home' | 'recent'>('home');
+  const [agentView, setAgentView] = useState<'home' | 'recent' | 'result'>('home');
   const [agentInput, setAgentInput] = useState('');
   const [agentCategory, setAgentCategory] = useState<'marketing' | 'launch' | 'demo' | 'social'>('launch');
   const [agentAspect, setAgentAspect] = useState<'16:9' | '9:16'>('16:9');
@@ -293,7 +293,7 @@ export default function Home() {
     }
   }, [pathname, router]);
 
-  const openAgentApp = useCallback((nextView: 'home' | 'recent' = 'home') => {
+  const openAgentApp = useCallback((nextView: 'home' | 'recent' | 'result' = 'home') => {
     setActiveApp('agent');
     setAgentView(nextView);
     setIsAppSwitcherOpen(false);
@@ -860,6 +860,7 @@ export default function Home() {
       setAgentOptimizedPrompt(optimizedPrompt);
       setAgentVideoHtml(html);
       setAgentProjects((prev) => [project, ...prev].slice(0, 20));
+      setAgentView('result');
       setAgentInput('');
     } catch (error) {
       console.error(error);
@@ -871,7 +872,7 @@ export default function Home() {
 
   const openAgentProject = (project: AgentVideoProject) => {
     setActiveApp('agent');
-    setAgentView('home');
+    setAgentView('result');
     setAgentAspect(project.aspect);
     setAgentOptimizedPrompt(project.optimizedPrompt);
     setAgentVideoHtml(project.html);
@@ -2364,8 +2365,108 @@ Return proposed memory entries and ask for confirmation before saving.`
     { id: 'social' as const, label: 'Social ad' },
   ];
 
+  const renderAgentComposer = (compact = false) => (
+    <div className={`rounded-[24px] bg-[#1a1a1a] ${compact ? 'p-2.5' : 'p-3'}`}>
+      <textarea
+        value={agentInput}
+        onChange={(event) => setAgentInput(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            generateAgentVideo(agentInput);
+          }
+        }}
+        placeholder="Generate a cinematic launch video for..."
+        className={`${compact ? 'h-16' : 'h-20'} w-full resize-none bg-transparent text-[15px] leading-6 text-zinc-100 outline-none placeholder:text-zinc-500`}
+      />
+      <div className="flex items-center justify-between">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+            className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold text-zinc-200 transition-colors hover:bg-[#262626]"
+          >
+            {modelLabel}
+            <ChevronDown size={13} className="text-zinc-500" />
+          </button>
+          <AnimatePresence>
+            {isModelDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsModelDropdownOpen(false)} />
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                  className="absolute bottom-full left-0 z-50 mb-2 w-48 rounded-2xl border border-white/10 bg-[#121212] p-1.5 shadow-2xl"
+                >
+                  {[
+                    ['ultra-fast', 'Ultra Fast'],
+                    ['lite', 'Lite'],
+                    ['super-agent', 'Super Agents'],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      onClick={() => { setModelType(value as typeof modelType); setIsModelDropdownOpen(false); }}
+                      className={`w-full rounded-full px-3 py-2 text-left text-[13px] font-medium ${modelType === value ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:bg-[#1c1c1c] hover:text-zinc-200'}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+        <button
+          onClick={() => generateAgentVideo(agentInput)}
+          disabled={!agentInput.trim() || isAgentGenerating}
+          className={`${compact ? 'h-9 w-9' : 'h-10 w-10'} flex items-center justify-center rounded-full bg-[#3a3a3a] text-zinc-200 transition-colors hover:bg-white hover:text-black disabled:opacity-40`}
+          aria-label="Generate launch video"
+        >
+          {isAgentGenerating ? <RefreshCw size={16} className="animate-spin" /> : <ArrowUp size={17} />}
+        </button>
+      </div>
+    </div>
+  );
+
   const renderAgentDashboard = () => (
-    <div className="flex min-h-[calc(100vh-4rem)] w-full bg-[#070707]">
+    <div className="flex min-h-screen w-full bg-[#070707]">
+      {agentView === 'home' ? (
+        <section className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center justify-center px-6 pb-16">
+          <motion.div
+            animate={{ y: [0, -3, 0] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+            className="mb-7 flex h-16 w-16 items-center justify-center rounded-[22px] bg-[#1f1f1f] text-zinc-300"
+          >
+            <Eye size={28} />
+          </motion.div>
+          <h1 className="text-center text-4xl font-medium tracking-tight text-white">What launch video should Kindly Agent make?</h1>
+          <p className="mt-4 max-w-2xl text-center text-[15px] leading-7 text-zinc-500">Generate polished 6-scene product launch videos as HTML. Each scene runs 5 seconds, and your brief gets optimized before the agent builds.</p>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+            {agentCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setAgentCategory(category.id)}
+                className={`rounded-full px-3.5 py-2 text-xs font-bold transition-colors ${agentCategory === category.id ? 'bg-[#2f2f2f] text-white' : 'bg-transparent text-zinc-500 hover:bg-[#202020] hover:text-zinc-300'}`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-8 w-full max-w-[700px]">
+            {renderAgentComposer(false)}
+          </div>
+          <div className="mt-7 flex w-full max-w-[680px] flex-col gap-4">
+            {agentSuggestions.map((suggestion) => (
+              <button key={suggestion} onClick={() => setAgentInput(suggestion)} className="flex items-center gap-4 text-left text-[15px] text-zinc-400 transition-colors hover:text-white">
+                <ArrowRight size={16} className="shrink-0 text-zinc-600" />
+                <span>{suggestion}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : (
+      <>
       <section className="flex w-[430px] shrink-0 flex-col border-r border-white/5 bg-[#121212] px-5 py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -2433,8 +2534,8 @@ Return proposed memory entries and ask for confirmation before saving.`
               className="flex flex-1 flex-col"
             >
               <div className="mt-10">
-                <h1 className="text-3xl font-semibold tracking-tight text-white">Product launch video agent</h1>
-                <p className="mt-3 text-sm leading-6 text-zinc-500">Generates a polished 6-scene HTML launch video, 5 seconds per scene. Your prompt is optimized first, then auto-sent.</p>
+                <h1 className="text-2xl font-semibold tracking-tight text-white">New video</h1>
+                <p className="mt-2 text-sm leading-6 text-zinc-500">Refine the next launch video brief.</p>
               </div>
 
               <div className="mt-8 flex flex-wrap items-center gap-2">
@@ -2462,80 +2563,19 @@ Return proposed memory entries and ask for confirmation before saving.`
                     </button>
                   ))}
                 </div>
-                <div className="rounded-[24px] bg-[#1a1a1a] p-3">
-                  <textarea
-                    value={agentInput}
-                    onChange={(event) => setAgentInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' && !event.shiftKey) {
-                        event.preventDefault();
-                        generateAgentVideo(agentInput);
-                      }
-                    }}
-                    placeholder="Generate a cinematic launch video for..."
-                    className="h-24 w-full resize-none bg-transparent text-[15px] leading-6 text-zinc-100 outline-none placeholder:text-zinc-500"
-                  />
-                  <div className="flex items-center justify-between">
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                        className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold text-zinc-200 transition-colors hover:bg-[#262626]"
-                      >
-                        {modelLabel}
-                        <ChevronDown size={13} className="text-zinc-500" />
-                      </button>
-                      <AnimatePresence>
-                        {isModelDropdownOpen && (
-                          <>
-                            <div className="fixed inset-0 z-40" onClick={() => setIsModelDropdownOpen(false)} />
-                            <motion.div
-                              initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                              className="absolute bottom-full left-0 z-50 mb-2 w-48 rounded-2xl border border-white/10 bg-[#121212] p-1.5 shadow-2xl"
-                            >
-                              {[
-                                ['ultra-fast', 'Ultra Fast'],
-                                ['lite', 'Lite'],
-                                ['super-agent', 'Super Agents'],
-                              ].map(([value, label]) => (
-                                <button
-                                  key={value}
-                                  onClick={() => { setModelType(value as typeof modelType); setIsModelDropdownOpen(false); }}
-                                  className={`w-full rounded-full px-3 py-2 text-left text-[13px] font-medium ${modelType === value ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:bg-[#1c1c1c] hover:text-zinc-200'}`}
-                                >
-                                  {label}
-                                </button>
-                              ))}
-                            </motion.div>
-                          </>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                    <button
-                      onClick={() => generateAgentVideo(agentInput)}
-                      disabled={!agentInput.trim() || isAgentGenerating}
-                      className="flex h-11 w-11 items-center justify-center rounded-full bg-[#3a3a3a] text-zinc-200 transition-colors hover:bg-white hover:text-black disabled:opacity-40"
-                      aria-label="Generate launch video"
-                    >
-                      {isAgentGenerating ? <RefreshCw size={18} className="animate-spin" /> : <ArrowUp size={18} />}
-                    </button>
-                  </div>
-                </div>
-                <p className="mt-4 text-center text-xs text-zinc-600">Generation uses credits - Estimated cost: 8-60 credits</p>
+                {renderAgentComposer(true)}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </section>
 
-      <section className="relative flex min-w-0 flex-1 flex-col px-10 py-5">
-        <div className="flex items-center justify-end gap-4">
+      <section className="relative flex min-w-0 flex-1 flex-col px-8 py-4">
+        <div className="flex items-center justify-end gap-3">
           <div className="relative">
             <button
               onClick={() => setIsAgentAspectOpen((value) => !value)}
-              className="flex h-11 items-center gap-2 rounded-full bg-[#262626] px-5 text-sm font-bold text-white transition-colors hover:bg-[#303030]"
+              className="flex h-9 items-center gap-2 rounded-full bg-[#262626] px-4 text-sm font-bold text-white transition-colors hover:bg-[#303030]"
             >
               <Square size={16} />
               {agentAspect}
@@ -2565,7 +2605,7 @@ Return proposed memory entries and ask for confirmation before saving.`
           <button
             onClick={downloadAgentVideo}
             disabled={!agentVideoHtml}
-            className="flex h-11 items-center gap-2 rounded-full bg-[#262626] px-5 text-sm font-bold text-white transition-colors hover:bg-[#303030] disabled:opacity-40"
+            className="flex h-9 items-center gap-2 rounded-full bg-[#262626] px-4 text-sm font-bold text-white transition-colors hover:bg-[#303030] disabled:opacity-40"
           >
             <Download size={17} />
             Export
@@ -2573,7 +2613,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         </div>
 
         <div className="flex flex-1 items-center justify-center">
-          <div className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-black shadow-[0_24px_80px_rgba(0,0,0,0.45)] ${agentAspect === '16:9' ? 'aspect-video w-[72vw] max-w-5xl' : 'aspect-[9/16] h-[72vh]'}`}>
+          <div className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-black shadow-[0_24px_80px_rgba(0,0,0,0.45)] ${agentAspect === '16:9' ? 'aspect-video w-[76vw] max-w-6xl' : 'aspect-[9/16] h-[82vh]'}`}>
             {agentVideoHtml ? (
               <iframe title="Generated product launch video" srcDoc={agentVideoHtml} className="h-full w-full border-0 bg-black" sandbox="allow-scripts" />
             ) : (
@@ -2604,6 +2644,8 @@ Return proposed memory entries and ask for confirmation before saving.`
           </div>
         )}
       </section>
+      </>
+      )}
     </div>
   );
 
@@ -2743,7 +2785,7 @@ Return proposed memory entries and ask for confirmation before saving.`
       )}
 
       <AnimatePresence>
-        {view === 'home' && !supportNoticeHidden && (
+        {activeApp === 'prompt' && view === 'home' && !supportNoticeHidden && (
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2855,7 +2897,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 {[
                   ...(activeApp === 'agent'
                     ? [
-                        { label: 'Home', view: 'agent-home' as const, icon: Plus, active: agentView === 'home' },
+                        { label: 'Home', view: 'agent-home' as const, icon: Plus, active: agentView === 'home' || agentView === 'result' },
                         { label: 'Recent', view: 'agent-recent' as const, icon: History, active: agentView === 'recent' },
                       ]
                     : [
@@ -2939,7 +2981,7 @@ Return proposed memory entries and ask for confirmation before saving.`
       </AnimatePresence>
       
       <main
-        className={`flex-1 relative overflow-y-auto h-full flex flex-col transition-[margin-left] duration-200 ease-out [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${view === 'preview' ? 'pt-0' : 'pt-16'}`}
+        className={`flex-1 relative overflow-y-auto h-full flex flex-col transition-[margin-left] duration-200 ease-out [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${activeApp === 'agent' || view === 'preview' ? 'pt-0' : 'pt-16'}`}
         style={{ marginLeft: view !== 'edit' ? (isSidebarExpanded ? 220 : 48) : 0 }}
       >
 
@@ -4436,7 +4478,7 @@ Return proposed memory entries and ask for confirmation before saving.`
       </motion.div>
       </AnimatePresence>
       
-      {view === 'home' && (
+      {activeApp === 'prompt' && view === 'home' && (
         <footer className="mx-auto mt-auto w-full max-w-5xl px-6 pb-8 pt-4 flex flex-col items-center justify-center text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-transparent">
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
             <div>&copy; {new Date().getFullYear()} Kindly Prompt.</div>
