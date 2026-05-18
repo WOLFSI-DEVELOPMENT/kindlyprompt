@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp, Square } from 'lucide-react';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -45,6 +46,34 @@ type IconProps = {
   className?: string;
   strokeWidth?: number;
   fill?: string;
+};
+
+type ViewName = 'home' | 'result' | 'recents' | 'edit' | 'preview' | 'library' | 'discover' | 'skills' | 'labs' | 'event';
+
+const viewRoutes: Record<ViewName, string> = {
+  home: '/',
+  result: '/prompt',
+  recents: '/history',
+  edit: '/edit',
+  preview: '/preview',
+  library: '/library',
+  discover: '/discover',
+  skills: '/skills',
+  labs: '/labs',
+  event: '/event',
+};
+
+const routeViews: Record<string, ViewName> = {
+  '/': 'home',
+  '/prompt': 'result',
+  '/history': 'recents',
+  '/edit': 'edit',
+  '/preview': 'preview',
+  '/library': 'library',
+  '/discover': 'discover',
+  '/skills': 'skills',
+  '/labs': 'labs',
+  '/event': 'event',
 };
 
 const createHugeIcon = (icon: IconSvgElement) => {
@@ -123,12 +152,15 @@ import { SuperAgentModal } from '@/components/super-agent-modal';
 import { UpgradeModal } from '@/components/upgrade-modal';
 
 export default function Home() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const routeView = routeViews[pathname] ?? 'home';
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState('');
   const [streamedResult, setStreamedResult] = useState('');
   const [agentLogs, setAgentLogs] = useState<{ id: string, text: string, type: 'search' | 'read' | 'code' | 'info' }[]>([]);
-  const [view, setView] = useState<'home' | 'result' | 'recents' | 'edit' | 'preview' | 'library' | 'discover' | 'skills' | 'labs' | 'event'>('home');
+  const [view, setViewState] = useState<ViewName>(routeView);
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
@@ -169,6 +201,14 @@ export default function Home() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const eyeShift = Math.max(-4, Math.min(4, input.length / 18));
   const faceMood = input.length > 80 ? 'focused' : input.length > 0 ? 'curious' : 'idle';
+
+  const setView = useCallback((nextView: ViewName) => {
+    setViewState(nextView);
+    const nextPath = viewRoutes[nextView];
+    if (nextPath && pathname !== nextPath) {
+      router.push(nextPath);
+    }
+  }, [pathname, router]);
 
   const submitSupportRequest = async () => {
     if (!supportEmail || !supportMessage) return;
@@ -262,6 +302,14 @@ export default function Home() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const nextView = routeViews[pathname] ?? 'home';
+    if (nextView !== view) {
+      const timer = setTimeout(() => setViewState(nextView), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, view]);
 
   const [isPiModalOpen, setIsPiModalOpen] = useState(false);
   const [isPiCardVisible, setIsPiCardVisible] = useState(false);
