@@ -10,3 +10,33 @@
     display: none; /* Chrome, Safari and Opera */
   }
 }
+
+@keyframes kindlyMarqueeLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes kindlyMarqueeRight {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.kindly-marquee-left {
+  animation-name: kindlyMarqueeLeft;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.kindly-marquee-right {
+  animation-name: kindlyMarqueeRight;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}

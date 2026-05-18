@@ -224,7 +224,7 @@ export default function Home() {
   const [labOutput, setLabOutput] = useState('');
   const [isLabRunning, setIsLabRunning] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const [mobileTab, setMobileTab] = useState<'home' | 'history' | 'discover'>('home');
+  const [mobileTab, setMobileTab] = useState<'home' | 'history' | 'discover' | 'generate'>('home');
   const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
   const [mobilePromptInput, setMobilePromptInput] = useState('');
   const [mobileFollowUpInput, setMobileFollowUpInput] = useState('');
@@ -1098,11 +1098,10 @@ Return proposed memory entries and ask for confirmation before saving.`
     <section className="relative w-full overflow-hidden px-6 py-20 text-center">
       <div className="pointer-events-none absolute inset-0 opacity-30">
         {[0, 1, 2].map((row) => (
-          <motion.div
+          <div
             key={row}
-            animate={{ x: row % 2 === 0 ? ['0%', '-50%'] : ['-50%', '0%'] }}
-            transition={{ duration: 28 + row * 4, repeat: Infinity, ease: 'linear' }}
-            className={`absolute left-0 flex w-max items-center gap-6 ${row === 0 ? 'top-5' : row === 1 ? 'top-20' : 'bottom-7'}`}
+            className={`absolute left-0 flex w-max items-center gap-6 ${row % 2 === 0 ? 'kindly-marquee-left' : 'kindly-marquee-right'} ${row === 0 ? 'top-5' : row === 1 ? 'top-20' : 'bottom-7'}`}
+            style={{ animationDuration: `${28 + row * 4}s` }}
           >
             {[...items, ...items].map((item, index) => (
               <span
@@ -1112,7 +1111,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 {item}
               </span>
             ))}
-          </motion.div>
+          </div>
         ))}
       </div>
       <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-40 bg-gradient-to-r from-[#070707] via-[#070707]/85 to-transparent backdrop-blur-[3px]" />
@@ -1342,10 +1341,9 @@ Return proposed memory entries and ask for confirmation before saving.`
         <div className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-28 bg-gradient-to-r from-[#070707] to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-28 bg-gradient-to-l from-[#070707] to-transparent" />
-          <motion.div
-            animate={{ x: ['0%', '-50%'] }}
-            transition={{ duration: 34, repeat: Infinity, ease: 'linear' }}
+          <div
             className="flex w-max gap-4 py-1"
+            style={{ animation: 'kindlyMarqueeLeft 34s linear infinite' }}
           >
             {[...sponsoredAds, ...sponsoredAds].map((ad, index) => (
               <a
@@ -1363,7 +1361,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 />
               </a>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -1940,6 +1938,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         };
       } catch {}
       setMobileActivePrompt({ title: newItem.title, prompt: newItem.prompt });
+      setMobileTab('generate');
       setCurrentResult(newItem);
       setResult(newItem.prompt);
       if (!followUp) setRecents(prev => [newItem, ...prev]);
@@ -1951,6 +1950,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         ? `${mobileActivePrompt.prompt}\n\nRevision request: ${text}`
         : text;
       setMobileActivePrompt({ title: followUp ? 'Updated Prompt' : 'Mobile Prompt', prompt: fallbackPrompt });
+      setMobileTab('generate');
     } finally {
       setIsGenerating(false);
     }
@@ -2032,53 +2032,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                   </button>
                 </div>
 
-                {mobileActivePrompt ? (
-                  <div className="mt-8">
-                    <div className="mb-4 flex items-center justify-between">
-                      <button onClick={() => setMobileActivePrompt(null)} className="rounded-full bg-[#171717] px-4 py-2 text-sm font-bold text-zinc-300">
-                        Exit
-                      </button>
-                      <button onClick={() => setMobileComposerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#171717] text-zinc-200">
-                        <Plus size={18} />
-                      </button>
-                    </div>
-                    <h2 className="text-2xl font-bold tracking-tight">{mobileActivePrompt.title}</h2>
-                    <div className="mt-5 whitespace-pre-wrap text-[15px] leading-8 text-zinc-300">
-                      {mobileActivePrompt.prompt}
-                    </div>
-                    <div className="mt-7 flex gap-3">
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(mobileActivePrompt.prompt);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 1600);
-                        }}
-                        className="flex-1 rounded-full bg-[#171717] px-4 py-3 text-sm font-bold text-zinc-200"
-                      >
-                        {copied ? 'Copied' : 'Copy'}
-                      </button>
-                      <button onClick={downloadMobilePrompt} className="flex-1 rounded-full bg-white px-4 py-3 text-sm font-bold text-black">
-                        Download
-                      </button>
-                    </div>
-                    <div className="mt-5 rounded-[24px] bg-[#171717] p-3">
-                      <textarea
-                        value={mobileFollowUpInput}
-                        onChange={(e) => setMobileFollowUpInput(e.target.value)}
-                        placeholder="Ask for changes..."
-                        className="h-20 w-full resize-none bg-transparent text-sm text-zinc-200 outline-none placeholder:text-zinc-600"
-                      />
-                      <button
-                        onClick={() => runMobilePrompt(mobileFollowUpInput, true)}
-                        disabled={!mobileFollowUpInput.trim() || isGenerating}
-                        className="w-full rounded-full bg-[#2a2a2a] py-3 text-sm font-bold text-zinc-100 disabled:opacity-40"
-                      >
-                        {isGenerating ? 'Updating...' : 'Apply with Lite'}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-8 space-y-4">
+                <div className="mt-8 space-y-4">
                     <h2 className="text-lg font-bold">Articles</h2>
                     {discoverArticles.slice(0, 3).map((article) => (
                       <button
@@ -2091,8 +2045,26 @@ Return proposed memory entries and ask for confirmation before saving.`
                         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-500">{article.excerpt}</p>
                       </button>
                     ))}
-                  </div>
-                )}
+                </div>
+              </motion.section>
+            )}
+
+            {mobileTab === 'generate' && mobileActivePrompt && (
+              <motion.section key="mobile-generate" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="px-5 pt-5 pb-8">
+                <div className="sticky top-0 z-20 -mx-5 flex items-center justify-between bg-[#070707]/95 px-5 py-3 backdrop-blur-xl">
+                  <button onClick={() => { setMobileActivePrompt(null); setMobileTab('home'); }} className="rounded-full bg-[#171717] px-4 py-2 text-sm font-bold text-zinc-300">Exit</button>
+                  <button onClick={() => setMobileComposerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#171717] text-zinc-200"><Plus size={18} /></button>
+                </div>
+                <h1 className="mt-5 text-2xl font-bold tracking-tight">{mobileActivePrompt.title}</h1>
+                <div className="mt-5 whitespace-pre-wrap text-[15px] leading-8 text-zinc-300">{mobileActivePrompt.prompt}</div>
+                <div className="mt-7 flex gap-3">
+                  <button onClick={() => { navigator.clipboard.writeText(mobileActivePrompt.prompt); setCopied(true); setTimeout(() => setCopied(false), 1600); }} className="flex-1 rounded-full bg-[#171717] px-4 py-3 text-sm font-bold text-zinc-200">{copied ? 'Copied' : 'Copy'}</button>
+                  <button onClick={downloadMobilePrompt} className="flex-1 rounded-full bg-white px-4 py-3 text-sm font-bold text-black">Download</button>
+                </div>
+                <div className="mt-5 rounded-[24px] bg-[#171717] p-3">
+                  <textarea value={mobileFollowUpInput} onChange={(e) => setMobileFollowUpInput(e.target.value)} placeholder="Ask for changes..." className="h-20 w-full resize-none bg-transparent text-sm text-zinc-200 outline-none placeholder:text-zinc-600" />
+                  <button onClick={() => runMobilePrompt(mobileFollowUpInput, true)} disabled={!mobileFollowUpInput.trim() || isGenerating} className="w-full rounded-full bg-[#2a2a2a] py-3 text-sm font-bold text-zinc-100 disabled:opacity-40">{isGenerating ? 'Updating...' : 'Apply with Lite'}</button>
+                </div>
               </motion.section>
             )}
 
@@ -2100,14 +2072,14 @@ Return proposed memory entries and ask for confirmation before saving.`
               <motion.section key="mobile-history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="px-5 pt-7">
                 <h1 className="text-2xl font-bold tracking-tight">History</h1>
                 <div className="mt-6 space-y-3">
-                  {mobileHistory.length === 0 ? (
+                      {mobileHistory.length === 0 ? (
                     <div className="rounded-[24px] bg-[#171717] p-8 text-center text-sm text-zinc-500">No prompts yet.</div>
                   ) : mobileHistory.map((item) => (
                     <button
                       key={`${item.title}-${item.date}`}
                       onClick={() => {
                         setMobileActivePrompt({ title: item.title, prompt: item.prompt });
-                        setMobileTab('home');
+                        setMobileTab('generate');
                       }}
                       className="w-full rounded-[22px] bg-[#141414] p-4 text-left"
                     >
@@ -2131,7 +2103,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                           key={item.title}
                           onClick={() => {
                             setMobileActivePrompt({ title: item.title, prompt: item.prompt });
-                            setMobileTab('home');
+                            setMobileTab('generate');
                           }}
                           className="w-full rounded-[22px] bg-[#141414] p-4 text-left"
                         >
@@ -2189,18 +2161,20 @@ Return proposed memory entries and ask for confirmation before saving.`
           )}
         </AnimatePresence>
 
-        <nav className="fixed inset-x-4 bottom-4 z-50 flex h-12 items-center justify-around rounded-full bg-[#171717]/95 px-2 backdrop-blur-xl">
+        {mobileTab !== 'generate' && (
+        <nav className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-around border-t border-white/5 bg-[#101010]/98 px-2 backdrop-blur-xl">
           {mobileTabs.map((tab) => {
             const Icon = tab.icon;
             const active = mobileTab === tab.id;
             return (
-              <button key={tab.id} onClick={() => setMobileTab(tab.id)} className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold ${active ? 'bg-[#2a2a2a] text-white' : 'text-zinc-500'}`}>
+              <button key={tab.id} onClick={() => setMobileTab(tab.id)} className={`flex flex-col items-center gap-1 rounded-xl px-4 py-1.5 text-[11px] font-semibold ${active ? 'text-white' : 'text-zinc-500'}`}>
                 <Icon size={16} />
                 {tab.label}
               </button>
             );
           })}
         </nav>
+        )}
 
         <AnimatePresence>
           {selectedDiscoverArticle && (
@@ -2237,7 +2211,7 @@ Return proposed memory entries and ask for confirmation before saving.`
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[#070707] text-white font-sans selection:bg-zinc-800 relative">
-      <div className="md:hidden absolute inset-0 z-[9999] bg-black flex items-center justify-center p-6 text-center">
+      <div className="hidden">
         <p className="text-zinc-400 font-medium tracking-wide">Mobile version coming soon</p>
       </div>
       <AnimatePresence>
@@ -2951,10 +2925,9 @@ Return proposed memory entries and ask for confirmation before saving.`
           </div>
 
           <div className="mt-4 w-full max-w-2xl overflow-hidden">
-            <motion.div
-              animate={{ x: ['0%', '-50%'] }}
-              transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+            <div
               className="flex w-max items-center gap-5 pb-2"
+              style={{ animation: 'kindlyMarqueeLeft 18s linear infinite' }}
             >
               {[
                 {
@@ -3038,7 +3011,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                   <img src={badge.src} alt={badge.alt} width={badge.width} height={badge.height} className="max-h-[55px] object-contain" />
                 </a>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       ) : view === 'event' ? (
@@ -4038,8 +4011,8 @@ Return proposed memory entries and ask for confirmation before saving.`
       </AnimatePresence>
       
       {view === 'home' && (
-        <footer className="w-full py-4 mt-auto px-6 border-t border-white/5 flex flex-col items-center justify-center text-zinc-500 text-sm gap-3 shrink-0 relative z-20 bg-[#070707]">
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center">
+        <footer className="mx-auto mt-8 w-full max-w-5xl px-6 pb-8 pt-4 flex flex-col items-center justify-center text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-transparent">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
             <div>&copy; {new Date().getFullYear()} Kindly Prompt.</div>
             <button
               onClick={() => setIsOnboardingModalOpen(true)}
@@ -4066,7 +4039,7 @@ Return proposed memory entries and ask for confirmation before saving.`
               Support
             </button>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-center">
             <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
             <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">Terms of Service</a>
           </div>
