@@ -219,6 +219,10 @@ export default function Home() {
     }
   });
   const [selectedDiscoverArticle, setSelectedDiscoverArticle] = useState<DiscoverArticle | null>(null);
+  const [activeLabTool, setActiveLabTool] = useState<'optimizer' | 'suggestions' | null>(null);
+  const [labInput, setLabInput] = useState('');
+  const [labOutput, setLabOutput] = useState('');
+  const [isLabRunning, setIsLabRunning] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
@@ -730,6 +734,11 @@ export default function Home() {
   const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(result)}`;
   const claudeCodeUrl = `claude-cli://open?prompt=${encodeURIComponent(result)}`;
   const conductorUrl = `conductor://prompt=${encodeURIComponent(result)}`;
+  const labExportText = labOutput || labInput;
+  const labAiStudioUrl = `https://aistudio.google.com/apps#prompt=${encodeURIComponent(labExportText)}`;
+  const labLovableUrl = `https://lovable.dev/?autosubmit=true#prompt=${encodeURIComponent(labExportText)}`;
+  const labChatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(labExportText)}`;
+  const labClaudeUrl = `https://claude.ai/new?q=${encodeURIComponent(labExportText)}`;
   const modelLabel = modelType === 'ultra-fast' ? 'Ultra Fast' : modelType === 'super-agent' ? 'Super Agents' : 'Lite';
   const superAgents = [
     {
@@ -1226,6 +1235,62 @@ Return proposed memory entries and ask for confirmation before saving.`
     )));
   };
 
+  const openLabTool = (tool: 'optimizer' | 'suggestions') => {
+    setActiveLabTool(tool);
+    setLabInput('');
+    setLabOutput('');
+  };
+
+  const runLabTool = async () => {
+    if (!labInput.trim() || !activeLabTool) return;
+    setIsLabRunning(true);
+    const instruction = activeLabTool === 'optimizer'
+      ? `Optimize this prompt. Return a stronger, clearer, production-ready prompt with better structure, constraints, UI states, edge cases, and acceptance criteria. Keep it directly usable:\n\n${labInput}`
+      : `Read this draft prompt and return realtime auto suggestions. Include concise improvements, missing details, better constraints, and a polished revised prompt:\n\n${labInput}`;
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          apiKey: geminiApiKey,
+          modelType: 'lite',
+          selectedTool: 'prompt',
+          contents: instruction,
+          user,
+        }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
+      const rawText = data.text || '';
+      try {
+        const parsed = JSON.parse(rawText);
+        setLabOutput(parsed.prompt || rawText);
+      } catch {
+        setLabOutput(rawText);
+      }
+    } catch {
+      const fallback = activeLabTool === 'optimizer'
+        ? `Optimized prompt:\n\n${labInput.trim()}\n\nAdd clear user flows, visual direction, responsive states, loading and empty states, error handling, accessibility requirements, and final acceptance criteria.`
+        : `Suggestions:\n\n- Add the target user and primary workflow.\n- Specify data persistence and empty states.\n- Define mobile behavior and accessibility expectations.\n- Add visual constraints and what to avoid.\n\nRevised prompt:\n\n${labInput.trim()}`;
+      setLabOutput(fallback);
+    } finally {
+      setIsLabRunning(false);
+    }
+  };
+
+  const downloadLabOutput = () => {
+    const blob = new Blob([labExportText], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = activeLabTool === 'suggestions' ? 'SUGGESTIONS.md' : 'OPTIMIZED_PROMPT.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const renderDiscoverSkeleton = () => (
     <div className="w-full max-w-7xl space-y-14 pb-20 text-left">
       <section className="space-y-5">
@@ -1376,12 +1441,13 @@ Return proposed memory entries and ask for confirmation before saving.`
               <div className="mt-5">
                 <h3 className="text-base font-bold text-white">{item.title}</h3>
                 <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-500">{item.description}</p>
-                <div className="mt-4 rounded-[18px] bg-[#1d1d1d] p-4">
-                  <p className="line-clamp-4 text-xs font-medium leading-relaxed text-zinc-400">{item.prompt}</p>
+                <div className="mt-4 h-36 overflow-y-auto rounded-[18px] bg-[#1d1d1d] p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  <p className="text-xs font-medium leading-relaxed text-zinc-300">{item.prompt}</p>
                 </div>
                 <button
                   onClick={() => {
                     setResult(item.prompt);
+                    setStreamedResult(item.prompt);
                     setCurrentResult({ title: item.title, prompt: item.prompt, svg: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>` });
                     setView('result');
                   }}
@@ -2837,15 +2903,15 @@ Return proposed memory entries and ask for confirmation before saving.`
           )}
           <div className="mt-8 grid w-full max-w-7xl grid-cols-1 gap-6 text-left md:grid-cols-2 xl:grid-cols-4">
             {[
-              ['Wireframe Generator', 'Turn rough structure into a clean prompt-ready layout map.'],
-              ['Prompt Optimizer', 'Score, tighten, and restructure prompts before generation.'],
-              ['Realtime Auto Suggestions', 'Suggest stronger prompt details while users type.'],
-              ['Figma Intent Reader', 'Extract hierarchy, components, and visual direction from Figma links.'],
-              ['Prompt A/B Lab', 'Compare multiple prompt variants before choosing a direction.'],
-              ['Design Critique Agent', 'Review uploaded UI references and suggest sharper instructions.'],
-              ['Skill Builder Lab', 'Prototype reusable agent skills from repeated workflows.'],
-              ['Launch Prompt Checker', 'Catch missing auth, states, QA, and deployment details.'],
-            ].map(([title, description], index) => (
+              ['Wireframe Generator', 'Turn rough structure into a clean prompt-ready layout map.', null],
+              ['Prompt Optimizer', 'Score, tighten, and restructure prompts before generation.', 'optimizer'],
+              ['Realtime Auto Suggestions', 'Suggest stronger prompt details while users type.', 'suggestions'],
+              ['Figma Intent Reader', 'Extract hierarchy, components, and visual direction from Figma links.', null],
+              ['Prompt A/B Lab', 'Compare multiple prompt variants before choosing a direction.', null],
+              ['Design Critique Agent', 'Review uploaded UI references and suggest sharper instructions.', null],
+              ['Skill Builder Lab', 'Prototype reusable agent skills from repeated workflows.', null],
+              ['Launch Prompt Checker', 'Catch missing auth, states, QA, and deployment details.', null],
+            ].map(([title, description, labTool], index) => (
               <motion.article
                 key={title}
                 initial={{ opacity: 0, y: 18 }}
@@ -2880,8 +2946,13 @@ Return proposed memory entries and ask for confirmation before saving.`
                 </div>
                 <h2 className="mt-7 text-xl font-bold tracking-tight text-white">{title}</h2>
                 <p className="mt-4 text-[15px] leading-relaxed text-zinc-400">{description}</p>
-                <button className="mt-7 rounded-full border border-zinc-700 px-5 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white">
-                  Coming soon
+                <button
+                  onClick={() => {
+                    if (labTool === 'optimizer' || labTool === 'suggestions') openLabTool(labTool);
+                  }}
+                  className="mt-7 rounded-full border border-zinc-700 px-5 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                >
+                  {labTool ? 'Open lab' : 'Coming soon'}
                 </button>
               </motion.article>
             ))}
@@ -3962,6 +4033,105 @@ Return proposed memory entries and ask for confirmation before saving.`
                 ))}
               </div>
             </motion.article>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {activeLabTool && (
+          <div className="fixed inset-0 z-[92] flex items-center justify-center bg-black/75 p-6 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 18 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 18 }}
+              transition={{ duration: 0.22 }}
+              className="relative flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-[34px] bg-[#101112] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.55)]"
+            >
+              <button
+                onClick={() => setActiveLabTool(null)}
+                className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-[#242526] text-zinc-300 transition-colors hover:bg-[#303132] hover:text-white"
+                aria-label="Close lab"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="pr-14">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Labs</p>
+                <h2 className="mt-3 text-3xl font-bold tracking-tight text-white">
+                  {activeLabTool === 'optimizer' ? 'Prompt Optimizer' : 'Realtime Auto Suggestions'}
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
+                  {activeLabTool === 'optimizer'
+                    ? 'Paste a prompt, then let Lite tighten the structure, constraints, and missing details.'
+                    : 'Paste a draft prompt and get live-style improvement notes plus a revised version.'}
+                </p>
+              </div>
+
+              <div className="mt-7 grid min-h-0 flex-1 gap-5 lg:grid-cols-2">
+                <div className="flex min-h-[340px] flex-col rounded-[28px] bg-[#151617] p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-zinc-200">Input prompt</h3>
+                    <span className="rounded-full bg-[#222324] px-3 py-1 text-xs font-bold text-zinc-500">Lite model</span>
+                  </div>
+                  <textarea
+                    value={labInput}
+                    onChange={(e) => setLabInput(e.target.value)}
+                    placeholder={activeLabTool === 'optimizer' ? 'Paste the prompt you want optimized...' : 'Paste your draft prompt for realtime suggestions...'}
+                    className="min-h-0 flex-1 resize-none overflow-y-auto bg-transparent text-[15px] leading-7 text-zinc-200 outline-none placeholder:text-zinc-600 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                  />
+                </div>
+
+                <div className="flex min-h-[340px] flex-col rounded-[28px] bg-[#151617] p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-zinc-200">
+                      {activeLabTool === 'optimizer' ? 'Optimized prompt' : 'Suggestions'}
+                    </h3>
+                    <button
+                      onClick={runLabTool}
+                      disabled={!labInput.trim() || isLabRunning}
+                      className="rounded-full bg-white px-4 py-2 text-xs font-bold text-black transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {isLabRunning ? 'Running...' : activeLabTool === 'optimizer' ? 'Optimize' : 'Suggest'}
+                    </button>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-y-auto rounded-[22px] bg-[#101112] p-5 text-left [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {labOutput ? (
+                      <div className="prose prose-invert max-w-none prose-p:text-zinc-300 prose-p:leading-8 prose-li:text-zinc-300 prose-headings:text-white">
+                        <ReactMarkdown>{labOutput}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-center text-sm font-medium text-zinc-600">
+                        Output will appear here after the lab runs.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3 overflow-y-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <button
+                  onClick={downloadLabOutput}
+                  disabled={!labExportText.trim()}
+                  className="rounded-full bg-[#18191a] px-5 py-2.5 text-sm font-bold text-zinc-300 transition-colors hover:bg-[#202122] disabled:opacity-40"
+                >
+                  Download PROMPT.md
+                </button>
+                <a href={labLovableUrl} target="_blank" rel="noopener noreferrer" className={`rounded-full bg-[#18191a] px-5 py-2.5 text-sm font-bold text-zinc-300 transition-colors hover:bg-[#202122] ${!labExportText.trim() ? 'pointer-events-none opacity-40' : ''}`}>Export to Lovable</a>
+                <a href={labClaudeUrl} target="_blank" rel="noopener noreferrer" className={`rounded-full bg-[#18191a] px-5 py-2.5 text-sm font-bold text-zinc-300 transition-colors hover:bg-[#202122] ${!labExportText.trim() ? 'pointer-events-none opacity-40' : ''}`}>Export to Claude</a>
+                <a href={labChatGptUrl} target="_blank" rel="noopener noreferrer" className={`rounded-full bg-[#18191a] px-5 py-2.5 text-sm font-bold text-zinc-300 transition-colors hover:bg-[#202122] ${!labExportText.trim() ? 'pointer-events-none opacity-40' : ''}`}>Export to ChatGPT</a>
+                <a href={labAiStudioUrl} target="_blank" rel="noopener noreferrer" className={`rounded-full bg-[#18191a] px-5 py-2.5 text-sm font-bold text-zinc-300 transition-colors hover:bg-[#202122] ${!labExportText.trim() ? 'pointer-events-none opacity-40' : ''}`}>Export to AI Studio</a>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(labExportText);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  disabled={!labExportText.trim()}
+                  className="rounded-full bg-[#18191a] px-5 py-2.5 text-sm font-bold text-zinc-300 transition-colors hover:bg-[#202122] disabled:opacity-40"
+                >
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
