@@ -223,6 +223,13 @@ export default function Home() {
   const [labInput, setLabInput] = useState('');
   const [labOutput, setLabOutput] = useState('');
   const [isLabRunning, setIsLabRunning] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'home' | 'history' | 'discover'>('home');
+  const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
+  const [mobilePromptInput, setMobilePromptInput] = useState('');
+  const [mobileFollowUpInput, setMobileFollowUpInput] = useState('');
+  const [mobileActivePrompt, setMobileActivePrompt] = useState<{ title: string; prompt: string } | null>(null);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
@@ -1735,10 +1742,29 @@ Return proposed memory entries and ask for confirmation before saving.`
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !isDesktopWeb()) return;
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('/sw.js').catch((error) => {
       console.warn('Notification service worker registration failed', error);
     });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const updateMobile = () => setIsMobileViewport(media.matches);
+    updateMobile();
+    media.addEventListener('change', updateMobile);
+    return () => media.removeEventListener('change', updateMobile);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleInstallPrompt = (event: any) => {
+      event.preventDefault();
+      setDeferredInstallPrompt(event);
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
   }, []);
 
   useEffect(() => {
@@ -1870,6 +1896,344 @@ Return proposed memory entries and ask for confirmation before saving.`
       setIsGenerating(false);
     }
   };
+
+  const runMobilePrompt = async (text: string, followUp = false) => {
+    if (!text.trim()) return;
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const contents = followUp && mobileActivePrompt
+        ? `Revise this prompt based on the user's requested change.\n\nCurrent prompt:\n${mobileActivePrompt.prompt}\n\nRequested change:\n${text}`
+        : text;
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          apiKey: geminiApiKey,
+          modelType: 'lite',
+          selectedTool: 'prompt',
+          contents,
+          user,
+        }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
+      const rawText = data.text || '';
+      let newItem = {
+        title: followUp ? (mobileActivePrompt?.title || 'Updated Prompt') : 'Mobile Prompt',
+        prompt: rawText,
+        svg: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`,
+        type: 'prompt' as const,
+        date: new Date().toISOString(),
+      };
+      try {
+        const parsed = JSON.parse(rawText);
+        newItem = {
+          ...newItem,
+          title: parsed.title || newItem.title,
+          prompt: parsed.prompt || rawText,
+          svg: parsed.svg_icon || newItem.svg,
+        };
+      } catch {}
+      setMobileActivePrompt({ title: newItem.title, prompt: newItem.prompt });
+      setCurrentResult(newItem);
+      setResult(newItem.prompt);
+      if (!followUp) setRecents(prev => [newItem, ...prev]);
+      setMobileComposerOpen(false);
+      setMobilePromptInput('');
+      setMobileFollowUpInput('');
+    } catch {
+      const fallbackPrompt = followUp && mobileActivePrompt
+        ? `${mobileActivePrompt.prompt}\n\nRevision request: ${text}`
+        : text;
+      setMobileActivePrompt({ title: followUp ? 'Updated Prompt' : 'Mobile Prompt', prompt: fallbackPrompt });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const downloadMobilePrompt = () => {
+    if (!mobileActivePrompt) return;
+    const blob = new Blob([mobileActivePrompt.prompt], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'PROMPT.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const installMobilePwa = async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    setDeferredInstallPrompt(null);
+  };
+
+  if (isMobileViewport) {
+    const mobileTabs = [
+      { id: 'home' as const, label: 'Home', icon: PromptIcon },
+      { id: 'history' as const, label: 'History', icon: History },
+      { id: 'discover' as const, label: 'Discover', icon: Discover },
+    ];
+    const mobilePromptCount = recents.length;
+    const mobileHistory = recents.slice(0, 8);
+    const mobileSkills = agentSkills.slice(0, 4);
+
+    return (
+      <div className="min-h-screen bg-[#070707] text-white">
+        <main className="min-h-screen pb-24">
+          <AnimatePresence mode="wait" initial={false}>
+            {mobileTab === 'home' && (
+              <motion.section
+                key="mobile-home"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.16 }}
+                className="px-5 pt-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img src={APP_ICON_URL} alt="Kindly Prompt" className="h-9 w-9 rounded-2xl object-cover" />
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.22em] text-zinc-600">Kindly Prompt</p>
+                      <h1 className="text-xl font-bold tracking-tight">Mobile</h1>
+                    </div>
+                  </div>
+                  {deferredInstallPrompt && (
+                    <button onClick={installMobilePwa} className="rounded-full bg-[#1d1d1d] px-4 py-2 text-xs font-bold text-zinc-200">
+                      Install
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-7 grid grid-cols-2 gap-3">
+                  <div className="rounded-[24px] bg-[#171717] p-5">
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-600">Total prompts</p>
+                    <div className="mt-4 text-4xl font-black">{mobilePromptCount}</div>
+                    <p className="mt-2 text-sm text-zinc-500">Generated on this device.</p>
+                  </div>
+                  <button
+                    onClick={() => setMobileComposerOpen(true)}
+                    className="rounded-[24px] bg-[#171717] p-5 text-left"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-black">
+                      <Plus size={20} />
+                    </div>
+                    <h2 className="mt-5 text-lg font-bold">Start new prompt</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-500">Open the quick composer.</p>
+                  </button>
+                </div>
+
+                {mobileActivePrompt ? (
+                  <div className="mt-8">
+                    <div className="mb-4 flex items-center justify-between">
+                      <button onClick={() => setMobileActivePrompt(null)} className="rounded-full bg-[#171717] px-4 py-2 text-sm font-bold text-zinc-300">
+                        Exit
+                      </button>
+                      <button onClick={() => setMobileComposerOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#171717] text-zinc-200">
+                        <Plus size={18} />
+                      </button>
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight">{mobileActivePrompt.title}</h2>
+                    <div className="mt-5 whitespace-pre-wrap text-[15px] leading-8 text-zinc-300">
+                      {mobileActivePrompt.prompt}
+                    </div>
+                    <div className="mt-7 flex gap-3">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(mobileActivePrompt.prompt);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 1600);
+                        }}
+                        className="flex-1 rounded-full bg-[#171717] px-4 py-3 text-sm font-bold text-zinc-200"
+                      >
+                        {copied ? 'Copied' : 'Copy'}
+                      </button>
+                      <button onClick={downloadMobilePrompt} className="flex-1 rounded-full bg-white px-4 py-3 text-sm font-bold text-black">
+                        Download
+                      </button>
+                    </div>
+                    <div className="mt-5 rounded-[24px] bg-[#171717] p-3">
+                      <textarea
+                        value={mobileFollowUpInput}
+                        onChange={(e) => setMobileFollowUpInput(e.target.value)}
+                        placeholder="Ask for changes..."
+                        className="h-20 w-full resize-none bg-transparent text-sm text-zinc-200 outline-none placeholder:text-zinc-600"
+                      />
+                      <button
+                        onClick={() => runMobilePrompt(mobileFollowUpInput, true)}
+                        disabled={!mobileFollowUpInput.trim() || isGenerating}
+                        className="w-full rounded-full bg-[#2a2a2a] py-3 text-sm font-bold text-zinc-100 disabled:opacity-40"
+                      >
+                        {isGenerating ? 'Updating...' : 'Apply with Lite'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-8 space-y-4">
+                    <h2 className="text-lg font-bold">Articles</h2>
+                    {discoverArticles.slice(0, 3).map((article) => (
+                      <button
+                        key={article.title}
+                        onClick={() => setSelectedDiscoverArticle(article)}
+                        className="w-full rounded-[24px] bg-[#141414] p-5 text-left"
+                      >
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-600">{article.kicker}</p>
+                        <h3 className="mt-2 text-lg font-bold">{article.title}</h3>
+                        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-500">{article.excerpt}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </motion.section>
+            )}
+
+            {mobileTab === 'history' && (
+              <motion.section key="mobile-history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="px-5 pt-7">
+                <h1 className="text-2xl font-bold tracking-tight">History</h1>
+                <div className="mt-6 space-y-3">
+                  {mobileHistory.length === 0 ? (
+                    <div className="rounded-[24px] bg-[#171717] p-8 text-center text-sm text-zinc-500">No prompts yet.</div>
+                  ) : mobileHistory.map((item) => (
+                    <button
+                      key={`${item.title}-${item.date}`}
+                      onClick={() => {
+                        setMobileActivePrompt({ title: item.title, prompt: item.prompt });
+                        setMobileTab('home');
+                      }}
+                      className="w-full rounded-[22px] bg-[#141414] p-4 text-left"
+                    >
+                      <h2 className="font-bold text-zinc-100">{item.title}</h2>
+                      <p className="mt-2 line-clamp-2 text-sm text-zinc-500">{item.prompt}</p>
+                    </button>
+                  ))}
+                </div>
+              </motion.section>
+            )}
+
+            {mobileTab === 'discover' && (
+              <motion.section key="mobile-discover" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="px-5 pt-7">
+                <h1 className="text-2xl font-bold tracking-tight">Discover</h1>
+                <div className="mt-6 space-y-7">
+                  <div>
+                    <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.22em] text-zinc-600">Prompt library</h2>
+                    <div className="space-y-3">
+                      {discoverPromptSuggestions.map((item) => (
+                        <button
+                          key={item.title}
+                          onClick={() => {
+                            setMobileActivePrompt({ title: item.title, prompt: item.prompt });
+                            setMobileTab('home');
+                          }}
+                          className="w-full rounded-[22px] bg-[#141414] p-4 text-left"
+                        >
+                          <h3 className="font-bold">{item.title}</h3>
+                          <p className="mt-2 line-clamp-2 text-sm text-zinc-500">{item.prompt}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.22em] text-zinc-600">Skills</h2>
+                    <div className="space-y-3">
+                      {mobileSkills.map((skill) => (
+                        <button key={skill.slug} onClick={() => setSelectedSkillCard(skill)} className="flex w-full items-center gap-3 rounded-[22px] bg-[#141414] p-4 text-left">
+                          {renderSkillPixelVisual(skill)}
+                          <div className="min-w-0">
+                            <h3 className="truncate font-bold">{skill.slug}</h3>
+                            <p className="mt-1 line-clamp-2 text-sm text-zinc-500">{skill.description}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
+        </main>
+
+        <AnimatePresence>
+          {mobileComposerOpen && (
+            <motion.div
+              initial={{ y: 120 }}
+              animate={{ y: 0 }}
+              exit={{ y: 120 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="fixed inset-x-0 bottom-[68px] z-40 h-[100px] rounded-t-[22px] bg-[#202020] p-3 shadow-[0_-18px_50px_rgba(0,0,0,0.45)]"
+            >
+              <div className="flex h-full items-center gap-3">
+                <textarea
+                  value={mobilePromptInput}
+                  onChange={(e) => setMobilePromptInput(e.target.value)}
+                  placeholder="Describe the prompt you need..."
+                  className="h-full flex-1 resize-none bg-transparent text-sm leading-6 text-zinc-100 outline-none placeholder:text-zinc-500"
+                />
+                <button
+                  onClick={() => runMobilePrompt(mobilePromptInput)}
+                  disabled={!mobilePromptInput.trim() || isGenerating}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black disabled:opacity-40"
+                >
+                  {isGenerating ? <Square size={16} fill="currentColor" /> : <ArrowUp size={18} />}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <nav className="fixed inset-x-4 bottom-4 z-50 flex h-12 items-center justify-around rounded-full bg-[#171717]/95 px-2 backdrop-blur-xl">
+          {mobileTabs.map((tab) => {
+            const Icon = tab.icon;
+            const active = mobileTab === tab.id;
+            return (
+              <button key={tab.id} onClick={() => setMobileTab(tab.id)} className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold ${active ? 'bg-[#2a2a2a] text-white' : 'text-zinc-500'}`}>
+                <Icon size={16} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <AnimatePresence>
+          {selectedDiscoverArticle && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] overflow-y-auto bg-[#070707] p-5 pb-24">
+              <button onClick={() => setSelectedDiscoverArticle(null)} className="mb-6 rounded-full bg-[#171717] px-4 py-2 text-sm font-bold text-zinc-300">Exit</button>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-zinc-600">{selectedDiscoverArticle.kicker}</p>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight">{selectedDiscoverArticle.title}</h1>
+              <p className="mt-4 text-sm leading-7 text-zinc-500">{selectedDiscoverArticle.excerpt}</p>
+              <div className="mt-8 space-y-6 text-[16px] leading-8 text-zinc-300">
+                {selectedDiscoverArticle.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {selectedSkillCard && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] overflow-y-auto bg-[#070707] p-5 pb-24">
+              <button onClick={() => setSelectedSkillCard(null)} className="mb-6 rounded-full bg-[#171717] px-4 py-2 text-sm font-bold text-zinc-300">Exit</button>
+              <div className="flex flex-col items-center text-center">
+                {renderSkillPixelVisual(selectedSkillCard, 'lg')}
+                <h1 className="mt-5 text-2xl font-bold">{selectedSkillCard.slug}</h1>
+                <p className="mt-3 text-sm leading-7 text-zinc-500">{selectedSkillCard.description}</p>
+              </div>
+              <pre className="mt-8 whitespace-pre-wrap rounded-[24px] bg-[#141414] p-5 font-sans text-sm leading-7 text-zinc-300">{selectedSkillCard.content}</pre>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={(u) => setUser(u)} />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[#070707] text-white font-sans selection:bg-zinc-800 relative">

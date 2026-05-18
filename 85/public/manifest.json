@@ -1,0 +1,17 @@
+{
+  "name": "Kindly Prompt",
+  "short_name": "Kindly",
+  "description": "Generate detailed AI coding prompts from simple ideas.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070707",
+  "theme_color": "#070707",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/jZjGy5fK/Chat-GPT-Image-May-17-2026-07-27-59-PM-1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

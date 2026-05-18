@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import Script from 'next/script';
 import { SentryInit } from '@/components/sentry-init';
 import './globals.css'; // Global styles
@@ -6,12 +6,22 @@ import './globals.css'; // Global styles
 export const metadata: Metadata = {
   title: 'Kindly Prompt',
   description: 'An AI workspace to generate detailed prompts, design documents, and agent skills from simple ideas for coding tools.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    title: 'Kindly Prompt',
+    statusBarStyle: 'black-translucent',
+  },
   icons: {
     icon: 'https://i.ibb.co/jZjGy5fK/Chat-GPT-Image-May-17-2026-07-27-59-PM-1.png',
   },
   verification: {
     google: 'tATIrsF72UQBWH_gtmI1elVZvcWQzhp_r9d-8XDG-kE',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#070707',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
