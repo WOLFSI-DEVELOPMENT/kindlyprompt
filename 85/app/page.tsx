@@ -409,6 +409,23 @@ export default function Home() {
     return [];
   });
   const [currentResult, setCurrentResult] = useState<{ title: string, prompt: string, svg: string, type?: 'prompt' | 'design' | 'skill' | 'spec', date?: string } | null>(null);
+
+  const openPromptResult = useCallback((item: { title: string, prompt: string, svg?: string, type?: 'prompt' | 'design' | 'skill' | 'spec', date?: string }) => {
+    const nextResult = {
+      title: item.title,
+      prompt: item.prompt,
+      svg: item.svg || `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`,
+      type: item.type,
+      date: item.date,
+    };
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('kindly_prompt_active_result', JSON.stringify(nextResult));
+    }
+    setResult(nextResult.prompt);
+    setStreamedResult(nextResult.prompt);
+    setCurrentResult(nextResult);
+    setView('result');
+  }, [setView]);
   const [imageRef, setImageRef] = useState<string | null>(null);
   const [attachedText, setAttachedText] = useState<{name: string, content: string} | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
@@ -560,6 +577,22 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('kindly_prompt_recents', JSON.stringify(recents));
   }, [recents]);
+
+  useEffect(() => {
+    if (view !== 'result' || currentResult || typeof window === 'undefined') return;
+    const saved = sessionStorage.getItem('kindly_prompt_active_result');
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved);
+      if (!parsed?.prompt) return;
+      const timer = setTimeout(() => {
+        setCurrentResult(parsed);
+        setResult(parsed.prompt);
+        setStreamedResult(parsed.prompt);
+      }, 0);
+      return () => clearTimeout(timer);
+    } catch {}
+  }, [currentResult, view]);
 
   useEffect(() => {
     localStorage.setItem('kindly_discover_tools', JSON.stringify(submittedTools));
@@ -1445,12 +1478,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                   <p className="text-xs font-medium leading-relaxed text-zinc-300">{item.prompt}</p>
                 </div>
                 <button
-                  onClick={() => {
-                    setResult(item.prompt);
-                    setStreamedResult(item.prompt);
-                    setCurrentResult({ title: item.title, prompt: item.prompt, svg: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>` });
-                    setView('result');
-                  }}
+                  onClick={() => openPromptResult(item)}
                   className="mt-5 rounded-full bg-[#242424] px-4 py-2 text-xs font-bold text-zinc-200 transition-colors hover:bg-[#303030]"
                 >
                   View prompt
@@ -2845,15 +2873,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                     </AnimatePresence>
                   </button>
                   <button 
-                    onClick={() => {
-                      setResult(item.prompt);
-                      setView('result');
-                      setCurrentResult({
-                        title: item.title,
-                        prompt: item.prompt,
-                        svg: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`
-                      });
-                    }}
+                    onClick={() => openPromptResult(item)}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-full text-xs font-bold transition-all border-none"
                   >
                     <Sparkles size={14} /> USE
@@ -3071,9 +3091,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                             setSelectedItems([...selectedItems, globalIndex]);
                           }
                         } else {
-                          setCurrentResult(item);
-                          setResult(item.prompt);
-                          setView('result');
+                          openPromptResult(item);
                         }
                       }}
                     >
