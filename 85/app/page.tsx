@@ -2311,13 +2311,53 @@ Return proposed memory entries and ask for confirmation before saving.`
       ) : view === 'skills' ? (
         renderSkillsCatalog()
       ) : view === 'labs' ? (
-        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 flex-col items-center px-6 pt-24 text-center">
+        <div className="relative z-10 flex min-h-[80vh] w-full shrink-0 flex-col items-center px-6 pt-24 pb-16 text-center">
           {renderDiscoveryTopBar()}
           {renderMovingHero(
             'Labs coming soon',
             'Experimental prompt tools, agent workflows, and early features are being shaped here.',
             labsTickerItems,
           )}
+          <div className="mt-8 grid w-full max-w-7xl grid-cols-1 gap-6 text-left md:grid-cols-2 xl:grid-cols-4">
+            {[
+              ['Wireframe Generator', 'Turn rough structure into a clean prompt-ready layout map.'],
+              ['Prompt Optimizer', 'Score, tighten, and restructure prompts before generation.'],
+              ['Realtime Auto Suggestions', 'Suggest stronger prompt details while users type.'],
+              ['Figma Intent Reader', 'Extract hierarchy, components, and visual direction from Figma links.'],
+              ['Prompt A/B Lab', 'Compare multiple prompt variants before choosing a direction.'],
+              ['Design Critique Agent', 'Review uploaded UI references and suggest sharper instructions.'],
+              ['Skill Builder Lab', 'Prototype reusable agent skills from repeated workflows.'],
+              ['Launch Prompt Checker', 'Catch missing auth, states, QA, and deployment details.'],
+            ].map(([title, description], index) => (
+              <motion.article
+                key={title}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04 }}
+                className="min-h-[410px] rounded-[34px] bg-[#171717] p-7"
+              >
+                <div className="relative flex h-52 items-center justify-center overflow-hidden rounded-[28px] bg-[#222222]">
+                  <div className={`absolute rounded-full bg-[#2f2f2f] ${index % 4 === 0 ? 'left-8 top-8 h-28 w-28' : index % 4 === 1 ? 'right-6 top-6 h-36 w-36' : index % 4 === 2 ? 'left-10 bottom-8 h-32 w-32' : 'right-10 bottom-5 h-24 w-24'}`} />
+                  <div className={`absolute bg-[#363636] ${index % 3 === 0 ? 'h-28 w-44 rounded-[32px]' : index % 3 === 1 ? 'h-36 w-36 rotate-45 rounded-[28px]' : 'h-24 w-52 rounded-full'}`} />
+                  <div className="absolute inset-x-8 top-8 h-8 rounded-full bg-[#2a2a2a]" />
+                  <div className="absolute bottom-8 left-1/2 h-16 w-44 -translate-x-1/2 rounded-[22px] bg-[#121212]/90 px-5 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+                    <div className="mb-2 flex gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-zinc-500" />
+                      <span className="h-2 w-2 rounded-full bg-zinc-600" />
+                      <span className="h-2 w-2 rounded-full bg-zinc-700" />
+                    </div>
+                    <div className="text-sm font-bold text-zinc-200">Coming soon</div>
+                    <div className="mt-2 h-2 w-full rounded-full bg-[#303030]" />
+                  </div>
+                </div>
+                <h2 className="mt-7 text-xl font-bold tracking-tight text-white">{title}</h2>
+                <p className="mt-4 text-[15px] leading-relaxed text-zinc-400">{description}</p>
+                <button className="mt-7 rounded-full border border-zinc-700 px-5 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white">
+                  Coming soon
+                </button>
+              </motion.article>
+            ))}
+          </div>
         </div>
       ) : view === 'recents' ? (
         // RECENTS VIEW
