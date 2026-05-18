@@ -364,6 +364,7 @@ export default function Home() {
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
   const [isSuperAgentModalOpen, setIsSuperAgentModalOpen] = useState(false);
   const [isV1IntroOpen, setIsV1IntroOpen] = useState(false);
+  const [isWeeklyDropOpen, setIsWeeklyDropOpen] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -827,8 +828,8 @@ export default function Home() {
   ];
   const weeklyEvent = {
     id: 'chrome-extension-discover-skills-super-agent-2026-05',
-    title: 'New weekly event',
-    body: 'New Chrome extension, new way to discover and get skills, new super agent.',
+    title: 'Super Intelligence is coming',
+    body: 'A new Chrome extension that works across your AI tools to optimize prompts, guide context, and connect more of your workflow over time.',
   };
   const discoveryTabs = [
     { label: 'Discover', view: 'discover' as const, icon: Discover },
@@ -2557,7 +2558,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                     {weeklyEvent.body}
                   </p>
                 </div>
-                <button onClick={() => setView('event')} className="mt-5 flex w-fit items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#111315] transition-colors hover:bg-zinc-200">
+                <button onClick={() => setIsWeeklyDropOpen(true)} className="mt-5 flex w-fit items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#111315] transition-colors hover:bg-zinc-200">
                   Preview
                   <ArrowUpRight size={15} />
                 </button>
@@ -2565,8 +2566,8 @@ Return proposed memory entries and ask for confirmation before saving.`
               <div className="relative z-10 flex flex-1 items-center justify-end gap-3 overflow-hidden pr-6">
                 {[
                   { label: 'Chrome Extension', icon: <Code2 size={22} /> },
-                  { label: 'Discover Skills', icon: <Discover size={22} /> },
-                  { label: 'Super Agent', icon: <Zap size={22} /> }
+                  { label: 'Prompt Optimizer', icon: <Sparkles size={22} /> },
+                  { label: 'Super Intelligence', icon: <Zap size={22} /> }
                 ].map((item, idx) => (
                   <motion.div
                     key={item.label}
@@ -3852,6 +3853,84 @@ Return proposed memory entries and ask for confirmation before saving.`
                     className="rounded-full bg-[#242424] px-7 py-3 text-sm font-bold text-zinc-200 transition-colors hover:bg-[#303030]"
                   >
                     Explore Discover
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isWeeklyDropOpen && (
+          <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[#070707]/90 p-4 backdrop-blur-md">
+            <button
+              onClick={() => setIsWeeklyDropOpen(false)}
+              className="absolute right-6 top-6 z-50 text-zinc-500 transition-colors hover:text-zinc-300"
+              aria-label="Close weekly drop"
+            >
+              <X size={24} />
+            </button>
+            <motion.div
+              initial={{ opacity: 0, filter: 'blur(10px)', scale: 0.95 }}
+              animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+              exit={{ opacity: 0, filter: 'blur(10px)', scale: 1.04 }}
+              transition={{ duration: 0.4 }}
+              className="grid w-full max-w-5xl overflow-hidden rounded-[32px] bg-[#141414] p-1 md:grid-cols-[0.95fr_1.05fr]"
+            >
+              <div className="relative min-h-[380px] overflow-hidden rounded-[28px] bg-[#080909]">
+                <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(#273638_1px,transparent_1px),linear-gradient(90deg,#273638_1px,transparent_1px)] [background-size:58px_58px]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(103,232,249,0.22),transparent_30%),radial-gradient(circle_at_72%_70%,rgba(255,255,255,0.12),transparent_28%)]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.div
+                    animate={{ y: [0, -8, 0], rotate: [-1, 1, -1] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                    className="relative h-60 w-60 rounded-[44px] bg-[#202223] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.5)]"
+                  >
+                    <div className="flex h-full flex-col justify-between rounded-[34px] bg-[#111213] p-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-300 text-[#101314]">
+                          <Zap size={24} />
+                        </div>
+                        <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200">Soon</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.24em] text-zinc-500">Chrome extension</p>
+                        <h3 className="mt-2 text-3xl font-black tracking-tight text-white">Super Intelligence</h3>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+              <div className="flex flex-col justify-center p-8 md:p-10">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Weekly drop</p>
+                <h2 className="mt-4 text-4xl font-semibold tracking-tight text-white">Super Intelligence is coming soon.</h2>
+                <p className="mt-5 text-base leading-relaxed text-zinc-400">
+                  A new Kindly Prompt Chrome extension is being built to work across all your AI tools. It will help optimize prompts, improve context, catch missing details, and make better instructions wherever you already create.
+                </p>
+                <div className="mt-7 grid gap-3 text-sm font-medium text-zinc-300">
+                  {[
+                    'Works across ChatGPT, Claude, AI Studio, and more AI workspaces',
+                    'Optimizes prompts before you send them, with cleaner structure and stronger constraints',
+                    'Later releases will connect GitHub, Gmail, and more workflow connectors',
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-3 rounded-2xl bg-[#1c1c1c] px-4 py-3">
+                      <Check size={16} className="text-cyan-200" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setIsWeeklyDropOpen(false)}
+                    className="rounded-full bg-white px-7 py-3 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
+                  >
+                    Got it
+                  </button>
+                  <button
+                    onClick={() => { setIsWeeklyDropOpen(false); setView('labs'); }}
+                    className="rounded-full bg-[#242424] px-7 py-3 text-sm font-bold text-zinc-200 transition-colors hover:bg-[#303030]"
+                  >
+                    Try Labs
                   </button>
                 </div>
               </div>
