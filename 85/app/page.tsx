@@ -144,6 +144,24 @@ type AgentSkill = {
   pixels: number[];
   content: string;
 };
+
+type DiscoverTool = {
+  id: string;
+  name: string;
+  description: string;
+  appLink: string;
+  proofLink: string;
+  image?: string;
+  upvotes: number;
+};
+
+type DiscoverArticle = {
+  title: string;
+  kicker: string;
+  excerpt: string;
+  readTime: string;
+  body: string[];
+};
 import { SuggestToolModal } from '@/components/suggest-modal';
 import { AuthModal } from '@/components/auth-modal';
 import { PersonalIntelligenceModal } from '@/components/pi-modal';
@@ -176,6 +194,29 @@ export default function Home() {
   const [skillSearch, setSkillSearch] = useState('');
   const [selectedSkillCard, setSelectedSkillCard] = useState<AgentSkill | null>(null);
   const [isSubmitAppModalOpen, setIsSubmitAppModalOpen] = useState(false);
+  const [submitModalMode, setSubmitModalMode] = useState<'app' | 'tool'>('app');
+  const [submitAppName, setSubmitAppName] = useState('');
+  const [submitAppDescription, setSubmitAppDescription] = useState('');
+  const [submitAppLink, setSubmitAppLink] = useState('');
+  const [submitProofLink, setSubmitProofLink] = useState('');
+  const [submitAppImage, setSubmitAppImage] = useState('');
+  const [submittedTools, setSubmittedTools] = useState<DiscoverTool[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(localStorage.getItem('kindly_discover_tools') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [upvotedToolIds, setUpvotedToolIds] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(localStorage.getItem('kindly_discover_tool_upvotes') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [selectedDiscoverArticle, setSelectedDiscoverArticle] = useState<DiscoverArticle | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
@@ -508,6 +549,14 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('kindly_prompt_recents', JSON.stringify(recents));
   }, [recents]);
+
+  useEffect(() => {
+    localStorage.setItem('kindly_discover_tools', JSON.stringify(submittedTools));
+  }, [submittedTools]);
+
+  useEffect(() => {
+    localStorage.setItem('kindly_discover_tool_upvotes', JSON.stringify(upvotedToolIds));
+  }, [upvotedToolIds]);
 
   // Load user from localStorage
   useEffect(() => {
@@ -1003,6 +1052,66 @@ Return proposed memory entries and ask for confirmation before saving.`
 
   const skeletonPill = 'animate-pulse rounded-full bg-zinc-800/80';
   const skeletonBlock = 'animate-pulse rounded-[24px] bg-zinc-800/70';
+  const discoverPromptSuggestions = [
+    {
+      title: "Vibe UI Architect",
+      description: "Spacing, typography, and distinctive aesthetics while banning generic defaults.",
+      prompt: "Act as a Lead Product Designer. Generate a React component with Tailwind. Focus on spacing, typography, and architectural honesty."
+    },
+    {
+      title: "Dark Minimal SaaS",
+      description: "High-contrast dashboard with data density and elegant borders.",
+      prompt: "Generate a dashboard for a cloud infrastructure tool. Theme: Ultra Dark Minimal. Background: #050505. Borders: 1px border-white/5."
+    },
+    {
+      title: "Editorial Portfolio",
+      description: "Text-heavy design focusing on readability and classic typography pairings.",
+      prompt: "Design a landing page for a creative agency. Vibe: Editorial, Swiss Modern. Use strong typography and measured white space."
+    },
+    {
+      title: "Bento Technical Grid",
+      description: "A functional grid layout for complex metrics or featured sets.",
+      prompt: "Create a Bento Grid layout for a developer tools landing page. Focus on responsive fluidity and subtle hover states."
+    },
+  ];
+  const discoverArticles: DiscoverArticle[] = [
+    {
+      title: 'How to Turn a Rough App Idea Into a Buildable Prompt',
+      kicker: 'Prompt craft',
+      excerpt: 'A practical way to move from messy intent to a prompt with scope, states, data, and visual direction.',
+      readTime: '6 min read',
+      body: [
+        'A strong build prompt starts by naming the job the app has to do. Before describing screens, write the outcome in one sentence: who uses it, what they are trying to accomplish, and what changes after the app exists.',
+        'Next, list the core workflow as a sequence. Good agents can infer a lot, but they produce better software when the path is explicit: start state, primary action, success state, empty state, loading state, and failure state.',
+        'Add design constraints after behavior. Mention density, typography, color restraint, interaction feel, and what to avoid. This helps the generated app feel intentional instead of assembled from generic defaults.',
+        'Finally, include the edge cases that would annoy a real user. Authentication, mobile layout, disabled buttons, errors, slow networks, export states, and data persistence are where prompts become product specs.'
+      ],
+    },
+    {
+      title: 'Design Prompts That Keep Interfaces From Looking Generic',
+      kicker: 'Design systems',
+      excerpt: 'Use sharper visual language, layout rules, and interaction details to get interfaces with actual product character.',
+      readTime: '5 min read',
+      body: [
+        'Generic interfaces usually come from generic adjectives. Words like clean, modern, and beautiful need operational detail: compact spacing, low-contrast dividers, dense tables, calm typography, and exact accent behavior.',
+        'Give the agent a layout principle. For a productivity app, ask for scanning, comparison, and repeated action. For an editorial site, ask for reading rhythm, hierarchy, and image pacing.',
+        'Name negative constraints. If you do not want big hero cards, purple gradients, oversized rounded panels, or decorative blobs, say that directly. Constraints narrow the search space.',
+        'The best prompts describe interaction polish too: hover affordances, keyboard reachability, stable dimensions, focused states, and where motion should be subtle or absent.'
+      ],
+    },
+    {
+      title: 'Shipping Faster With Reusable Agent Skills',
+      kicker: 'Agent workflows',
+      excerpt: 'Why repeated tasks deserve reusable skills, and how to decide what belongs in one.',
+      readTime: '7 min read',
+      body: [
+        'A skill is useful when the same judgment appears across multiple projects. If you repeatedly ask for launch checks, Vercel fixes, UI audits, or prompt rewrites, the pattern is ready to become reusable.',
+        'Keep a skill narrow enough to be reliable. The best skills explain when to use them, what to inspect first, what output shape to return, and what risks deserve extra attention.',
+        'Avoid turning every preference into a skill. Durable workflows belong there; one-off taste and project-specific facts usually belong in the prompt or project context.',
+        'When skills are written well, the agent spends less time rediscovering your process and more time doing the work with the judgment you expect.'
+      ],
+    },
+  ];
   const sponsoredAds = [
     {
       name: 'Rork',
@@ -1046,6 +1155,41 @@ Return proposed memory entries and ask for confirmation before saving.`
     },
   ];
 
+  const openSubmitModal = (mode: 'app' | 'tool') => {
+    setSubmitModalMode(mode);
+    setSubmitAppName('');
+    setSubmitAppDescription('');
+    setSubmitAppLink('');
+    setSubmitProofLink('');
+    setSubmitAppImage('');
+    setIsSubmitAppModalOpen(true);
+  };
+
+  const submitDiscoverTool = () => {
+    if (!submitAppName.trim()) return;
+    const newTool: DiscoverTool = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      name: submitAppName.trim(),
+      description: submitAppDescription.trim() || 'Built with Kindly Prompt.',
+      appLink: submitAppLink.trim(),
+      proofLink: submitProofLink.trim(),
+      image: submitAppImage,
+      upvotes: 0,
+    };
+    setSubmittedTools(prev => [newTool, ...prev]);
+    setIsSubmitAppModalOpen(false);
+  };
+
+  const toggleToolUpvote = (toolId: string) => {
+    const hasUpvoted = upvotedToolIds.includes(toolId);
+    setUpvotedToolIds(prev => hasUpvoted ? prev.filter(id => id !== toolId) : [...prev, toolId]);
+    setSubmittedTools(prev => prev.map(tool => (
+      tool.id === toolId
+        ? { ...tool, upvotes: Math.max(0, tool.upvotes + (hasUpvoted ? -1 : 1)) }
+        : tool
+    )));
+  };
+
   const renderDiscoverSkeleton = () => (
     <div className="w-full max-w-7xl space-y-14 pb-20 text-left">
       <section className="space-y-5">
@@ -1088,7 +1232,7 @@ Return proposed memory entries and ask for confirmation before saving.`
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Built with Kindly Prompt</h2>
           </div>
           <button
-            onClick={() => setIsSubmitAppModalOpen(true)}
+            onClick={() => openSubmitModal('app')}
             className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
           >
             <Plus size={16} />
@@ -1111,23 +1255,61 @@ Return proposed memory entries and ask for confirmation before saving.`
       </section>
 
       <section className="space-y-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Community</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Trending builds</h2>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Community</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Trending tools</h2>
+          </div>
+          <button
+            onClick={() => openSubmitModal('tool')}
+            className="flex items-center gap-2 rounded-full bg-[#242424] px-5 py-2.5 text-sm font-bold text-zinc-100 transition-colors hover:bg-[#303030]"
+          >
+            <Plus size={16} />
+            Submit tool
+          </button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <article key={`product-${index}`} className="flex items-start gap-4 rounded-[26px] bg-[#141414] p-4">
+          {submittedTools.map((tool) => {
+            const hasUpvoted = upvotedToolIds.includes(tool.id);
+            return (
+              <article key={tool.id} className="flex items-start gap-4 rounded-[26px] bg-[#141414] p-4">
+                {tool.image ? (
+                  <img src={tool.image} alt={tool.name} className="h-16 w-16 shrink-0 rounded-[20px] object-cover" />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-[#202020] text-lg font-black text-zinc-500">
+                    {tool.name.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1 pt-1">
+                  <h3 className="truncate text-sm font-bold text-white">{tool.name}</h3>
+                  <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-zinc-500">{tool.description}</p>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-zinc-500">
+                    {tool.appLink && <a href={tool.appLink} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-200">View app</a>}
+                    {tool.proofLink && <a href={tool.proofLink} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-200">Built with Kindly Prompt</a>}
+                  </div>
+                </div>
+                <button
+                  onClick={() => toggleToolUpvote(tool.id)}
+                  className={`flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl transition-colors ${hasUpvoted ? 'bg-white text-black' : 'bg-[#202020] text-zinc-500 hover:text-white'}`}
+                >
+                  <ArrowUp size={15} />
+                  <span className="mt-0.5 text-[11px] font-bold">{tool.upvotes}</span>
+                </button>
+              </article>
+            );
+          })}
+          {Array.from({ length: Math.max(3, 6 - submittedTools.length) }).map((_, index) => (
+            <article key={`product-skeleton-${index}`} className="flex items-start gap-4 rounded-[26px] bg-[#141414] p-4">
               <div className={`${skeletonBlock} h-16 w-16 shrink-0 rounded-[20px]`} />
               <div className="min-w-0 flex-1 space-y-3 pt-1">
                 <div className={`${skeletonPill} h-4 w-36`} />
                 <div className={`${skeletonPill} h-3 w-full`} />
                 <div className={`${skeletonPill} h-3 w-2/3`} />
               </div>
-              <button className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#202020] text-zinc-500">
+              <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#202020] text-zinc-500">
                 <ArrowUp size={15} />
                 <span className="mt-0.5 h-2.5 w-4 animate-pulse rounded-full bg-zinc-700" />
-              </button>
+              </div>
             </article>
           ))}
         </div>
@@ -1139,13 +1321,22 @@ Return proposed memory entries and ask for confirmation before saving.`
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Prompt cards</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <article key={`prompt-${index}`} className="rounded-[28px] bg-[#141414] p-4">
+          {discoverPromptSuggestions.map((item, index) => (
+            <article key={item.title} className="rounded-[28px] bg-[#141414] p-4">
               <div className={`${skeletonBlock} h-28 w-full rounded-[22px]`} />
-              <div className="mt-5 space-y-3">
-                <div className={`${skeletonPill} h-4 w-3/4`} />
-                <div className={`${skeletonPill} h-3 w-full`} />
-                <div className={`${skeletonPill} h-3 w-2/3`} />
+              <div className="mt-5">
+                <h3 className="text-base font-bold text-white">{item.title}</h3>
+                <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-500">{item.description}</p>
+                <button
+                  onClick={() => {
+                    setResult(item.prompt);
+                    setCurrentResult({ title: item.title, prompt: item.prompt, svg: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>` });
+                    setView('result');
+                  }}
+                  className="mt-5 rounded-full bg-[#242424] px-4 py-2 text-xs font-bold text-zinc-200 transition-colors hover:bg-[#303030]"
+                >
+                  View prompt
+                </button>
               </div>
             </article>
           ))}
@@ -1158,13 +1349,30 @@ Return proposed memory entries and ask for confirmation before saving.`
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Guides and stories</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <article key={`article-${index}`} className="rounded-[28px] bg-[#141414] p-5">
-              <div className={`${skeletonPill} h-3 w-24`} />
-              <div className="mt-5 space-y-3">
-                <div className={`${skeletonPill} h-5 w-3/4`} />
-                <div className={`${skeletonPill} h-3 w-full`} />
-                <div className={`${skeletonPill} h-3 w-5/6`} />
+          {discoverArticles.map((article, index) => (
+            <article
+              key={article.title}
+              onClick={() => setSelectedDiscoverArticle(article)}
+              className="group cursor-pointer overflow-hidden rounded-[28px] bg-[#141414] p-5 transition-colors hover:bg-[#181818]"
+            >
+              <div className="relative mb-5 h-40 overflow-hidden rounded-[24px] bg-[#1f1f1f]">
+                <div className="absolute inset-0 opacity-50">
+                  {Array.from({ length: 12 }).map((_, line) => (
+                    <div key={line} className="absolute h-px bg-zinc-600/40" style={{ left: `${line * 9}%`, right: `${(11 - line) * 4}%`, top: `${18 + line * 6}%` }} />
+                  ))}
+                  {Array.from({ length: 30 }).map((_, dot) => (
+                    <span key={dot} className="absolute h-1 w-1 rounded-full bg-zinc-500/50" style={{ left: `${(dot * 17) % 100}%`, top: `${(dot * 23) % 100}%` }} />
+                  ))}
+                </div>
+                <div className="absolute inset-x-5 bottom-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-zinc-500">{article.kicker}</p>
+                  <h3 className="mt-2 max-w-md text-xl font-bold leading-tight text-white">{article.title}</h3>
+                </div>
+              </div>
+              <p className="line-clamp-2 text-sm leading-relaxed text-zinc-500">{article.excerpt}</p>
+              <div className="mt-4 flex items-center justify-between text-xs font-bold text-zinc-600">
+                <span>{article.readTime}</span>
+                <span className="text-zinc-400 transition-colors group-hover:text-white">Start reading</span>
               </div>
             </article>
           ))}
@@ -3503,17 +3711,32 @@ Return proposed memory entries and ask for confirmation before saving.`
               </button>
 
               <div className="pr-14">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Submit app</p>
-                <h2 className="mt-3 text-2xl font-bold tracking-tight text-white">Share what you built</h2>
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">{submitModalMode === 'app' ? 'Submit app' : 'Submit tool'}</p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-white">{submitModalMode === 'app' ? 'Share what you built' : 'Share a tool with the community'}</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
-                  Add your tool details so it can be reviewed for the Discover apps section.
+                  Add the details so it can be saved into Discover and reviewed later.
                 </p>
               </div>
 
               <div className="mt-8 grid gap-5 md:grid-cols-[180px_1fr]">
                 <label className="flex h-44 cursor-pointer flex-col items-center justify-center rounded-[28px] bg-[#141617] text-center transition-colors hover:bg-[#181a1b]">
-                  <input type="file" accept="image/*" className="hidden" />
-                  <ImageIcon size={28} className="text-zinc-500" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = () => setSubmitAppImage(String(reader.result || ''));
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                  {submitAppImage ? (
+                    <img src={submitAppImage} alt="Upload preview" className="h-full w-full rounded-[28px] object-cover" />
+                  ) : (
+                    <ImageIcon size={28} className="text-zinc-500" />
+                  )}
                   <span className="mt-4 text-sm font-bold text-zinc-300">Upload profile pic</span>
                   <span className="mt-1 text-xs text-zinc-600">PNG, JPG, WEBP</span>
                 </label>
@@ -3521,21 +3744,29 @@ Return proposed memory entries and ask for confirmation before saving.`
                 <div className="space-y-4">
                   <input
                     type="text"
-                    placeholder="App name"
+                    value={submitAppName}
+                    onChange={(e) => setSubmitAppName(e.target.value)}
+                    placeholder={submitModalMode === 'app' ? 'App name' : 'Tool name'}
                     className="w-full rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
                   />
                   <textarea
-                    placeholder="Short app description"
+                    value={submitAppDescription}
+                    onChange={(e) => setSubmitAppDescription(e.target.value)}
+                    placeholder={submitModalMode === 'app' ? 'Short app description' : 'Short tool description'}
                     rows={3}
                     className="w-full resize-none rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
                   />
                   <input
                     type="url"
-                    placeholder="App link"
+                    value={submitAppLink}
+                    onChange={(e) => setSubmitAppLink(e.target.value)}
+                    placeholder={submitModalMode === 'app' ? 'App link' : 'Tool link'}
                     className="w-full rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
                   />
                   <input
                     type="url"
+                    value={submitProofLink}
+                    onChange={(e) => setSubmitProofLink(e.target.value)}
                     placeholder="Link showing Kindly Prompt helped build it"
                     className="w-full rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
                   />
@@ -3548,7 +3779,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 </p>
                 <button
                   type="button"
-                  onClick={() => setIsSubmitAppModalOpen(false)}
+                  onClick={submitDiscoverTool}
                   className="flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
                 >
                   <ArrowUpRight size={16} />
@@ -3556,6 +3787,54 @@ Return proposed memory entries and ask for confirmation before saving.`
                 </button>
               </div>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {selectedDiscoverArticle && (
+          <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/80 p-6 backdrop-blur-sm [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <motion.article
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ duration: 0.22 }}
+              className="mx-auto my-8 max-w-4xl overflow-hidden rounded-[34px] bg-[#101112] shadow-[0_30px_120px_rgba(0,0,0,0.55)]"
+            >
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/5 bg-[#101112]/90 px-6 py-4 backdrop-blur-xl">
+                <button
+                  onClick={() => setSelectedDiscoverArticle(null)}
+                  className="flex items-center gap-2 rounded-full bg-[#202122] px-4 py-2 text-sm font-bold text-zinc-200 transition-colors hover:bg-[#2a2b2c]"
+                >
+                  <X size={16} />
+                  Close
+                </button>
+                <span className="text-xs font-bold uppercase tracking-[0.24em] text-zinc-600">{selectedDiscoverArticle.readTime}</span>
+              </div>
+
+              <div className="relative h-72 overflow-hidden bg-[#181818]">
+                <div className="absolute inset-0 opacity-60">
+                  {Array.from({ length: 18 }).map((_, line) => (
+                    <div key={line} className="absolute h-px bg-zinc-500/30" style={{ left: `${line * 5}%`, right: `${line * 2}%`, top: `${10 + line * 5}%` }} />
+                  ))}
+                  {Array.from({ length: 80 }).map((_, dot) => (
+                    <span key={dot} className="absolute h-1 w-1 rounded-full bg-zinc-400/30" style={{ left: `${(dot * 13) % 100}%`, top: `${(dot * 29) % 100}%` }} />
+                  ))}
+                </div>
+                <div className="absolute inset-x-8 bottom-8 max-w-3xl">
+                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-500">{selectedDiscoverArticle.kicker}</p>
+                  <h2 className="mt-4 text-4xl font-bold tracking-tight text-white">{selectedDiscoverArticle.title}</h2>
+                  <p className="mt-4 text-base leading-relaxed text-zinc-400">{selectedDiscoverArticle.excerpt}</p>
+                </div>
+              </div>
+
+              <div className="mx-auto max-w-3xl px-8 py-12">
+                {selectedDiscoverArticle.body.map((paragraph, index) => (
+                  <p key={index} className="mb-7 text-lg leading-9 text-zinc-300">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </motion.article>
           </div>
         )}
       </AnimatePresence>
