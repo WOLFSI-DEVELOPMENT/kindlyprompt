@@ -170,9 +170,16 @@ type AgentVideoProject = {
   title: string;
   prompt: string;
   optimizedPrompt: string;
+  explanation?: string;
   html: string;
   aspect: '16:9' | '9:16';
   date: string;
+};
+
+type AgentChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
 };
 import { SuggestToolModal } from '@/components/suggest-modal';
 import { AuthModal } from '@/components/auth-modal';
@@ -200,6 +207,7 @@ export default function Home() {
   const [isAgentGenerating, setIsAgentGenerating] = useState(false);
   const [agentOptimizedPrompt, setAgentOptimizedPrompt] = useState('');
   const [agentVideoHtml, setAgentVideoHtml] = useState('');
+  const [agentChatMessages, setAgentChatMessages] = useState<AgentChatMessage[]>([]);
   const [agentProjects, setAgentProjects] = useState<AgentVideoProject[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -821,7 +829,7 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
-  const generateAgentVideo = async (text: string) => {
+  const generateAgentVideo = async (text: string, mode: 'new' | 'revision' = agentVideoHtml ? 'revision' : 'new') => {
     const promptText = text.trim();
     if (!promptText) return;
     if (!user) {
@@ -829,8 +837,13 @@ export default function Home() {
       return;
     }
     setIsAgentGenerating(true);
+    setAgentView('result');
     setAgentOptimizedPrompt('Optimizing prompt...');
-    setAgentVideoHtml('');
+    if (mode === 'new') setAgentVideoHtml('');
+    setAgentChatMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: 'user', text: promptText },
+    ]);
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -840,6 +853,7 @@ export default function Home() {
           apiKey: geminiApiKey,
           modelType,
           prompt: `${agentCategory.toUpperCase()} VIDEO BRIEF\nAspect ratio: ${agentAspect}\n${promptText}`,
+          currentHtml: mode === 'revision' ? agentVideoHtml : '',
           user,
         }),
       });
@@ -848,23 +862,30 @@ export default function Home() {
       const parsed = JSON.parse(data.text || '{}');
       const html = parsed.html || '';
       const optimizedPrompt = parsed.optimizedPrompt || data.optimizedPrompt || promptText;
+      const explanation = parsed.explanation || 'I created a six-scene product launch demo with timed scene transitions, animated product UI moments, and a final CTA.';
       const project: AgentVideoProject = {
         id: crypto.randomUUID(),
         title: parsed.title || 'Launch Video',
         prompt: promptText,
         optimizedPrompt,
+        explanation,
         html,
         aspect: agentAspect,
         date: new Date().toISOString(),
       };
       setAgentOptimizedPrompt(optimizedPrompt);
       setAgentVideoHtml(html);
+      setAgentChatMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'assistant', text: explanation },
+      ]);
       setAgentProjects((prev) => [project, ...prev].slice(0, 20));
-      setAgentView('result');
       setAgentInput('');
     } catch (error) {
       console.error(error);
-      setAgentOptimizedPrompt('Something went wrong while generating the launch video. Try again with a little more product detail.');
+      const errorMessage = 'Something went wrong while generating the launch video. Try again with a little more product detail.';
+      setAgentOptimizedPrompt(errorMessage);
+      setAgentChatMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'assistant', text: errorMessage }]);
     } finally {
       setIsAgentGenerating(false);
     }
@@ -876,6 +897,10 @@ export default function Home() {
     setAgentAspect(project.aspect);
     setAgentOptimizedPrompt(project.optimizedPrompt);
     setAgentVideoHtml(project.html);
+    setAgentChatMessages([
+      { id: crypto.randomUUID(), role: 'user', text: project.prompt },
+      { id: crypto.randomUUID(), role: 'assistant', text: project.explanation || 'I reopened this generated product launch video. Ask for changes and I can revise the HTML demo.' },
+    ]);
   };
 
   const extractPromptText = (text: string) => {
@@ -2365,7 +2390,7 @@ Return proposed memory entries and ask for confirmation before saving.`
     { id: 'social' as const, label: 'Social ad' },
   ];
 
-  const renderAgentComposer = (compact = false) => (
+  const renderAgentComposer = (compact = false, submitMode: 'new' | 'revision' = 'new') => (
     <div className={`rounded-[24px] bg-[#1a1a1a] ${compact ? 'p-2.5' : 'p-3'}`}>
       <textarea
         value={agentInput}
@@ -2373,7 +2398,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         onKeyDown={(event) => {
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            generateAgentVideo(agentInput);
+            generateAgentVideo(agentInput, submitMode);
           }
         }}
         placeholder="Generate a cinematic launch video for..."
@@ -2418,7 +2443,7 @@ Return proposed memory entries and ask for confirmation before saving.`
           </AnimatePresence>
         </div>
         <button
-          onClick={() => generateAgentVideo(agentInput)}
+          onClick={() => generateAgentVideo(agentInput, submitMode)}
           disabled={!agentInput.trim() || isAgentGenerating}
           className={`${compact ? 'h-9 w-9' : 'h-10 w-10'} flex items-center justify-center rounded-full bg-[#3a3a3a] text-zinc-200 transition-colors hover:bg-white hover:text-black disabled:opacity-40`}
           aria-label="Generate launch video"
@@ -2518,7 +2543,7 @@ Return proposed memory entries and ask for confirmation before saving.`
             ))}
           </div>
           <div className="mt-8 w-full max-w-[700px]">
-            {renderAgentComposer(false)}
+            {renderAgentComposer(false, 'new')}
           </div>
           <div className="mt-7 flex w-full max-w-[680px] flex-col gap-4">
             {agentSuggestions.map((suggestion) => (
@@ -2615,37 +2640,36 @@ Return proposed memory entries and ask for confirmation before saving.`
               transition={{ duration: 0.16 }}
               className="flex flex-1 flex-col"
             >
-              <div className="mt-10">
-                <h1 className="text-2xl font-semibold tracking-tight text-white">New video</h1>
-                <p className="mt-2 text-sm leading-6 text-zinc-500">Refine the next launch video brief.</p>
+              <div className="mt-6">
+                <h1 className="text-2xl font-semibold tracking-tight text-white">Chat edit</h1>
+                <p className="mt-2 text-sm leading-6 text-zinc-500">Ask for changes and Kindly Agent will revise the HTML video.</p>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-2">
-                {agentCategories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setAgentCategory(category.id)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${agentCategory === category.id ? 'bg-[#2f2f2f] text-white' : 'bg-transparent text-zinc-500 hover:bg-[#202020] hover:text-zinc-300'}`}
+              <div className="mt-6 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {agentChatMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`rounded-[22px] px-4 py-3 text-sm leading-6 ${message.role === 'user' ? 'ml-8 bg-[#252525] text-zinc-100' : 'mr-8 bg-[#171717] text-zinc-400'}`}
                   >
-                    {category.label}
-                  </button>
+                    {message.text}
+                  </div>
                 ))}
+                {isAgentGenerating && (
+                  <div className="mr-8 flex w-fit items-center gap-1 rounded-[22px] bg-[#171717] px-4 py-3">
+                    {[0, 1, 2].map((index) => (
+                      <motion.span
+                        key={index}
+                        animate={{ opacity: [0.25, 1, 0.25], y: [0, -3, 0] }}
+                        transition={{ duration: 0.9, repeat: Infinity, delay: index * 0.15 }}
+                        className="h-2 w-2 rounded-full bg-zinc-500"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="mt-auto">
-                <div className="mb-5 space-y-3">
-                  {agentSuggestions.map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      onClick={() => setAgentInput(suggestion)}
-                      className="flex w-full items-center gap-3 text-left text-sm text-zinc-500 transition-colors hover:text-zinc-200"
-                    >
-                      <ArrowRight size={15} className="shrink-0" />
-                      <span className="line-clamp-1">{suggestion}</span>
-                    </button>
-                  ))}
-                </div>
-                {renderAgentComposer(true)}
+              <div className="mt-4">
+                {renderAgentComposer(true, 'revision')}
               </div>
             </motion.div>
         </AnimatePresence>
@@ -2699,31 +2723,28 @@ Return proposed memory entries and ask for confirmation before saving.`
               <iframe title="Generated product launch video" srcDoc={agentVideoHtml} className="h-full w-full border-0 bg-black" sandbox="allow-scripts" />
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center bg-black text-center">
-                <motion.div
-                  animate={{ opacity: [0.35, 1, 0.35], scale: [1, 1.05, 1] }}
-                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                  className="mb-6 text-zinc-700"
-                >
-                  <Sparkles size={54} />
-                </motion.div>
-                <p className="font-mono text-sm tracking-[0.08em] text-zinc-600">
-                  {isAgentGenerating ? 'Optimizing brief and generating scenes...' : 'Awaiting prompt generation...'}
-                </p>
-                {agentOptimizedPrompt && (
-                  <p className="mt-5 max-w-lg px-8 text-sm leading-6 text-zinc-500">{agentOptimizedPrompt}</p>
+                {isAgentGenerating ? (
+                  <div className="w-2/3 max-w-2xl animate-pulse space-y-5">
+                    <div className="mx-auto h-8 w-2/5 rounded-full bg-zinc-900" />
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="h-28 rounded-[22px] bg-zinc-900" />
+                      <div className="h-28 rounded-[22px] bg-zinc-900" />
+                      <div className="h-28 rounded-[22px] bg-zinc-900" />
+                    </div>
+                    <div className="mx-auto h-4 w-3/4 rounded-full bg-zinc-900" />
+                    <div className="mx-auto h-4 w-1/2 rounded-full bg-zinc-900" />
+                  </div>
+                ) : (
+                  <>
+                    <Sparkles size={54} className="mb-6 text-zinc-800" />
+                    <p className="font-mono text-sm tracking-[0.08em] text-zinc-600">Awaiting prompt generation...</p>
+                  </>
                 )}
               </div>
             )}
           </div>
         </div>
 
-        {agentOptimizedPrompt && (
-          <div className="pointer-events-none absolute bottom-6 left-1/2 w-full max-w-2xl -translate-x-1/2 px-8">
-            <div className="pointer-events-auto rounded-[22px] bg-[#151515]/95 p-4 text-sm leading-6 text-zinc-500 backdrop-blur-xl">
-              <span className="font-bold text-zinc-300">Optimized brief:</span> {agentOptimizedPrompt}
-            </div>
-          </div>
-        )}
       </section>
       </>
       )}

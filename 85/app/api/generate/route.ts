@@ -112,13 +112,14 @@ export async function POST(req: Request) {
       return new NextResponse('Missing video prompt', { status: 400 });
     }
 
+    const isRevision = Boolean(body.currentHtml);
     const optimizeResponse = await ai.models.generateContent({
       model: modelNameFor(modelType),
       contents: [
         {
           role: 'user',
           parts: [{
-            text: `Optimize this product launch video request before generation. Make it specific, cinematic, and implementation-ready while preserving the user's intent. Keep it under 160 words.\n\nUser request:\n${rawPrompt}`,
+            text: `Optimize this product launch video ${isRevision ? 'revision' : 'request'} before generation. Make it specific, cinematic, and implementation-ready while preserving the user's intent. Keep it under 180 words.\n\nUser request:\n${rawPrompt}`,
           }],
         },
       ],
@@ -134,7 +135,7 @@ export async function POST(req: Request) {
         {
           role: 'user',
           parts: [{
-            text: `Create a single self-contained HTML file for a beautiful product launch video based on this optimized brief:\n\n${optimizedPrompt}\n\nOutput requirements:\n- Exactly 6 scenes, 5 seconds per scene, total 30 seconds.\n- Use HTML, CSS, and vanilla JavaScript only. No external libraries.\n- Include a visible stage, scene timing, progress dots, and polished motion.\n- The visual style should be premium, dark, modern, and product-launch ready.\n- The code should be ready to paste into an .html file and run in a browser.\n- Include comments naming Scene 1 through Scene 6.\n- Do not wrap the HTML in markdown code fences.`,
+            text: `${isRevision ? `Revise this existing product launch video HTML:\n\n${body.currentHtml}\n\nRevision request:\n${optimizedPrompt}` : `Create a single self-contained HTML file for a beautiful product launch video based on this optimized brief:\n\n${optimizedPrompt}`}\n\nOutput requirements:\n- Exactly 6 scenes, 5 seconds per scene, total 30 seconds.\n- Use real HTML, CSS, Tailwind-style utility classes where helpful, and JavaScript in one file.\n- Include GSAP-style timeline orchestration. If using CDN scripts, include the script tags in the same HTML file; otherwise implement a small timeline helper in vanilla JS.\n- Make the demo feel like a real product launch: hero moment, product UI closeups, benefit scenes, proof/social moment, and final CTA.\n- Include a visible stage, scene timing, progress dots, and polished motion with staggered reveals, easing, and scene transitions.\n- Use premium art direction, strong typography, responsive 16:9 and 9:16-friendly composition, and clean product UI mockups made with HTML/CSS.\n- The code must be ready to paste into an .html file and run in a browser.\n- Include comments naming Scene 1 through Scene 6.\n- Do not wrap the HTML in markdown code fences.`,
           }],
         },
       ],
@@ -145,11 +146,12 @@ export async function POST(req: Request) {
           properties: {
             title: { type: Type.STRING, description: 'A short product video project title.' },
             optimizedPrompt: { type: Type.STRING, description: 'The optimized product launch video prompt used for generation.' },
+            explanation: { type: Type.STRING, description: 'A concise explanation of the video structure, scenes, motion, and design choices.' },
             html: { type: Type.STRING, description: 'The complete self-contained HTML video file.' },
           },
-          required: ['title', 'optimizedPrompt', 'html'],
+          required: ['title', 'optimizedPrompt', 'explanation', 'html'],
         },
-        systemInstruction: 'You are an expert motion designer and frontend engineer generating high-quality animated product launch videos as self-contained HTML.',
+        systemInstruction: 'You are an elite product launch motion designer and frontend engineer. Generate cinematic, high-converting product demos as real single-file HTML using polished CSS, Tailwind-like utility thinking, JavaScript, and GSAP-style timelines. Prioritize quality, real UI mockups, tasteful animation, scene clarity, and production-ready code.',
       },
     });
 
