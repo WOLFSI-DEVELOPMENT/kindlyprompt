@@ -175,6 +175,7 @@ export default function Home() {
   const [librarySearch, setLibrarySearch] = useState('');
   const [skillSearch, setSkillSearch] = useState('');
   const [selectedSkillCard, setSelectedSkillCard] = useState<AgentSkill | null>(null);
+  const [isSubmitAppModalOpen, setIsSubmitAppModalOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
@@ -1002,7 +1003,6 @@ Return proposed memory entries and ask for confirmation before saving.`
 
   const skeletonPill = 'animate-pulse rounded-full bg-zinc-800/80';
   const skeletonBlock = 'animate-pulse rounded-[24px] bg-zinc-800/70';
-  const discoverCategories = ['Featured', 'Lifestyle', 'Productivity'];
   const sponsoredAds = [
     {
       name: 'Rork',
@@ -1073,7 +1073,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 <img
                   src={ad.image}
                   alt={ad.name}
-                  className="h-full w-full object-cover opacity-85 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0"
+                  className="h-full w-full object-cover opacity-95 transition duration-300 group-hover:opacity-100"
                 />
               </a>
             ))}
@@ -1087,16 +1087,13 @@ Return proposed memory entries and ask for confirmation before saving.`
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Apps</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">Built with Kindly Prompt</h2>
           </div>
-          <div className="flex rounded-full bg-[#1d1d1d] p-1">
-            {discoverCategories.map((category, index) => (
-              <button
-                key={category}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${index === 0 ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setIsSubmitAppModalOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
+          >
+            <Plus size={16} />
+            Submit app
+          </button>
         </div>
 
         <div className="grid gap-x-12 gap-y-3 md:grid-cols-2">
@@ -3481,6 +3478,81 @@ Return proposed memory entries and ask for confirmation before saving.`
                 >
                   <Download size={16} />
                   Download
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isSubmitAppModalOpen && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 16 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-3xl overflow-hidden rounded-[32px] bg-[#1b1c1d] p-6 text-left shadow-[0_30px_120px_rgba(0,0,0,0.55)]"
+            >
+              <button
+                onClick={() => setIsSubmitAppModalOpen(false)}
+                className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-[#2a2b2c] text-zinc-300 transition-colors hover:bg-[#343536] hover:text-white"
+                aria-label="Close submit app form"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="pr-14">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Submit app</p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-white">Share what you built</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
+                  Add your tool details so it can be reviewed for the Discover apps section.
+                </p>
+              </div>
+
+              <div className="mt-8 grid gap-5 md:grid-cols-[180px_1fr]">
+                <label className="flex h-44 cursor-pointer flex-col items-center justify-center rounded-[28px] bg-[#141617] text-center transition-colors hover:bg-[#181a1b]">
+                  <input type="file" accept="image/*" className="hidden" />
+                  <ImageIcon size={28} className="text-zinc-500" />
+                  <span className="mt-4 text-sm font-bold text-zinc-300">Upload profile pic</span>
+                  <span className="mt-1 text-xs text-zinc-600">PNG, JPG, WEBP</span>
+                </label>
+
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="App name"
+                    className="w-full rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
+                  />
+                  <textarea
+                    placeholder="Short app description"
+                    rows={3}
+                    className="w-full resize-none rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
+                  />
+                  <input
+                    type="url"
+                    placeholder="App link"
+                    className="w-full rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
+                  />
+                  <input
+                    type="url"
+                    placeholder="Link showing Kindly Prompt helped build it"
+                    className="w-full rounded-2xl bg-[#141617] px-5 py-4 text-sm font-medium text-white outline-none placeholder:text-zinc-600 focus:bg-[#181a1b]"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-7 flex items-center justify-between gap-3">
+                <p className="text-xs leading-relaxed text-zinc-600">
+                  Submissions are saved for review in a future update.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsSubmitAppModalOpen(false)}
+                  className="flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
+                >
+                  <ArrowUpRight size={16} />
+                  Submit
                 </button>
               </div>
             </motion.div>
