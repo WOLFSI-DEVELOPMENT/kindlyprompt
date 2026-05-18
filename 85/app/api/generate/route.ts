@@ -119,7 +119,7 @@ export async function POST(req: Request) {
         {
           role: 'user',
           parts: [{
-            text: `Optimize this product launch video ${isRevision ? 'revision' : 'request'} before generation. Make it specific, cinematic, and implementation-ready while preserving the user's intent. Keep it under 180 words.\n\nUser request:\n${rawPrompt}`,
+            text: `Optimize this product launch video ${isRevision ? 'revision' : 'request'} before generation. Make it specific, cinematic, and implementation-ready while preserving the user's intent. Keep it under 180 words. The art direction must use only solid white, dark grey, light grey, cream, and other soft light solid colors. No gradients, no gradient text, no glows, and no intense shadows.\n\nUser request:\n${rawPrompt}`,
           }],
         },
       ],
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
         {
           role: 'user',
           parts: [{
-            text: `${isRevision ? `Revise this existing product launch video HTML:\n\n${body.currentHtml}\n\nRevision request:\n${optimizedPrompt}` : `Create a single self-contained HTML file for a beautiful product launch video based on this optimized brief:\n\n${optimizedPrompt}`}\n\nOutput requirements:\n- Exactly 6 scenes, 5 seconds per scene, total 30 seconds.\n- Use real HTML, CSS, Tailwind-style utility classes where helpful, and JavaScript in one file.\n- Include GSAP-style timeline orchestration. If using CDN scripts, include the script tags in the same HTML file; otherwise implement a small timeline helper in vanilla JS.\n- Make the demo feel like a real product launch: hero moment, product UI closeups, benefit scenes, proof/social moment, and final CTA.\n- Include a visible stage, scene timing, progress dots, and polished motion with staggered reveals, easing, and scene transitions.\n- Use premium art direction, strong typography, responsive 16:9 and 9:16-friendly composition, and clean product UI mockups made with HTML/CSS.\n- The code must be ready to paste into an .html file and run in a browser.\n- Include comments naming Scene 1 through Scene 6.\n- Do not wrap the HTML in markdown code fences.`,
+            text: `${isRevision ? `Revise this existing product launch video HTML:\n\n${body.currentHtml}\n\nRevision request:\n${optimizedPrompt}` : `Create a single self-contained HTML file for a beautiful product launch video based on this optimized brief:\n\n${optimizedPrompt}`}\n\nOutput requirements:\n- Exactly 6 scenes, 5 seconds per scene, total 30 seconds.\n- Use real HTML, CSS, Tailwind-style utility classes where helpful, and JavaScript in one file.\n- Include GSAP-style timeline orchestration. If using CDN scripts, include the script tags in the same HTML file; otherwise implement a small timeline helper in vanilla JS.\n- Make the demo feel like a real product launch: hero moment, product UI closeups, benefit scenes, proof/social moment, and final CTA.\n- Include a visible stage, scene timing, progress dots, and polished motion with staggered reveals, easing, and scene transitions.\n- Use premium art direction, strong typography, responsive 16:9 and 9:16-friendly composition, and clean product UI mockups made with HTML/CSS.\n- Color system is strict: use only solid white, dark grey, light grey, cream, and other soft light solid colors.\n- Never use CSS gradients of any kind, SVG gradients, gradient text, text glows, outer glows, neon effects, blur glows, or intense shadows.\n- If depth is needed, use flat borders, solid layered panels, subtle opacity, or very restrained neutral shadows only.\n- Do not use CSS properties or SVG tags containing "gradient"; avoid box-shadow values that look like a glow.\n- The code must be ready to paste into an .html file and run in a browser.\n- Include comments naming Scene 1 through Scene 6.\n- Do not wrap the HTML in markdown code fences.`,
           }],
         },
       ],
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
           },
           required: ['title', 'optimizedPrompt', 'explanation', 'html'],
         },
-        systemInstruction: 'You are an elite product launch motion designer and frontend engineer. Generate cinematic, high-converting product demos as real single-file HTML using polished CSS, Tailwind-like utility thinking, JavaScript, and GSAP-style timelines. Prioritize quality, real UI mockups, tasteful animation, scene clarity, and production-ready code.',
+        systemInstruction: 'You are an elite product launch motion designer and frontend engineer. Generate cinematic, high-converting product demos as real single-file HTML using polished CSS, Tailwind-like utility thinking, JavaScript, and GSAP-style timelines. Prioritize quality, real UI mockups, tasteful animation, scene clarity, and production-ready code. Strict visual rule: only solid white, dark grey, light grey, cream, and soft light solid colors. Never use gradients, gradient text, glows, neon effects, or intense shadows.',
       },
     });
 

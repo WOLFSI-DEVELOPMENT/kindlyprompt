@@ -903,6 +903,48 @@ export default function Home() {
     ]);
   };
 
+  const buildAgentPreviewHtml = (html: string) => {
+    if (!html) return '';
+    const ratio = agentAspect === '16:9' ? '16 / 9' : '9 / 16';
+    const ratioClass = agentAspect === '16:9' ? 'kp-wide' : 'kp-portrait';
+    const adapter = `
+<style id="kindly-agent-aspect-adapter">
+  :root { --kindly-agent-ratio: ${ratio}; }
+  html, body {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    background: #050505 !important;
+    overflow: hidden !important;
+  }
+  body {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #stage, .stage, .video-stage, .launch-stage, main[data-stage], [data-video-stage] {
+    aspect-ratio: var(--kindly-agent-ratio) !important;
+    width: min(100vw, calc(100vh * (${agentAspect === '16:9' ? '16 / 9' : '9 / 16'}))) !important;
+    height: auto !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    transform-origin: center center !important;
+    transition: width 360ms cubic-bezier(.22,1,.36,1), height 360ms cubic-bezier(.22,1,.36,1), border-radius 360ms cubic-bezier(.22,1,.36,1) !important;
+  }
+  .kp-portrait #stage, .kp-portrait .stage, .kp-portrait .video-stage, .kp-portrait .launch-stage, .kp-portrait main[data-stage], .kp-portrait [data-video-stage] {
+    width: min(100vw, calc(100vh * 9 / 16)) !important;
+  }
+  .kp-wide #stage, .kp-wide .stage, .kp-wide .video-stage, .kp-wide .launch-stage, .kp-wide main[data-stage], .kp-wide [data-video-stage] {
+    width: min(100vw, calc(100vh * 16 / 9)) !important;
+  }
+</style>`;
+    const withClass = html.match(/<body[^>]*class=/i)
+      ? html.replace(/<body([^>]*)class=(["'])(.*?)\2([^>]*)>/i, `<body$1class=$2$3 ${ratioClass}$2$4>`)
+      : html.replace(/<body([^>]*)>/i, `<body$1 class="${ratioClass}">`);
+    if (withClass.includes('</head>')) return withClass.replace('</head>', `${adapter}</head>`);
+    return `${adapter}${withClass}`;
+  };
+
   const extractPromptText = (text: string) => {
     if (!text) return '';
     try {
@@ -2696,7 +2738,20 @@ Return proposed memory entries and ask for confirmation before saving.`
                   {(['16:9', '9:16'] as const).map((aspect) => (
                     <button
                       key={aspect}
-                      onClick={() => { setAgentAspect(aspect); setIsAgentAspectOpen(false); }}
+                      onClick={() => {
+                        setAgentAspect(aspect);
+                        setIsAgentAspectOpen(false);
+                        if (agentVideoHtml) {
+                          setAgentChatMessages((prev) => [
+                            ...prev,
+                            {
+                              id: crypto.randomUUID(),
+                              role: 'assistant',
+                              text: `Switched the preview to ${aspect === '16:9' ? 'wide landscape' : 'vertical portrait'} and adapted the stage sizing for that format.`,
+                            },
+                          ]);
+                        }
+                      }}
                       className={`flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-left text-sm font-bold ${agentAspect === aspect ? 'bg-[#3a3a3a] text-white' : 'text-zinc-300 hover:bg-[#333333]'}`}
                     >
                       <Square size={14} />
@@ -2718,9 +2773,22 @@ Return proposed memory entries and ask for confirmation before saving.`
         </div>
 
         <div className="flex flex-1 items-center justify-center">
-          <div className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-black shadow-[0_24px_80px_rgba(0,0,0,0.45)] ${agentAspect === '16:9' ? 'aspect-video w-[76vw] max-w-6xl' : 'aspect-[9/16] h-[82vh]'}`}>
+          <motion.div
+            layout
+            transition={{ layout: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } }}
+            className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-black shadow-[0_18px_54px_rgba(0,0,0,0.32)] ${agentAspect === '16:9' ? 'aspect-video w-[76vw] max-w-6xl' : 'aspect-[9/16] h-[82vh]'}`}
+          >
             {agentVideoHtml ? (
-              <iframe title="Generated product launch video" srcDoc={agentVideoHtml} className="h-full w-full border-0 bg-black" sandbox="allow-scripts" />
+              <motion.iframe
+                key={agentAspect}
+                title="Generated product launch video"
+                srcDoc={buildAgentPreviewHtml(agentVideoHtml)}
+                initial={{ opacity: 0.72, scale: 0.985 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+                className="h-full w-full border-0 bg-black"
+                sandbox="allow-scripts"
+              />
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center bg-black text-center">
                 {isAgentGenerating ? (
@@ -2742,7 +2810,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 )}
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
       </section>
