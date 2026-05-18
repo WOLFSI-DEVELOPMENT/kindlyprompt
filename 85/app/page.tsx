@@ -115,6 +115,8 @@ const FolderLibrary = createHugeIcon(FolderLibraryIcon);
 const Discover = createHugeIcon(DiscoverCircleIcon);
 const SidebarLeft = createHugeIcon(SidebarLeftIcon);
 const SidebarRight = createHugeIcon(SidebarRightIcon);
+const APP_ICON_URL = 'https://i.ibb.co/jZjGy5fK/Chat-GPT-Image-May-17-2026-07-27-59-PM-1.png';
+const V1_INTRO_IMAGE_URL = 'https://i.ibb.co/tTV5zm2G/kindly-prompt-for-everyone-text-202605172015.jpg';
 
 function timeAgo(dateString?: string) {
   if (!dateString) return 'recently';
@@ -357,6 +359,7 @@ export default function Home() {
   const [isPiCardVisible, setIsPiCardVisible] = useState(false);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
   const [isSuperAgentModalOpen, setIsSuperAgentModalOpen] = useState(false);
+  const [isV1IntroOpen, setIsV1IntroOpen] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -373,6 +376,10 @@ export default function Home() {
       if (!hasSeenSuperAgent) {
         setIsSuperAgentModalOpen(true);
         localStorage.setItem('hasSeenSuperAgent', 'true');
+      }
+      if (!localStorage.getItem('hasSeenKindlyV1Intro')) {
+        setIsV1IntroOpen(true);
+        localStorage.setItem('hasSeenKindlyV1Intro', 'true');
       }
     }, 0);
   }, []);
@@ -557,6 +564,23 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('kindly_discover_tool_upvotes', JSON.stringify(upvotedToolIds));
   }, [upvotedToolIds]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/discover-tools')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (cancelled || !Array.isArray(data?.tools) || data.tools.length === 0) return;
+        setSubmittedTools((prev) => {
+          const existingIds = new Set(prev.map((tool) => tool.id));
+          return [...data.tools.filter((tool: DiscoverTool) => !existingIds.has(tool.id)), ...prev];
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Load user from localStorage
   useEffect(() => {
@@ -1165,9 +1189,9 @@ Return proposed memory entries and ask for confirmation before saving.`
     setIsSubmitAppModalOpen(true);
   };
 
-  const submitDiscoverTool = () => {
+  const submitDiscoverTool = async () => {
     if (!submitAppName.trim()) return;
-    const newTool: DiscoverTool = {
+    const draftTool: DiscoverTool = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: submitAppName.trim(),
       description: submitAppDescription.trim() || 'Built with Kindly Prompt.',
@@ -1176,7 +1200,19 @@ Return proposed memory entries and ask for confirmation before saving.`
       image: submitAppImage,
       upvotes: 0,
     };
-    setSubmittedTools(prev => [newTool, ...prev]);
+    let savedTool = draftTool;
+    try {
+      const response = await fetch('/api/discover-tools', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draftTool),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.tool) savedTool = data.tool;
+      }
+    } catch {}
+    setSubmittedTools(prev => [savedTool, ...prev.filter((tool) => tool.id !== savedTool.id)]);
     setIsSubmitAppModalOpen(false);
   };
 
@@ -1323,7 +1359,20 @@ Return proposed memory entries and ask for confirmation before saving.`
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {discoverPromptSuggestions.map((item, index) => (
             <article key={item.title} className="rounded-[28px] bg-[#141414] p-4">
-              <div className={`${skeletonBlock} h-28 w-full rounded-[22px]`} />
+              <div className="relative h-32 overflow-hidden rounded-[22px] bg-[#202020]">
+                <div className="absolute inset-0 opacity-50">
+                  {Array.from({ length: 8 }).map((_, line) => (
+                    <div key={line} className="absolute h-px bg-zinc-500/35" style={{ left: `${10 + line * 5}%`, right: `${8 + line * 7}%`, top: `${18 + line * 9}%` }} />
+                  ))}
+                  {Array.from({ length: 24 }).map((_, dot) => (
+                    <span key={dot} className="absolute h-1 w-1 rounded-full bg-zinc-500/45" style={{ left: `${(dot * 19 + index * 11) % 100}%`, top: `${(dot * 31 + index * 13) % 100}%` }} />
+                  ))}
+                </div>
+                <div className="absolute inset-x-5 bottom-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">Library prompt</p>
+                  <div className="mt-2 max-w-[85%] text-lg font-black leading-tight text-white">{item.title}</div>
+                </div>
+              </div>
               <div className="mt-5">
                 <h3 className="text-base font-bold text-white">{item.title}</h3>
                 <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-500">{item.description}</p>
@@ -1741,7 +1790,7 @@ Return proposed memory entries and ask for confirmation before saving.`
               initial={{ opacity: 0, scale: 0.9, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-              src="https://i.ibb.co/WL4x4zC/AI-text-generation-app-icon-202605140740-modified.png" 
+              src={APP_ICON_URL} 
               alt="Kindly Prompt Logo" 
               className="w-24 h-24 rounded-[28px] shadow-2xl border border-white/5 mb-6" 
             />
@@ -3630,6 +3679,67 @@ Return proposed memory entries and ask for confirmation before saving.`
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isV1IntroOpen && (
+          <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[#070707]/90 p-4 backdrop-blur-md">
+            <button
+              onClick={() => setIsV1IntroOpen(false)}
+              className="absolute right-6 top-6 z-50 text-zinc-500 transition-colors hover:text-zinc-300"
+              aria-label="Close Kindly Prompt V1 intro"
+            >
+              <X size={24} />
+            </button>
+            <motion.div
+              initial={{ opacity: 0, filter: 'blur(10px)', scale: 0.95 }}
+              animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+              exit={{ opacity: 0, filter: 'blur(10px)', scale: 1.04 }}
+              transition={{ duration: 0.4 }}
+              className="grid w-full max-w-5xl overflow-hidden rounded-[32px] bg-[#141414] p-1 md:grid-cols-[1.08fr_0.92fr]"
+            >
+              <div className="relative min-h-[360px] overflow-hidden rounded-[28px] bg-black">
+                <img src={V1_INTRO_IMAGE_URL} alt="Kindly Prompt for everyone" className="absolute inset-0 h-full w-full object-cover opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md">
+                    <Sparkles size={14} />
+                    V1 is here
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col justify-center p-8 md:p-10">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-zinc-600">Kindly Prompt V1</p>
+                <h2 className="mt-4 text-4xl font-semibold tracking-tight text-white">Prompting for everyone.</h2>
+                <p className="mt-5 text-base leading-relaxed text-zinc-400">
+                  Kindly Prompt V1 helps anyone turn a simple thought, sketch, image, or product idea into a clear AI coding prompt.
+                  It is built for founders, designers, builders, students, and curious people who want better results without learning prompt engineering from scratch.
+                </p>
+                <div className="mt-7 grid gap-3 text-sm font-medium text-zinc-300">
+                  {['Generate stronger app prompts from messy ideas', 'Discover prompts, skills, tools, and community builds', 'Use Super Agents, voice, images, and Figma links in one workspace'].map((item) => (
+                    <div key={item} className="flex items-center gap-3 rounded-2xl bg-[#1c1c1c] px-4 py-3">
+                      <Check size={16} className="text-zinc-400" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setIsV1IntroOpen(false)}
+                    className="rounded-full bg-white px-7 py-3 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
+                  >
+                    Start building
+                  </button>
+                  <button
+                    onClick={() => { setIsV1IntroOpen(false); setView('discover'); }}
+                    className="rounded-full bg-[#242424] px-7 py-3 text-sm font-bold text-zinc-200 transition-colors hover:bg-[#303030]"
+                  >
+                    Explore Discover
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

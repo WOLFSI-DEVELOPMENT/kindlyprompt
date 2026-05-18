@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Kindly Prompt',
   description: 'An AI workspace to generate detailed prompts, design documents, and agent skills from simple ideas for coding tools.',
   icons: {
-    icon: 'https://i.ibb.co/WL4x4zC/AI-text-generation-app-icon-202605140740-modified.png',
+    icon: 'https://i.ibb.co/jZjGy5fK/Chat-GPT-Image-May-17-2026-07-27-59-PM-1.png',
   },
   verification: {
     google: 'tATIrsF72UQBWH_gtmI1elVZvcWQzhp_r9d-8XDG-kE',
