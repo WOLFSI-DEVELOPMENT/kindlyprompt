@@ -2538,11 +2538,11 @@ Return proposed memory entries and ask for confirmation before saving.`
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -6 }}
         transition={{ duration: 0.16, ease: 'easeOut' }}
-        className="flex min-h-full w-full flex-col"
+        className="flex w-full flex-1 flex-col"
       >
       {view === 'home' ? (
         // HOME VIEW
-        <div className="max-w-4xl mx-auto w-full px-4 pt-[15vh] pb-32 flex flex-col items-center">
+        <div className="max-w-4xl mx-auto w-full px-4 pt-[15vh] pb-16 flex flex-col items-center">
           <div className="mb-8 flex flex-col items-center justify-center gap-5">
             {modelType === 'super-agent' ? (
               <div className="flex h-20 items-center justify-center -space-x-2">
@@ -4011,7 +4011,7 @@ Return proposed memory entries and ask for confirmation before saving.`
       </AnimatePresence>
       
       {view === 'home' && (
-        <footer className="mx-auto mt-8 w-full max-w-5xl px-6 pb-8 pt-4 flex flex-col items-center justify-center text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-transparent">
+        <footer className="mx-auto mt-auto w-full max-w-5xl px-6 pb-8 pt-4 flex flex-col items-center justify-center text-zinc-500 text-sm gap-4 shrink-0 relative z-20 bg-transparent">
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
             <div>&copy; {new Date().getFullYear()} Kindly Prompt.</div>
             <button
