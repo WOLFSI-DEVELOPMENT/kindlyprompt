@@ -40,3 +40,110 @@
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
+
+.light-ui {
+  color-scheme: light;
+  background: #ffffff;
+  color: #09090b;
+}
+
+.light-ui :is(
+  [class*="bg-[#050505]"],
+  [class*="bg-[#070707]"],
+  [class*="bg-[#080808]"],
+  [class*="bg-[#0a0a0a]"],
+  [class*="bg-[#0f0f0f]"],
+  [class*="bg-[#101010]"],
+  [class*="bg-[#101112]"],
+  [class*="bg-[#111213]"],
+  [class*="bg-[#121212]"],
+  [class*="bg-[#141414]"],
+  [class*="bg-[#141617]"],
+  [class*="bg-[#151515]"],
+  [class*="bg-[#151617]"],
+  [class*="bg-[#171717]"],
+  [class*="bg-[#181818]"],
+  [class*="bg-[#18191a]"],
+  [class*="bg-[#1a1a1a]"],
+  [class*="bg-[#1b1b1b]"],
+  [class*="bg-[#1b1c1d]"],
+  [class*="bg-[#1c1c1c]"],
+  [class*="bg-[#1d1d1d]"],
+  [class*="bg-[#1f1f1f]"],
+  [class*="bg-[#202020]"],
+  [class*="bg-[#202122]"],
+  [class*="bg-[#222222]"],
+  [class*="bg-[#222324]"],
+  [class*="bg-[#242424]"],
+  [class*="bg-[#242526]"],
+  [class*="bg-[#262626]"],
+  [class*="bg-[#272727]"],
+  [class*="bg-[#2a2a2a]"],
+  [class*="bg-[#2a2b2c]"],
+  [class*="bg-[#2b2b2b]"],
+  [class*="bg-[#303030]"],
+  [class*="bg-[#333333]"],
+  [class*="bg-[#383838]"],
+  [class*="bg-zinc-800"],
+  [class*="bg-zinc-900"]
+) {
+  background-color: #f3f4f6 !important;
+}
+
+.light-ui :is(
+  [class*="hover:bg-[#1c1c1c]"]:hover,
+  [class*="hover:bg-[#202020]"]:hover,
+  [class*="hover:bg-[#262626]"]:hover,
+  [class*="hover:bg-[#2a2a2a]"]:hover,
+  [class*="hover:bg-[#303030]"]:hover,
+  [class*="hover:bg-[#383838]"]:hover,
+  [class*="hover:bg-zinc-700"]:hover,
+  [class*="hover:bg-zinc-800"]:hover
+) {
+  background-color: #e5e7eb !important;
+}
+
+.light-ui :is(
+  [class*="text-white"],
+  [class*="text-zinc-100"],
+  [class*="text-zinc-200"],
+  [class*="text-zinc-300"]
+) {
+  color: #18181b !important;
+}
+
+.light-ui :is(
+  [class*="text-zinc-400"],
+  [class*="text-zinc-500"],
+  [class*="text-zinc-600"]
+) {
+  color: #71717a !important;
+}
+
+.light-ui :is(
+  [class*="placeholder:text-zinc-500"]::placeholder,
+  [class*="placeholder:text-zinc-600"]::placeholder
+) {
+  color: #a1a1aa !important;
+}
+
+.light-ui :is(
+  [class*="border-white/5"],
+  [class*="border-white/10"],
+  [class*="border-zinc-700"],
+  [class*="border-[#2a2a2a]"]
+) {
+  border-color: #e5e7eb !important;
+}
+
+.light-ui :is(
+  [class*="shadow-2xl"],
+  [class*="shadow-xl"],
+  [class*="shadow-lg"]
+) {
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.1) !important;
+}
+
+.light-ui :is([class*="bg-black/"], [class*="bg-[#070707]/"], [class*="bg-[#0a0a0a]/"]) {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}

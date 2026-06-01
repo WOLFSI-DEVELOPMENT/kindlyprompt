@@ -2824,7 +2824,7 @@ Return proposed memory entries and ask for confirmation before saving.`
   );
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden bg-[#070707] text-white font-sans selection:bg-zinc-800 relative">
+    <div className="light-ui h-screen w-full flex flex-col overflow-hidden bg-white text-zinc-950 font-sans selection:bg-zinc-200 relative">
       <div className="hidden">
         <p className="text-zinc-400 font-medium tracking-wide">Mobile version coming soon</p>
       </div>
