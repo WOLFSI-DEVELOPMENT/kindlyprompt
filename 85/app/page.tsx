@@ -3241,9 +3241,9 @@ Return proposed memory entries and ask for confirmation before saving.`
           {/* Suggestions & Input Section */}
           <div className="flex flex-col items-center w-full max-w-[700px] relative mb-16">
             
-            <div className="bg-[#1c1c1c] rounded-[32px] flex flex-col p-1 w-full relative z-10 transition-colors group shadow-2xl">
+            <div className="flex w-full flex-col relative z-10 transition-colors group">
               
-              <div className="bg-[#0f0f0f] rounded-[28px] p-3 flex flex-col relative">
+              <div className="bg-[#f3f4f6] rounded-[28px] p-3 flex flex-col relative border border-zinc-200/70">
                 <div className="absolute top-4 left-4 z-10 flex gap-2">
                   {imageRef && (
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10 relative group/img">
@@ -3430,33 +3430,33 @@ Return proposed memory entries and ask for confirmation before saving.`
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="p-3 pt-4">
+                    <div className="px-3 pt-5">
                       {/* Tool Selection Chips */}
                       <div className="flex flex-wrap items-center gap-2 mb-4">
                         <button 
                           onClick={() => setSelectedTool('prompt')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
                         >
                            <PromptIcon size={14} /> Prompt
                         </button>
                         <button 
                           onClick={() => setSelectedTool('design')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'design' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'design' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
                         >
                            <Paintbrush size={14} /> Design
                         </button>
                         <button 
                           onClick={() => setSelectedTool('skill')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'skill' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'skill' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
                         >
                            <Zap size={14} /> Skill
                         </button>
                         <button 
                           onClick={() => setSelectedTool('spec')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'spec' ? 'bg-[#333333] text-white' : 'bg-transparent text-zinc-400 hover:text-zinc-200'}`}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'spec' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
                         >
                            <FileText size={14} /> SPEC.md
-                           <span className="rounded-md bg-[#10292e] px-1.5 py-0.5 text-[10px] font-black leading-none text-cyan-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_0_rgba(0,0,0,0.35)]">
+                           <span className="rounded-md bg-cyan-100 px-1.5 py-0.5 text-[10px] font-black leading-none text-cyan-700">
                              New
                            </span>
                         </button>
@@ -3484,9 +3484,9 @@ Return proposed memory entries and ask for confirmation before saving.`
                            <button 
                              key={i}
                              onClick={() => handleSuggestionClick(suggestion)}
-                             className="text-left w-full flex items-center gap-4 text-[15px] text-zinc-300 hover:text-white transition-colors group"
+                             className="text-left w-full flex items-center gap-4 text-[15px] text-zinc-800 hover:text-zinc-950 transition-colors group"
                            >
-                             <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-400 shrink-0" strokeWidth={1.5} />
+                             <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-700 shrink-0" strokeWidth={1.5} />
                              <span className="truncate">{suggestion}</span>
                            </button>
                          ))}
