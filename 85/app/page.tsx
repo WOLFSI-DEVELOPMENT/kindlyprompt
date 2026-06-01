@@ -2443,7 +2443,7 @@ Return proposed memory entries and ask for confirmation before saving.`
   ];
 
   const renderAgentComposer = (compact = false, submitMode: 'new' | 'revision' = 'new') => (
-    <div className={`rounded-[24px] bg-[#1a1a1a] ${compact ? 'p-2.5' : 'p-3'}`}>
+    <div className={`rounded-[24px] bg-[#f1f1f1] ${compact ? 'p-2.5' : 'p-3'}`}>
       <textarea
         value={agentInput}
         onChange={(event) => setAgentInput(event.target.value)}
@@ -2454,14 +2454,14 @@ Return proposed memory entries and ask for confirmation before saving.`
           }
         }}
         placeholder="Generate a cinematic launch video for..."
-        className={`${compact ? 'h-16' : 'h-20'} w-full resize-none bg-transparent text-[15px] leading-6 text-zinc-100 outline-none placeholder:text-zinc-500`}
+        className={`${compact ? 'h-16' : 'h-20'} w-full resize-none bg-transparent text-[15px] leading-6 text-zinc-900 outline-none placeholder:text-zinc-400`}
       />
       <div className="flex items-center justify-between">
         <div className="relative">
           <button
             type="button"
             onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-            className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold text-zinc-200 transition-colors hover:bg-[#262626]"
+            className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold text-zinc-700 transition-colors hover:bg-[#e4e4e4]"
           >
             {agentModelLabel}
             <ChevronDown size={13} className="text-zinc-500" />
@@ -2474,7 +2474,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  className="absolute bottom-full left-0 z-50 mb-2 w-48 rounded-2xl border border-white/10 bg-[#121212] p-1.5 shadow-2xl"
+                  className="absolute bottom-full left-0 z-50 mb-2 w-48 rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.12)]"
                 >
                   {[
                     ['fast', 'Fast'],
@@ -2485,10 +2485,10 @@ Return proposed memory entries and ask for confirmation before saving.`
                     <button
                       key={value}
                       onClick={() => { setAgentModelType(value as typeof agentModelType); setIsModelDropdownOpen(false); }}
-                      className={`w-full rounded-full px-3 py-2 text-left text-[13px] font-medium ${agentModelType === value ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:bg-[#1c1c1c] hover:text-zinc-200'}`}
+                      className={`w-full rounded-full px-3 py-2 text-left text-[13px] font-medium ${agentModelType === value ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'}`}
                     >
                       <span>{label}</span>
-                      {value === 'fast' && <span className="ml-2 rounded-md bg-[#303030] px-1.5 py-0.5 text-[10px] text-zinc-300">Gemini 3</span>}
+                      {value === 'fast' && <span className="ml-2 rounded-md bg-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-700">Gemini 3</span>}
                     </button>
                   ))}
                 </motion.div>
@@ -2499,7 +2499,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         <button
           onClick={() => generateAgentVideo(agentInput, submitMode)}
           disabled={!agentInput.trim() || isAgentGenerating}
-          className={`${compact ? 'h-9 w-9' : 'h-10 w-10'} flex items-center justify-center rounded-full bg-[#3a3a3a] text-zinc-200 transition-colors hover:bg-white hover:text-black disabled:opacity-40`}
+          className={`${compact ? 'h-9 w-9' : 'h-10 w-10'} flex items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700 disabled:opacity-40`}
           aria-label="Generate launch video"
         >
           {isAgentGenerating ? <RefreshCw size={16} className="animate-spin" /> : <ArrowUp size={17} />}
@@ -2512,7 +2512,7 @@ Return proposed memory entries and ask for confirmation before saving.`
     <div className={`w-full ${isSidebarExpanded ? 'px-3' : 'flex justify-center px-0'}`}>
       {user ? (
         showApiKeyInput ? (
-          <div className={`rounded-2xl bg-[#151515] p-2 ${isSidebarExpanded ? 'w-full' : 'w-10'}`}>
+          <div className={`rounded-2xl bg-[#f1f1f1] p-2 ${isSidebarExpanded ? 'w-full' : 'w-10'}`}>
             {isSidebarExpanded ? (
               <div className="flex items-center gap-2">
                 <input
@@ -2520,15 +2520,15 @@ Return proposed memory entries and ask for confirmation before saving.`
                   placeholder="Gemini API Key"
                   value={geminiApiKey}
                   onChange={(e) => setGeminiApiKey(e.target.value)}
-                  className="min-w-0 flex-1 bg-transparent text-xs text-zinc-200 outline-none placeholder:text-zinc-600"
+                  className="min-w-0 flex-1 bg-transparent text-xs text-zinc-800 outline-none placeholder:text-zinc-400"
                   autoFocus
                 />
-                <button onClick={() => setShowApiKeyInput(false)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-white">
+                <button onClick={() => setShowApiKeyInput(false)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white">
                   <Check size={13} />
                 </button>
               </div>
             ) : (
-              <button onClick={() => setShowApiKeyInput(false)} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2a2a2a] text-white">
+              <button onClick={() => setShowApiKeyInput(false)} className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white">
                 <Check size={13} />
               </button>
             )}
@@ -2545,7 +2545,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                 setUser(null);
               }
             }}
-            className={`relative overflow-hidden rounded-full bg-[#151515] ${isSidebarExpanded ? 'w-full cursor-grab p-1' : 'h-10 w-10'}`}
+            className={`relative overflow-hidden rounded-full bg-[#f1f1f1] ${isSidebarExpanded ? 'w-full cursor-grab p-1' : 'h-10 w-10'}`}
           >
             {isSidebarExpanded && (
               <>
@@ -2553,18 +2553,18 @@ Return proposed memory entries and ask for confirmation before saving.`
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-[10px] font-black tracking-wider text-blue-500">API</div>
               </>
             )}
-            <div className={`relative z-10 flex items-center gap-2 rounded-full bg-[#262626] ${isSidebarExpanded ? 'px-1.5 py-1.5 pr-3' : 'h-10 w-10 justify-center'}`}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1c1c1c] text-xs font-bold text-white">
+            <div className={`relative z-10 flex items-center gap-2 rounded-full bg-white ${isSidebarExpanded ? 'px-1.5 py-1.5 pr-3' : 'h-10 w-10 justify-center'}`}>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-200 text-xs font-bold text-zinc-900">
                 {user.image ? <img src={user.image} alt={user.name} className="h-full w-full object-cover" /> : user.name.charAt(0).toUpperCase()}
               </div>
-              {isSidebarExpanded && <span className="min-w-0 truncate text-xs font-bold text-zinc-100">{user.name}</span>}
+              {isSidebarExpanded && <span className="min-w-0 truncate text-xs font-bold text-zinc-900">{user.name}</span>}
             </div>
           </motion.div>
         )
       ) : (
         <button
           onClick={() => setIsAuthModalOpen(true)}
-          className={`${isSidebarExpanded ? 'w-full px-3' : 'w-10'} flex h-10 items-center justify-center rounded-full bg-[#262626] text-xs font-bold text-zinc-300 transition-colors hover:bg-[#303030] hover:text-white`}
+          className={`${isSidebarExpanded ? 'w-full px-3' : 'w-10'} flex h-10 items-center justify-center rounded-full bg-[#f1f1f1] text-xs font-bold text-zinc-700 transition-colors hover:bg-white hover:text-zinc-950`}
         >
           {isSidebarExpanded ? 'Sign in' : <AlignLeft size={16} />}
         </button>
@@ -2573,24 +2573,24 @@ Return proposed memory entries and ask for confirmation before saving.`
   );
 
   const renderAgentDashboard = () => (
-    <div className="flex min-h-screen w-full bg-[#070707]">
+    <div className="flex min-h-screen w-full bg-white text-zinc-950">
       {agentView === 'home' ? (
         <section className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center justify-center px-6 pb-16">
           <motion.div
             animate={{ y: [0, -3, 0] }}
             transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-            className="mb-7 flex h-16 w-16 items-center justify-center rounded-[22px] bg-[#1f1f1f] text-zinc-300"
+            className="mb-7 flex h-16 w-16 items-center justify-center rounded-[22px] bg-[#f1f1f1] text-zinc-700"
           >
             <Eye size={28} />
           </motion.div>
-          <h1 className="text-center text-4xl font-medium tracking-tight text-white">What launch video should Kindly Agent make?</h1>
+          <h1 className="text-center text-4xl font-medium tracking-tight text-zinc-950">What launch video should Kindly Agent make?</h1>
           <p className="mt-4 max-w-2xl text-center text-[15px] leading-7 text-zinc-500">Generate polished 6-scene product launch videos as HTML. Each scene runs 5 seconds, and your brief gets optimized before the agent builds.</p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
             {agentCategories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setAgentCategory(category.id)}
-                className={`rounded-full px-3.5 py-2 text-xs font-bold transition-colors ${agentCategory === category.id ? 'bg-[#2f2f2f] text-white' : 'bg-transparent text-zinc-500 hover:bg-[#202020] hover:text-zinc-300'}`}
+                className={`rounded-full px-3.5 py-2 text-xs font-bold transition-colors ${agentCategory === category.id ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:bg-[#f1f1f1] hover:text-zinc-900'}`}
               >
                 {category.label}
               </button>
@@ -2601,8 +2601,8 @@ Return proposed memory entries and ask for confirmation before saving.`
           </div>
           <div className="mt-7 flex w-full max-w-[680px] flex-col gap-4">
             {agentSuggestions.map((suggestion) => (
-              <button key={suggestion} onClick={() => setAgentInput(suggestion)} className="flex items-center gap-4 text-left text-[15px] text-zinc-400 transition-colors hover:text-white">
-                <ArrowRight size={16} className="shrink-0 text-zinc-600" />
+              <button key={suggestion} onClick={() => setAgentInput(suggestion)} className="flex items-center gap-4 text-left text-[15px] text-zinc-500 transition-colors hover:text-zinc-950">
+                <ArrowRight size={16} className="shrink-0 text-zinc-400" />
                 <span>{suggestion}</span>
               </button>
             ))}
@@ -2612,13 +2612,13 @@ Return proposed memory entries and ask for confirmation before saving.`
         <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-8 py-14">
           <div className="flex items-end justify-between gap-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-zinc-600">Kindly Agent</p>
-              <h1 className="mt-3 text-4xl font-medium tracking-tight text-white">Recent videos</h1>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Kindly Agent</p>
+              <h1 className="mt-3 text-4xl font-medium tracking-tight text-zinc-950">Recent videos</h1>
               <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-500">Review generated product launch videos, reopen their preview, and export the HTML again.</p>
             </div>
             <button
               onClick={resetAgentProject}
-              className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-zinc-200"
+              className="rounded-full bg-[#f1f1f1] px-5 py-2.5 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-200"
             >
               New video
             </button>
@@ -2626,49 +2626,49 @@ Return proposed memory entries and ask for confirmation before saving.`
 
           <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {agentProjects.length === 0 ? (
-              <div className="col-span-full rounded-[28px] bg-[#141414] p-8 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#202020] text-zinc-500">
+              <div className="col-span-full rounded-[28px] bg-[#f6f6f6] p-8 text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-zinc-500">
                   <Eye size={24} />
                 </div>
-                <h2 className="mt-5 text-xl font-semibold text-white">No recent videos yet</h2>
+                <h2 className="mt-5 text-xl font-semibold text-zinc-950">No recent videos yet</h2>
                 <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-zinc-500">Generate your first launch video and it will appear here automatically.</p>
               </div>
             ) : agentProjects.map((project) => (
               <button
                 key={project.id}
                 onClick={() => openAgentProject(project)}
-                className="group rounded-[28px] bg-[#141414] p-4 text-left transition-colors hover:bg-[#1b1b1b]"
+                className="group rounded-[28px] bg-[#f6f6f6] p-4 text-left transition-colors hover:bg-[#eeeeee]"
               >
                 <div className="flex aspect-video items-center justify-center overflow-hidden rounded-[22px] bg-black">
                   <iframe title={`${project.title} preview`} srcDoc={project.html} className="h-full w-full scale-[0.42] border-0 bg-black pointer-events-none" sandbox="allow-scripts" />
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3">
-                  <h3 className="truncate text-base font-bold text-zinc-100">{project.title}</h3>
-                  <span className="shrink-0 rounded-full bg-[#262626] px-2 py-1 text-[11px] font-bold text-zinc-500">{project.aspect}</span>
+                  <h3 className="truncate text-base font-bold text-zinc-950">{project.title}</h3>
+                  <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[11px] font-bold text-zinc-500">{project.aspect}</span>
                 </div>
                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">{project.optimizedPrompt || project.prompt}</p>
-                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-700 group-hover:text-zinc-500">{timeAgo(project.date)}</p>
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-400 group-hover:text-zinc-600">{timeAgo(project.date)}</p>
               </button>
             ))}
           </div>
         </section>
       ) : (
       <>
-      <section className="flex h-screen w-[430px] shrink-0 flex-col overflow-hidden border-r border-white/5 bg-[#121212] px-5 py-5">
+      <section className="flex h-screen w-[430px] shrink-0 flex-col overflow-hidden border-r border-zinc-200 bg-[#f8f8f8] px-5 py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#272727] text-zinc-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-zinc-700">
               <Eye size={19} />
             </div>
             <div className="flex items-center gap-2 text-sm font-bold">
-              <button onClick={() => setAgentView('recent')} className="text-zinc-500 transition-colors hover:text-zinc-300">Projects</button>
-              <span className="text-zinc-600">/</span>
-              <button onClick={resetAgentProject} className="text-white">New Project</button>
+              <button onClick={() => setAgentView('recent')} className="text-zinc-500 transition-colors hover:text-zinc-950">Projects</button>
+              <span className="text-zinc-300">/</span>
+              <button onClick={resetAgentProject} className="text-zinc-950">New Project</button>
             </div>
           </div>
           <button
             onClick={resetAgentProject}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-[#202020] hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white hover:text-zinc-950"
             aria-label="New agent video project"
           >
             <Plus size={18} />
@@ -2685,22 +2685,22 @@ Return proposed memory entries and ask for confirmation before saving.`
               className="flex min-h-0 flex-1 flex-col"
             >
               <div className="mt-6 shrink-0">
-                <h1 className="text-2xl font-semibold tracking-tight text-white">Chat edit</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Chat edit</h1>
                 <p className="mt-2 text-sm leading-6 text-zinc-500">Ask for changes and Kindly Agent will revise the HTML video.</p>
               </div>
 
               <div className="relative mt-5 min-h-0 flex-1">
-                <div className="absolute inset-0 space-y-3 overflow-y-auto overscroll-contain pb-6 pr-1 [scrollbar-width:thin] [scrollbar-color:#3a3a3a_transparent]">
+                <div className="absolute inset-0 space-y-3 overflow-y-auto overscroll-contain pb-6 pr-1 [scrollbar-width:thin] [scrollbar-color:#d4d4d8_transparent]">
                   {agentChatMessages.map((message) => (
                     <div
                       key={message.id}
-                      className={`rounded-[22px] px-4 py-3 text-sm leading-6 ${message.role === 'user' ? 'ml-8 bg-[#252525] text-zinc-100' : 'mr-8 bg-[#171717] text-zinc-400'}`}
+                      className={`rounded-[22px] px-4 py-3 text-sm leading-6 ${message.role === 'user' ? 'ml-8 bg-white text-zinc-950' : 'mr-8 bg-[#efefef] text-zinc-600'}`}
                     >
                       {message.text}
                     </div>
                   ))}
                   {isAgentGenerating && (
-                    <div className="mr-8 flex w-fit items-center gap-1 rounded-[22px] bg-[#171717] px-4 py-3">
+                    <div className="mr-8 flex w-fit items-center gap-1 rounded-[22px] bg-[#efefef] px-4 py-3">
                       {[0, 1, 2].map((index) => (
                         <motion.span
                           key={index}
@@ -2714,19 +2714,19 @@ Return proposed memory entries and ask for confirmation before saving.`
                 </div>
               </div>
 
-              <div className="sticky bottom-0 z-10 shrink-0 bg-[#121212] pt-4">
+              <div className="sticky bottom-0 z-10 shrink-0 bg-[#f8f8f8] pt-4">
                 {renderAgentComposer(true, 'revision')}
               </div>
             </motion.div>
         </AnimatePresence>
       </section>
 
-      <section className="relative flex min-w-0 flex-1 flex-col px-8 py-4">
+      <section className="relative flex min-w-0 flex-1 flex-col bg-white px-8 py-4">
         <div className="flex items-center justify-end gap-3">
           <div className="relative">
             <button
               onClick={() => setIsAgentAspectOpen((value) => !value)}
-              className="flex h-9 items-center gap-2 rounded-full bg-[#262626] px-4 text-sm font-bold text-white transition-colors hover:bg-[#303030]"
+              className="flex h-9 items-center gap-2 rounded-full bg-[#f1f1f1] px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-[#e8e8e8]"
             >
               <Square size={16} />
               {agentAspect}
@@ -2737,7 +2737,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  className="absolute right-0 top-full z-30 mt-2 w-40 rounded-[22px] bg-[#2a2a2a] p-2 shadow-2xl"
+                  className="absolute right-0 top-full z-30 mt-2 w-40 rounded-[22px] bg-white p-2 shadow-[0_18px_50px_rgba(0,0,0,0.12)]"
                 >
                   {(['16:9', '9:16'] as const).map((aspect) => (
                     <button
@@ -2756,7 +2756,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                           ]);
                         }
                       }}
-                      className={`flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-left text-sm font-bold ${agentAspect === aspect ? 'bg-[#3a3a3a] text-white' : 'text-zinc-300 hover:bg-[#333333]'}`}
+                      className={`flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-left text-sm font-bold ${agentAspect === aspect ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950'}`}
                     >
                       <Square size={14} />
                       {aspect === '16:9' ? '16:9 Wide' : '9:16 Port'}
@@ -2769,7 +2769,7 @@ Return proposed memory entries and ask for confirmation before saving.`
           <button
             onClick={downloadAgentVideo}
             disabled={!agentVideoHtml}
-            className="flex h-9 items-center gap-2 rounded-full bg-[#262626] px-4 text-sm font-bold text-white transition-colors hover:bg-[#303030] disabled:opacity-40"
+            className="flex h-9 items-center gap-2 rounded-full bg-[#f1f1f1] px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-[#e8e8e8] disabled:opacity-40"
           >
             <Download size={17} />
             Export
@@ -2780,7 +2780,7 @@ Return proposed memory entries and ask for confirmation before saving.`
           <motion.div
             layout
             transition={{ layout: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } }}
-            className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-black shadow-[0_18px_54px_rgba(0,0,0,0.32)] ${agentAspect === '16:9' ? 'aspect-video w-[76vw] max-w-6xl' : 'aspect-[9/16] h-[82vh]'}`}
+            className={`relative overflow-hidden rounded-[18px] border border-zinc-200 bg-black shadow-[0_18px_54px_rgba(0,0,0,0.14)] ${agentAspect === '16:9' ? 'aspect-video w-[76vw] max-w-6xl' : 'aspect-[9/16] h-[82vh]'}`}
           >
             {agentVideoHtml ? (
               <motion.iframe
@@ -3026,7 +3026,7 @@ Return proposed memory entries and ask for confirmation before saving.`
           <motion.aside
             animate={{ width: isSidebarExpanded ? 220 : 48 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed top-0 bottom-0 left-0 z-50 bg-[#1f1f1f] flex flex-col pt-3 pb-6 gap-6 overflow-hidden"
+            className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col pt-3 pb-6 gap-6 overflow-hidden ${activeApp === 'agent' ? 'bg-[#f4f4f4] text-zinc-950' : 'bg-[#1f1f1f] text-white'}`}
           >
             {isSidebarExpanded ? (
               <div className="mx-2 flex flex-col gap-[2px]">
@@ -3035,13 +3035,13 @@ Return proposed memory entries and ask for confirmation before saving.`
                   onClick={() => setIsAppSwitcherOpen((value) => !value)}
                   className={`flex h-14 w-full items-center justify-between px-4 text-left transition-all duration-300 ease-out ${
                     isAppSwitcherOpen
-                      ? 'rounded-t-[28px] rounded-b-[10px] bg-[#262626]'
-                      : 'rounded-full bg-[#1f1f1f] hover:bg-[#262626]'
+                      ? activeApp === 'agent' ? 'rounded-t-[28px] rounded-b-[10px] bg-white' : 'rounded-t-[28px] rounded-b-[10px] bg-[#262626]'
+                      : activeApp === 'agent' ? 'rounded-full bg-[#f4f4f4] hover:bg-white' : 'rounded-full bg-[#1f1f1f] hover:bg-[#262626]'
                   }`}
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="h-6 w-6 shrink-0 object-contain opacity-90" />
-                    <span className="min-w-0 truncate text-sm font-bold text-zinc-100">{activeApp === 'agent' ? 'Kindly Agent' : 'Kindly Prompt'}</span>
+                    <span className={`min-w-0 truncate text-sm font-bold ${activeApp === 'agent' ? 'text-zinc-950' : 'text-zinc-100'}`}>{activeApp === 'agent' ? 'Kindly Agent' : 'Kindly Prompt'}</span>
                   </div>
                   <ChevronDown size={14} className={`shrink-0 text-zinc-500 transition-transform duration-300 ${isAppSwitcherOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -3052,7 +3052,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                       if (activeApp === 'agent') setView('home');
                       else openAgentApp('home');
                     }}
-                    className="flex h-12 w-full items-center gap-3 rounded-t-[10px] rounded-b-[28px] bg-[#151515] px-4 text-left text-zinc-500 transition-colors hover:bg-[#1e1e1e] hover:text-zinc-300"
+                    className={`flex h-12 w-full items-center gap-3 rounded-t-[10px] rounded-b-[28px] px-4 text-left transition-colors ${activeApp === 'agent' ? 'bg-white text-zinc-500 hover:bg-[#eeeeee] hover:text-zinc-950' : 'bg-[#151515] text-zinc-500 hover:bg-[#1e1e1e] hover:text-zinc-300'}`}
                   >
                     <AlignLeft size={18} className="shrink-0 text-zinc-500" />
                     <span className="truncate text-sm font-semibold">{activeApp === 'agent' ? 'Kindly Prompt' : 'Kindly Agent'}</span>
@@ -3061,7 +3061,7 @@ Return proposed memory entries and ask for confirmation before saving.`
               </div>
             ) : (
               <a href="/" className="mx-auto flex-shrink-0 transition-opacity hover:opacity-80">
-                <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex shrink-0 items-center justify-center overflow-hidden">
+                <div className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center overflow-hidden ${activeApp === 'agent' ? 'bg-white' : 'bg-[#2a2a2a]'}`}>
                    <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
                 </div>
               </a>
@@ -3092,13 +3092,13 @@ Return proposed memory entries and ask for confirmation before saving.`
                       }}
                       className={`relative rounded-full flex items-center outline-none group h-10 transition-colors ${
                         isSidebarExpanded
-                          ? `gap-3 px-3 justify-start ${item.active ? 'bg-[#2a2a2a]' : 'hover:bg-[#262626]'}`
+                          ? `gap-3 px-3 justify-start ${item.active ? activeApp === 'agent' ? 'bg-white' : 'bg-[#2a2a2a]' : activeApp === 'agent' ? 'hover:bg-white' : 'hover:bg-[#262626]'}`
                           : 'w-10 justify-center'
                       }`}
                       title={item.label}
                     >
-                      <Icon size={20} strokeWidth={1.5} className={`shrink-0 transition-colors ${item.active ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                      {isSidebarExpanded && <span className={`truncate text-sm font-semibold ${item.active ? 'text-white' : 'text-zinc-300'}`}>{item.label}</span>}
+                      <Icon size={20} strokeWidth={1.5} className={`shrink-0 transition-colors ${item.active ? activeApp === 'agent' ? 'text-zinc-950' : 'text-white' : activeApp === 'agent' ? 'text-zinc-500 group-hover:text-zinc-950' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
+                      {isSidebarExpanded && <span className={`truncate text-sm font-semibold ${item.active ? activeApp === 'agent' ? 'text-zinc-950' : 'text-white' : activeApp === 'agent' ? 'text-zinc-600' : 'text-zinc-300'}`}>{item.label}</span>}
                     </motion.button>
                   );
                 })}
@@ -3113,7 +3113,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                           return !value;
                         });
                       }}
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-[#262626] hover:text-white"
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white hover:text-zinc-950"
                       title={isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
                     >
                       {isSidebarExpanded ? <SidebarLeft size={17} /> : <SidebarRight size={17} />}
