@@ -4,14 +4,15 @@ import { NextResponse } from 'next/server';
 import { SKILL_CREATOR_GUIDELINES } from '@/lib/skill-guidelines';
 
 type ModelType = 'ultra-fast' | 'super-agent' | 'lite' | 'fast';
-type SelectedTool = 'prompt' | 'design' | 'skill' | 'spec';
+type ConcreteTool = 'prompt' | 'design' | 'skill' | 'spec';
+type SelectedTool = ConcreteTool | 'auto';
 
 function modelNameFor(modelType: ModelType) {
   if (modelType === 'fast') return 'gemini-3-flash-preview';
-  return 'gemini-3.1-flash-lite';
+  return 'gemini-3.5-flash-lite';
 }
 
-function generationInstructions(selectedTool: SelectedTool, modelType: ModelType) {
+function generationInstructions(selectedTool: ConcreteTool, modelType: ModelType) {
   let systemInstruction = '';
   let promptDescription = '';
 
@@ -74,6 +75,25 @@ Requirements for the generated SPEC.md:
   }
 
   return { systemInstruction, promptDescription };
+}
+
+// Auto mode: the model first decides which output the request needs, then follows that type's rules.
+function autoInstructions(modelType: ModelType) {
+  const tools: ConcreteTool[] = ['prompt', 'design', 'skill', 'spec'];
+  const rules = tools
+    .map((tool) => `--- ${tool.toUpperCase()} RULES ---\n${generationInstructions(tool, modelType).systemInstruction}`)
+    .join('\n\n');
+  return {
+    systemInstruction: `First decide which output the user actually needs, using only their request and its wording:
+- "prompt": an execution prompt that an AI coding agent follows to build an app or website.
+- "design": a DESIGN.md design system or visual specification.
+- "skill": a SKILL.md agent skill definition.
+- "spec": a unified SPEC.md that merges prompt, design, skill and research.
+Choose the single best fit. If the request describes something to build without naming a file type, choose "prompt". Set "kind" to your choice, then write the output exactly as that type's rules require.
+
+${rules}`,
+    promptDescription: 'The generated file content for the chosen kind, ready to be copy-pasted.',
+  };
 }
 
 export async function POST(req: Request) {
@@ -177,8 +197,10 @@ export async function POST(req: Request) {
     });
   }
 
-  const selectedTool = (body.selectedTool || 'prompt') as SelectedTool;
-  const { systemInstruction, promptDescription } = generationInstructions(selectedTool, modelType);
+  const selectedTool = (body.selectedTool || 'auto') as SelectedTool;
+  const { systemInstruction, promptDescription } = selectedTool === 'auto'
+    ? autoInstructions(modelType)
+    : generationInstructions(selectedTool, modelType);
   const response = await ai.models.generateContent({
     model: modelNameFor(modelType),
     contents: body.contents,
@@ -189,11 +211,13 @@ export async function POST(req: Request) {
         properties: {
           title: { type: Type.STRING, description: 'A two or three word short title for this app idea.' },
           prompt: { type: Type.STRING, description: promptDescription },
+          kind: { type: Type.STRING, description: 'The chosen output type: one of prompt, design, skill, spec.' },
           svg_icon: { type: Type.STRING, description: 'A functional SVG string (only the <svg> tag and contents). Use viewBox 0 0 48 48. Build a very simple geometric layout abstractly representing the app using <rect> or <circle> elements. Use exactly fill="#27272a" or clear stroke="#27272a". Never add width or height attributes to the root <svg>, only viewBox. Make it a clean flat icon.' },
         },
         required: ['title', 'prompt', 'svg_icon'],
       },
       systemInstruction,
+      thinkingConfig: { thinkingLevel: 'low' as any },
     },
   });
 

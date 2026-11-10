@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
   },
   icons: {
-    icon: 'https://i.ibb.co/jZjGy5fK/Chat-GPT-Image-May-17-2026-07-27-59-PM-1.png',
+    icon: 'https://res.cloudinary.com/dwthgcx5j/image/upload/v1794336717/oval_crop_image_x2gozu.png',
   },
   verification: {
     google: 'tATIrsF72UQBWH_gtmI1elVZvcWQzhp_r9d-8XDG-kE',

@@ -218,7 +218,8 @@ export default function Home() {
   });
   const [copied, setCopied] = useState(false);
   const [libraryCopiedIdx, setLibraryCopiedIdx] = useState<number | null>(null);
-  const [selectedTool, setSelectedTool] = useState<'prompt' | 'design' | 'skill' | 'spec'>('prompt');
+  // Output type is chosen by the model from the request (see api/generate autoInstructions).
+  const selectedTool = 'auto' as const;
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showShortcutsMenu, setShowShortcutsMenu] = useState(false);
   const [modelType, setModelType] = useState<'ultra-fast' | 'super-agent' | 'lite'>('ultra-fast');
@@ -481,6 +482,7 @@ export default function Home() {
   const [imageRef, setImageRef] = useState<string | null>(null);
   const [attachedText, setAttachedText] = useState<{name: string, content: string} | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+  const [figmaDraft, setFigmaDraft] = useState<string | null>(null);
   const [isComposerListening, setIsComposerListening] = useState(false);
   const composerRecognitionRef = useRef<any>(null);
   const composerTranscriptRef = useRef('');
@@ -494,13 +496,19 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
+  // Opens an inline field in the add menu (window.prompt is blocked in the desktop app).
   const attachFigmaLink = () => {
-    const figmaLink = window.prompt('Paste your Figma link');
-    if (!figmaLink?.trim()) return;
+    setFigmaDraft((current) => (current === null ? '' : current));
+  };
+
+  const submitFigmaLink = () => {
+    const figmaLink = (figmaDraft || '').trim();
+    if (!figmaLink) return;
     setInput((prev) => {
       const prefix = prev.trim() ? `${prev.trim()}\n\n` : '';
-      return `${prefix}Turn this Figma file into a detailed AI coding prompt: ${figmaLink.trim()}`;
+      return `${prefix}Turn this Figma file into a detailed AI coding prompt: ${figmaLink}`;
     });
+    setFigmaDraft(null);
     setIsAddMenuOpen(false);
   };
 
@@ -1041,7 +1049,6 @@ export default function Home() {
     body: 'A new Chrome extension that works across your AI tools to optimize prompts, guide context, and connect more of your workflow over time.',
   };
   const discoveryTabs = [
-    { label: 'Discover', view: 'discover' as const, icon: Discover },
     { label: 'Skills', view: 'skills' as const, icon: Clipboard },
     { label: 'Library', view: 'library' as const, icon: FolderLibrary },
     { label: 'Labs', view: 'labs' as const, icon: Labs },
@@ -2027,7 +2034,7 @@ Return proposed memory entries and ask for confirmation before saving.`
           action: 'generate',
           apiKey: geminiApiKey,
           modelType,
-          selectedTool,
+          selectedTool: 'auto',
           contents: contentsObj,
           user,
         }),
@@ -2073,7 +2080,7 @@ Return proposed memory entries and ask for confirmation before saving.`
           title: parsed.title || 'Generated App',
           prompt: parsed.prompt || result || 'Failed to parse prompt.',
           svg: parsed.svg_icon || `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`,
-          type: selectedTool,
+          type: (['prompt', 'design', 'skill', 'spec'].includes(parsed.kind) ? parsed.kind : 'prompt') as 'prompt' | 'design' | 'skill' | 'spec',
           date: new Date().toISOString()
         };
         setCurrentResult(newItem);
@@ -2096,7 +2103,7 @@ Return proposed memory entries and ask for confirmation before saving.`
             title: 'Generated Prompt',
             prompt: responseText,
             svg: `<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#27272a" /></svg>`,
-            type: selectedTool,
+            type: 'prompt',
             date: new Date().toISOString(),
           }));
         }
@@ -2200,7 +2207,6 @@ Return proposed memory entries and ask for confirmation before saving.`
     const mobileTabs = [
       { id: 'home' as const, label: 'Home', icon: PromptIcon },
       { id: 'history' as const, label: 'History', icon: History },
-      { id: 'discover' as const, label: 'Discover', icon: Discover },
     ];
     const mobilePromptCount = recents.length;
     const mobileHistory = recents.slice(0, 8);
@@ -3026,43 +3032,17 @@ Return proposed memory entries and ask for confirmation before saving.`
           <motion.aside
             animate={{ width: isSidebarExpanded ? 220 : 48 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col pt-3 pb-6 gap-6 overflow-hidden ${activeApp === 'agent' ? 'bg-[#f4f4f4] text-zinc-950' : 'bg-[#1f1f1f] text-white'}`}
+            className="fixed top-0 bottom-0 left-0 z-50 flex flex-col pt-3 pb-6 gap-6 overflow-hidden bg-white text-zinc-950 border-r border-zinc-200"
           >
             {isSidebarExpanded ? (
-              <div className="mx-2 flex flex-col gap-[2px]">
-                <button
-                  type="button"
-                  onClick={() => setIsAppSwitcherOpen((value) => !value)}
-                  className={`flex h-14 w-full items-center justify-between px-4 text-left transition-all duration-300 ease-out ${
-                    isAppSwitcherOpen
-                      ? activeApp === 'agent' ? 'rounded-t-[28px] rounded-b-[10px] bg-white' : 'rounded-t-[28px] rounded-b-[10px] bg-[#262626]'
-                      : activeApp === 'agent' ? 'rounded-full bg-[#f4f4f4] hover:bg-white' : 'rounded-full bg-[#1f1f1f] hover:bg-[#262626]'
-                  }`}
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="h-6 w-6 shrink-0 object-contain opacity-90" />
-                    <span className={`min-w-0 truncate text-sm font-bold ${activeApp === 'agent' ? 'text-zinc-950' : 'text-zinc-100'}`}>{activeApp === 'agent' ? 'Kindly Agent' : 'Kindly Prompt'}</span>
-                  </div>
-                  <ChevronDown size={14} className={`shrink-0 text-zinc-500 transition-transform duration-300 ${isAppSwitcherOpen ? 'rotate-180' : ''}`} />
-                </button>
-                <div className={`origin-top overflow-hidden transition-all duration-300 ease-out ${isAppSwitcherOpen ? 'max-h-[64px] scale-y-100 opacity-100' : 'max-h-0 scale-y-95 opacity-0'}`}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (activeApp === 'agent') setView('home');
-                      else openAgentApp('home');
-                    }}
-                    className={`flex h-12 w-full items-center gap-3 rounded-t-[10px] rounded-b-[28px] px-4 text-left transition-colors ${activeApp === 'agent' ? 'bg-white text-zinc-500 hover:bg-[#eeeeee] hover:text-zinc-950' : 'bg-[#151515] text-zinc-500 hover:bg-[#1e1e1e] hover:text-zinc-300'}`}
-                  >
-                    <AlignLeft size={18} className="shrink-0 text-zinc-500" />
-                    <span className="truncate text-sm font-semibold">{activeApp === 'agent' ? 'Kindly Prompt' : 'Kindly Agent'}</span>
-                  </button>
-                </div>
+              <div className="mx-2 flex h-11 items-center gap-3 px-3">
+                <img src="https://res.cloudinary.com/dwthgcx5j/image/upload/v1794336717/oval_crop_image_x2gozu.png" alt="Logo" className="h-6 w-6 shrink-0 object-contain" />
+                <span className="truncate text-[15px] font-bold tracking-tight text-zinc-950">{activeApp === 'agent' ? 'Kindly Agent' : 'Kindly Prompt'}</span>
               </div>
             ) : (
               <a href="/" className="mx-auto flex-shrink-0 transition-opacity hover:opacity-80">
                 <div className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center overflow-hidden ${activeApp === 'agent' ? 'bg-white' : 'bg-[#2a2a2a]'}`}>
-                   <img src="https://i.ibb.co/CpDQrQc9/Change-background-to-green-202605142004-removebg-preview.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
+                   <img src="https://res.cloudinary.com/dwthgcx5j/image/upload/v1794336717/oval_crop_image_x2gozu.png" alt="Logo" className="w-[24px] h-[24px] object-contain" />
                 </div>
               </a>
             )}
@@ -3077,7 +3057,6 @@ Return proposed memory entries and ask for confirmation before saving.`
                     : [
                         { label: 'New task', view: 'home' as const, icon: Plus, active: view === 'home' || view === 'result' },
                         { label: 'History', view: 'recents' as const, icon: History, active: view === 'recents' },
-                        { label: 'Discover', view: 'discover' as const, icon: Discover, active: view === 'discover' },
                       ]),
                 ].map((item) => {
                   const Icon = item.icon;
@@ -3090,15 +3069,15 @@ Return proposed memory entries and ask for confirmation before saving.`
                         else if (item.view === 'agent-recent') openAgentApp('recent');
                         else setView(item.view);
                       }}
-                      className={`relative rounded-full flex items-center outline-none group h-10 transition-colors ${
+                      className={`relative rounded-xl flex items-center outline-none group h-10 transition-colors ${
                         isSidebarExpanded
-                          ? `gap-3 px-3 justify-start ${item.active ? activeApp === 'agent' ? 'bg-white' : 'bg-[#2a2a2a]' : activeApp === 'agent' ? 'hover:bg-white' : 'hover:bg-[#262626]'}`
+                          ? `gap-3 px-3 justify-start ${item.active ? 'bg-[#ececec]' : 'hover:bg-[#ececec]'}`
                           : 'w-10 justify-center'
                       }`}
                       title={item.label}
                     >
-                      <Icon size={20} strokeWidth={1.5} className={`shrink-0 transition-colors ${item.active ? activeApp === 'agent' ? 'text-zinc-950' : 'text-white' : activeApp === 'agent' ? 'text-zinc-500 group-hover:text-zinc-950' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                      {isSidebarExpanded && <span className={`truncate text-sm font-semibold ${item.active ? activeApp === 'agent' ? 'text-zinc-950' : 'text-white' : activeApp === 'agent' ? 'text-zinc-600' : 'text-zinc-300'}`}>{item.label}</span>}
+                      <Icon size={20} strokeWidth={1.5} className={`shrink-0 transition-colors ${item.active ? 'text-zinc-950' : 'text-zinc-500 group-hover:text-zinc-950'}`} />
+                      {isSidebarExpanded && <span className={`truncate text-sm font-semibold ${item.active ? 'text-zinc-950' : 'text-zinc-600'}`}>{item.label}</span>}
                     </motion.button>
                   );
                 })}
@@ -3206,21 +3185,20 @@ Return proposed memory entries and ask for confirmation before saving.`
             ) : (
               <motion.div
                 animate={{
-                  y: faceMood === 'focused' ? [0, -1, 0] : [0, 1, 0],
-                  rotate: faceMood === 'curious' ? [0, -2, 2, 0] : 0
+                  x: [0, 18, -12, 8, 0],
+                  y: [0, -12, 6, 14, 0],
                 }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                className="relative h-11 w-[72px] rounded-full bg-white shadow-[inset_0_-8px_12px_rgba(0,0,0,0.18),inset_0_6px_10px_rgba(255,255,255,0.85),0_12px_26px_rgba(0,0,0,0.42)] ring-1 ring-white/50"
+                transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative h-[72px] w-[72px] rounded-full bg-[radial-gradient(circle_at_50%_35%,#ffffff_45%,#e4e2ff_72%,#9fe3f5_100%)]"
                 aria-hidden="true"
               >
-                <div className="absolute inset-x-3 top-1 h-2 rounded-full bg-white/70 blur-[1px]" />
                 <motion.span
                   animate={{ x: eyeShift, height: [16, 16, 3, 16, 16, 3, 16] }}
                   transition={{
                     x: { duration: 0.2 },
                     height: { duration: 10, repeat: Infinity, times: [0, 0.48, 0.5, 0.52, 0.94, 0.96, 1] }
                   }}
-                  className="absolute left-[24px] top-[14px] h-4 w-2 rounded-full bg-black"
+                  className="absolute left-[22px] top-[24px] h-4 w-2 rounded-full bg-black"
                 />
                 <motion.span
                   animate={{ x: eyeShift, y: faceMood === 'focused' ? -1 : 0, height: [16, 16, 3, 16] }}
@@ -3229,12 +3207,12 @@ Return proposed memory entries and ask for confirmation before saving.`
                     y: { duration: 0.2 },
                     height: { duration: 10, repeat: Infinity, times: [0, 0.94, 0.96, 1] }
                   }}
-                  className="absolute right-[24px] top-[14px] h-4 w-2 rounded-full bg-black"
+                  className="absolute right-[22px] top-[24px] h-4 w-2 rounded-full bg-black"
                 />
               </motion.div>
             )}
             <h1 className="text-3xl md:text-4xl font-medium tracking-tight">
-              {selectedTool === 'prompt' ? 'What do you want to prompt?' : selectedTool === 'design' ? 'What do you want to design?' : selectedTool === 'skill' ? 'What do you want to build a skill for?' : 'What should SPEC.md define?'}
+              What do you want to prompt?
             </h1>
           </div>
 
@@ -3243,7 +3221,7 @@ Return proposed memory entries and ask for confirmation before saving.`
             
             <div className="flex w-full flex-col relative z-10 transition-colors group">
               
-              <div className="bg-[#f3f4f6] rounded-[28px] p-3 flex flex-col relative border border-zinc-200/70">
+              <div className="bg-[#ececec] rounded-full pl-1.5 pr-1.5 py-1.5 flex flex-row items-center gap-1 relative">
                 <div className="absolute top-4 left-4 z-10 flex gap-2">
                   {imageRef && (
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10 relative group/img">
@@ -3272,8 +3250,9 @@ Return proposed memory entries and ask for confirmation before saving.`
                 </div>
                 
                  <textarea
-                  className={`w-full bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 text-[15px] leading-relaxed custom-scrollbar ${(imageRef || attachedText) ? (imageRef ? 'pt-16 min-h-[80px]' : 'pt-12 min-h-[70px]') : 'min-h-[30px]'}`}
-                  placeholder={selectedTool === 'prompt' ? "Describe the app you want to build..." : selectedTool === 'design' ? "Describe your ideal user interface..." : selectedTool === 'skill' ? "Describe the agent skill you need..." : "Describe the unified spec you need..."}
+                  rows={1}
+                  className={`order-2 min-w-0 flex-1 bg-transparent outline-none resize-none placeholder:text-zinc-500 text-zinc-100 text-[14px] leading-snug custom-scrollbar px-2 py-1.5${(imageRef || attachedText) ? (imageRef ? 'pt-16 min-h-[80px]' : 'pt-12 min-h-[70px]') : 'min-h-[24px]'}`}
+                  placeholder="Describe what you want to build..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onPaste={(e) => {
@@ -3296,8 +3275,8 @@ Return proposed memory entries and ask for confirmation before saving.`
                 />
                 
                 {/* Action Bar */}
-                <div className="flex items-center justify-between mt-1">
-                  <div className="flex items-center gap-3">
+                <div className="contents">
+                  <div className="order-1 flex shrink-0 items-center gap-2">
                     <input type="file" accept="image/*" id="input-upload" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleImageUpload(e.target.files[0]); setIsAddMenuOpen(false); }} />
                     <input type="file" accept="image/*" id="wireframe-upload" className="hidden" onChange={(e) => { 
                       if(e.target.files?.[0]) {
@@ -3310,7 +3289,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                       <button
                         type="button"
                         onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 transition-colors cursor-pointer shrink-0 ${isAddMenuOpen ? 'bg-[#383838]' : 'bg-[#2a2a2a] hover:bg-[#383838]'}`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-zinc-700 transition-colors cursor-pointer shrink-0 ${isAddMenuOpen ? 'bg-zinc-200' : 'bg-transparent hover:bg-zinc-200'}`}
                         aria-label="Add source"
                       >
                         <Plus size={16} />
@@ -3324,71 +3303,52 @@ Return proposed memory entries and ask for confirmation before saving.`
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 8, scale: 0.96 }}
                               transition={{ duration: 0.15 }}
-                              className="absolute bottom-full left-0 z-50 mb-2 w-56 rounded-2xl border border-white/10 bg-[#121212] p-1.5 shadow-2xl"
+                              className="absolute bottom-full left-0 z-50 mb-2 min-w-[250px] rounded-2xl border border-zinc-300 bg-white p-1.5 shadow-none"
                             >
-                              <label htmlFor="input-upload" className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
+                              <label htmlFor="input-upload" className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950">
                                 <ImageIcon size={16} className="text-zinc-500" />
                                 Upload image
                               </label>
-                              <label htmlFor="wireframe-upload" className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
+                              <label htmlFor="wireframe-upload" className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950">
                                 <Paintbrush size={16} className="text-zinc-500" />
                                 Upload wireframe image
                               </label>
                               <button
                                 type="button"
                                 onClick={attachFigmaLink}
-                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
                               >
-                                <Link size={16} className="text-zinc-500" />
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt="" className="h-4 w-4 shrink-0 object-contain" />
                                 Figma link
                               </button>
-                            </motion.div>
-                          </>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    <div className="relative">
-                      <div 
-                        onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                        className={`flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${isModelDropdownOpen ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}
-                      >
-                        <span className="font-semibold text-white text-[13px]">{modelLabel}</span>
-                        <ChevronDown size={14} className="text-zinc-500 ml-0.5" />
-                      </div>
-                      
-                      <AnimatePresence>
-                        {isModelDropdownOpen && (
-                          <>
-                            <div className="fixed inset-0 z-40" onClick={() => setIsModelDropdownOpen(false)} />
-                            <motion.div
-                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                              transition={{ duration: 0.15 }}
-                              className="absolute top-full left-0 mt-2 bg-[#121212] border border-[#2a2a2a] rounded-2xl p-1.5 z-50 shadow-2xl min-w-[200px]"
-                            >
-                              <div className="flex flex-col gap-1">
-                                <button
-                                  onClick={() => { setModelType('ultra-fast'); setIsModelDropdownOpen(false); }}
-                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors ${modelType === 'ultra-fast' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
-                                >
-                                  Ultra Fast
-                                </button>
-                                <button
-                                  onClick={() => { setModelType('lite'); setIsModelDropdownOpen(false); }}
-                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors ${modelType === 'lite' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
-                                >
-                                  Lite
-                                </button>
-                                <button
-                                  onClick={() => { setModelType('super-agent'); setIsModelDropdownOpen(false); }}
-                                  className={`w-full text-left px-3 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center justify-between ${modelType === 'super-agent' ? 'bg-[#2a2a2a] text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c]'}`}
-                                >
-                                  <span>Super Agents</span>
-                                  <Zap size={12} className={modelType === 'super-agent' ? 'text-white' : 'text-zinc-500'} />
-                                </button>
-                              </div>
+                              {figmaDraft !== null && (
+                                <div className="flex items-center gap-2 px-2 pb-1 pt-1">
+                                  <input
+                                    autoFocus
+                                    value={figmaDraft}
+                                    onChange={(e) => setFigmaDraft(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') submitFigmaLink(); if (e.key === 'Escape') setFigmaDraft(null); }}
+                                    placeholder="Paste Figma link"
+                                    className="min-w-0 flex-1 rounded-full bg-[#ececec] px-3 py-1.5 text-[13px] text-zinc-900 outline-none placeholder:text-zinc-500"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={submitFigmaLink}
+                                    disabled={!figmaDraft.trim()}
+                                    className="rounded-full bg-black px-3 py-1.5 text-[12px] font-semibold text-[#ffffff] disabled:opacity-40"
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => { toggleComposerListening(); setIsAddMenuOpen(false); }}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
+                              >
+                                <Mic size={16} className="text-zinc-500" />
+                                {isComposerListening ? 'Stop voice input' : 'Voice input'}
+                              </button>
                             </motion.div>
                           </>
                         )}
@@ -3396,15 +3356,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={toggleComposerListening}
-                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 ${isComposerListening ? 'bg-blue-500/15 text-blue-300' : 'bg-[#2a2a2a] text-zinc-300 hover:bg-[#383838]'}`}
-                      aria-label={isComposerListening ? 'Stop voice input' : 'Start voice input'}
-                    >
-                      <Mic size={17} className={isComposerListening ? 'animate-pulse' : ''} />
-                    </button>
+                  <div className="order-3 flex shrink-0 items-center gap-2">
                     <button
                       onClick={() => {
                         if(input.trim() || imageRef || attachedText) {
@@ -3413,9 +3365,9 @@ Return proposed memory entries and ask for confirmation before saving.`
                         }
                       }}
                       disabled={!input.trim() && !imageRef && !attachedText}
-                      className="w-9 h-9 rounded-full bg-white hover:bg-zinc-200 disabled:opacity-50 flex items-center justify-center text-black transition-colors shrink-0"
+                      className="w-8 h-8 rounded-full bg-[#000000] hover:bg-[#27272a] flex items-center justify-center text-[#ffffff] transition-colors shrink-0 self-center disabled:cursor-default"
                     >
-                      <ArrowUp size={18} className="stroke-[2.5]" />
+                      <ArrowUp size={16} strokeWidth={2.5} className="text-[#ffffff]" />
                     </button>
                   </div>
                 </div>
@@ -3431,63 +3383,19 @@ Return proposed memory entries and ask for confirmation before saving.`
                     className="overflow-hidden"
                   >
                     <div className="px-3 pt-5">
-                      {/* Tool Selection Chips */}
-                      <div className="flex flex-wrap items-center gap-2 mb-4">
-                        <button 
-                          onClick={() => setSelectedTool('prompt')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'prompt' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
-                        >
-                           <PromptIcon size={14} /> Prompt
-                        </button>
-                        <button 
-                          onClick={() => setSelectedTool('design')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'design' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
-                        >
-                           <Paintbrush size={14} /> Design
-                        </button>
-                        <button 
-                          onClick={() => setSelectedTool('skill')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'skill' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
-                        >
-                           <Zap size={14} /> Skill
-                        </button>
-                        <button 
-                          onClick={() => setSelectedTool('spec')} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${selectedTool === 'spec' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-950'}`}
-                        >
-                           <FileText size={14} /> SPEC.md
-                           <span className="rounded-md bg-cyan-100 px-1.5 py-0.5 text-[10px] font-black leading-none text-cyan-700">
-                             New
-                           </span>
-                        </button>
-                      </div>
-
                       {/* In-Line Text Suggestions */}
-                      <div className="flex flex-col gap-4 px-1 pb-1">
-                         {(selectedTool === 'prompt' ? [
+                      <div className="flex flex-wrap gap-2 px-1 pb-1">
+                         {[
                            "Build a personal habit tracker with a dark UI",
                            "Create a real-time multiplayer drawing app",
                            "Generate a dashboard for tracking crypto prices"
-                         ] : selectedTool === 'design' ? [
-                           "Make a minimalist portfolio design with large typography",
-                           "A dark-mode dashboard for tracking server analytics",
-                           "A retro terminal UI for a weather app"
-                         ] : selectedTool === 'skill' ? [
-                           "Build an agent skill to read and parse local log files",
-                           "Create a skill to search the web for recent news articles",
-                           "Add a skill to securely connect to a PostgreSQL database"
-                         ] : [
-                           "Create a SPEC.md for a vibe coding prompt engineer",
-                           "Unify prompt, design, skill, and research docs for a SaaS builder",
-                           "Write a SPEC.md for an AI design review agent"
-                         ]).map((suggestion, i) => (
+                         ].map((suggestion, i) => (
                            <button 
                              key={i}
                              onClick={() => handleSuggestionClick(suggestion)}
-                             className="text-left w-full flex items-center gap-4 text-[15px] text-zinc-800 hover:text-zinc-950 transition-colors group"
+                             className="max-w-full truncate rounded-full bg-[#ececec] px-3 py-1 text-left text-[12px] text-zinc-600 transition-colors hover:bg-zinc-200 hover:text-zinc-950"
                            >
-                             <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-700 shrink-0" strokeWidth={1.5} />
-                             <span className="truncate">{suggestion}</span>
+                             {suggestion}
                            </button>
                          ))}
                       </div>
@@ -3531,47 +3439,6 @@ Return proposed memory entries and ask for confirmation before saving.`
             >
               <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g clipPath="url(#prefix__clip0_5_13)" fillRule="evenodd" clipRule="evenodd" fill="currentColor"><path d="M211.648 89.515h-76.651A57.707 57.707 0 0077.291 147.2v242.389a57.707 57.707 0 0057.706 57.707h242.411a57.707 57.707 0 0057.707-57.707V288.128l34.624-23.744v125.227a92.35 92.35 0 01-92.331 92.33H134.997a92.349 92.349 0 01-92.33-92.33v-242.39A92.336 92.336 0 0169.702 81.92a92.33 92.33 0 0165.295-27.05h96.96l-20.309 34.645z"/><path d="M380.16 0c3.093 0 5.717 2.219 6.379 5.248a149.328 149.328 0 0040.533 74.325 149.332 149.332 0 0074.347 40.555c3.029.661 5.248 3.285 5.248 6.4a6.574 6.574 0 01-5.248 6.357 149.338 149.338 0 00-74.326 40.555 149.338 149.338 0 00-40.789 75.413 6.334 6.334 0 01-6.144 5.078 6.334 6.334 0 01-6.144-5.078 149.338 149.338 0 00-40.789-75.413 149.326 149.326 0 00-75.414-40.789 6.338 6.338 0 01-5.077-6.144c0-2.987 2.133-5.547 5.077-6.144a149.336 149.336 0 0075.414-40.79 149.354 149.354 0 0040.554-74.325A6.573 6.573 0 01380.16 0z"/></g><defs><clipPath id="prefix__clip0_5_13"><path fill="#fff" d="M0 0h512v512H0z"/></clipPath></defs></svg>
               <span className="text-zinc-300 text-[15px] font-medium">AI Studio</span>
-            </div>
-          </div>
-
-          <div className="mt-6 w-full max-w-2xl overflow-hidden rounded-[22px] bg-[#151515] p-[1px]">
-            <div className="relative flex min-h-[150px] overflow-hidden rounded-[21px] bg-[#111313]">
-              <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(#253235_1px,transparent_1px),linear-gradient(90deg,#253235_1px,transparent_1px)] [background-size:70px_70px]" />
-              <div className="relative z-10 flex w-[48%] flex-col justify-between p-6">
-                <div>
-                  <div className="mb-3 flex items-center gap-2">
-                    <h2 className="text-2xl font-black tracking-tight text-white">WEEKLY EVENT</h2>
-                    <span className="rounded-md bg-cyan-300 px-2 py-0.5 text-[11px] font-black text-[#101314]">SOON</span>
-                  </div>
-                  <p className="max-w-[260px] text-[15px] leading-snug text-zinc-400">
-                    {weeklyEvent.body}
-                  </p>
-                </div>
-                <button onClick={() => setIsWeeklyDropOpen(true)} className="mt-5 flex w-fit items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#111315] transition-colors hover:bg-zinc-200">
-                  Preview
-                  <ArrowUpRight size={15} />
-                </button>
-              </div>
-              <div className="relative z-10 flex flex-1 items-center justify-end gap-3 overflow-hidden pr-6">
-                {[
-                  { label: 'Chrome Extension', icon: <Code2 size={22} /> },
-                  { label: 'Prompt Optimizer', icon: <Sparkles size={22} /> },
-                  { label: 'Super Intelligence', icon: <Zap size={22} /> }
-                ].map((item, idx) => (
-                  <motion.div
-                    key={item.label}
-                    animate={{ y: idx === 1 ? [0, -6, 0] : [0, 5, 0] }}
-                    transition={{ duration: 4 + idx, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ rotate: idx === 0 ? '-7deg' : idx === 1 ? '5deg' : '-3deg' }}
-                    className="flex h-24 w-24 flex-col items-center justify-center gap-2 rounded-2xl bg-[#27292b] text-zinc-200 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1a1b1d] text-cyan-200">
-                      {item.icon}
-                    </div>
-                    <span className="text-[11px] font-bold text-zinc-300">{item.label}</span>
-                  </motion.div>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -3977,7 +3844,7 @@ Return proposed memory entries and ask for confirmation before saving.`
         // RECENTS VIEW
         <div className="max-w-4xl w-full relative z-10 shrink-0 mx-auto px-6 pt-24 pb-16 min-h-[80vh]">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-            <h1 className="text-3xl font-medium tracking-tight text-white mb-2 md:mb-0">History</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 mb-2 md:mb-0">History <span className="ml-2 align-middle text-sm font-medium text-zinc-400">{recents.length}</span></h1>
             
             <div className="flex-1 max-w-sm w-full relative">
                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />
@@ -3986,7 +3853,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                  placeholder="Search history..." 
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full bg-[#1c1c1c] text-zinc-200 placeholder:text-zinc-500 rounded-full pl-11 pr-4 py-2.5 outline-none border border-white/5 focus:border-zinc-700/50 transition-colors text-sm"
+                 className="w-full bg-[#ececec] text-zinc-900 placeholder:text-zinc-500 rounded-full pl-11 pr-4 py-2.5 outline-none border-none transition-colors text-sm"
                />
             </div>
 
@@ -3995,13 +3862,13 @@ Return proposed memory entries and ask for confirmation before saving.`
                 <>
                   <button 
                     onClick={() => setSelectionMode(true)}
-                    className="bg-[#2a2a2a] hover:bg-[#383838] text-zinc-300 px-4 py-2.5 rounded-full text-xs font-semibold transition-colors border-none"
+                    className="bg-white hover:bg-[#ececec] text-zinc-700 px-4 py-2.5 rounded-full text-xs font-semibold transition-colors border border-zinc-300"
                   >
                     SELECT
                   </button>
                   <button 
                     onClick={() => setView('home')}
-                    className="bg-black hover:bg-black/80 text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-colors border border-white/10"
+                    className="bg-black hover:bg-zinc-800 text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-colors"
                   >
                     NEW CHAT
                   </button>
@@ -4057,7 +3924,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                     <Plus size={22} strokeWidth={1.7} />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">No history yet</h3>
+                <h3 className="text-xl font-bold text-zinc-950 mb-2 tracking-tight">No history yet</h3>
                 <p className="text-zinc-400 text-sm mb-6">Your generated prompts will show up here.</p>
                 <button
                   onClick={() => setView('home')}
@@ -4077,7 +3944,7 @@ Return proposed memory entries and ask for confirmation before saving.`
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       key={globalIndex}
-                      className={`flex flex-col gap-3 p-4 border rounded-2xl transition-colors cursor-pointer group ${isSelected ? 'bg-zinc-900 border-zinc-700/50' : 'bg-[#141414]/50 border-white/5 hover:border-white/10 hover:bg-[#1a1a1a]'}`}
+                      className={`flex flex-col gap-1 px-4 py-3 rounded-xl transition-colors cursor-pointer group ${isSelected ? 'bg-[#ececec]' : 'hover:bg-[#ececec]'}`}
                       onClick={() => {
                         if (selectionMode) {
                           if (isSelected) {
@@ -4097,23 +3964,23 @@ Return proposed memory entries and ask for confirmation before saving.`
                               {isSelected && <Check size={12} className="text-black stroke-[3]" />}
                             </div>
                           ) : (
-                            <div className="w-8 h-8 rounded-lg bg-[#2a2a2a] shrink-0 flex items-center justify-center transition-colors">
+                            <div className="w-8 h-8 rounded-full bg-white border border-zinc-200 shrink-0 flex items-center justify-center transition-colors">
                               {item.type === 'design' ? <Paintbrush size={14} className="text-zinc-400" /> : item.type === 'skill' ? <Zap size={14} className="text-zinc-400" /> : item.type === 'spec' ? <FileText size={14} className="text-zinc-400" /> : <MessageSquare size={14} className="text-zinc-400" />}
                             </div>
                           )}
                           
                           <div className="flex flex-col flex-1 min-w-0">
-                            <span className="text-[15px] font-semibold text-zinc-100 truncate mb-1">{item.title}</span>
-                            <span className="text-sm text-zinc-500 line-clamp-2 leading-relaxed">{item.prompt}</span>
+                            <span className="text-[15px] font-semibold text-zinc-950 truncate">{item.title}</span>
+                            <span className="text-sm text-zinc-500 truncate">{item.prompt}</span>
                           </div>
                         </div>
                         
                         <div className="flex flex-col items-end gap-2 shrink-0">
-                          <span className="text-xs font-mono text-zinc-600 uppercase tracking-widest pl-2">
+                          <span className="text-xs text-zinc-400 pl-2 whitespace-nowrap">
                             {timeAgo((item as any).date) || 'recently'}
                           </span>
                           {!selectionMode && (
-                             <div className="p-2 -mr-2 text-zinc-600 group-hover:text-zinc-300 transition-colors">
+                             <div className="p-2 -mr-2 text-zinc-400 group-hover:text-zinc-950 transition-colors">
                                <ArrowRight size={16} />
                              </div>
                           )}
@@ -4848,12 +4715,6 @@ Return proposed memory entries and ask for confirmation before saving.`
                   >
                     Start building
                   </button>
-                  <button
-                    onClick={() => { setIsV1IntroOpen(false); setView('discover'); }}
-                    className="rounded-full bg-[#242424] px-7 py-3 text-sm font-bold text-zinc-200 transition-colors hover:bg-[#303030]"
-                  >
-                    Explore Discover
-                  </button>
                 </div>
               </div>
             </motion.div>
@@ -5323,16 +5184,6 @@ Return proposed memory entries and ask for confirmation before saving.`
                         <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">Ctrl</kbd>
                         <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-sans text-zinc-400">L</kbd>
                       </div>
-                    </div>
-                    <div
-                      onClick={() => { setView('discover'); setShowShortcutsMenu(false); }}
-                      className="px-3 py-2 flex items-center justify-between text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Discover size={16} className="text-zinc-500" />
-                        <span className="text-sm font-medium">Discover</span>
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Soon</span>
                     </div>
                     <div
                       onClick={() => { setView('skills'); setShowShortcutsMenu(false); }}
